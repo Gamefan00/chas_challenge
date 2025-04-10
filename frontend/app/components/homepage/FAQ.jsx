@@ -107,7 +107,15 @@ const FAQ = () => {
                 id={`faq-question-${faq.id}`}
                 tabIndex={0}
               >
-                <h4 className="font-medium text-gray-900">{faq.question}</h4>
+                <motion.h4
+                  animate={{
+                    color: faq.id === expandedFaq ? "#0056b3" : "#111111",
+                  }}
+                  transition={{ duration: 0.3 }}
+                  className="font-medium text-gray-900"
+                >
+                  {faq.question}
+                </motion.h4>
                 {/* Animated arrow icon to indicate open/close state */}
                 <motion.div
                   animate={{ rotate: faq.id === expandedFaq ? 180 : 0 }}
