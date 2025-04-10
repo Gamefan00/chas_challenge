@@ -6,9 +6,9 @@ const FeatureCard = () => {
       {/* Section Title */}
       <h2 className="flex justify-center p-2">Hur kan vi hjälpa dig?</h2>
       {/* Contianer for Feature Cards */}
-      <div className="flex flex-wrap justify-center gap-6 p-5">
+      <div className="flex flex-col md:flex md:flex-row justify-center gap-10">
         {/* Card 1 */}
-        <div className="card bg-base-100 h-76 w-82 shadow-md">
+        <div className="card bg-base-100 h-82 w-full shadow-md ">
           <div className="card-body flex justify-between">
             {/* Icon for documentation */}
             {/* <FileText /> from lucide react*/}
@@ -32,7 +32,7 @@ const FeatureCard = () => {
           </div>
         </div>
         {/* Card 2 */}
-        <div className="card bg-base-100 h-76 w-82 shadow-md">
+        <div className="card bg-base-100 h-82 w-full shadow-md">
           <div className="card-body flex justify-between">
             {/* <MessageSquareMore /> from lucide react */}
             <div className="mb-10">Pratbubbla ikon här</div>
@@ -56,7 +56,7 @@ const FeatureCard = () => {
           </div>
         </div>
         {/* Card 3 */}
-        <div className="card bg-base-100 h-76 w-82 shadow-md">
+        <div className="card bg-base-100 h-82 w-full shadow-md ">
           <div className="card-body flex justify-between">
             {/* <PenLine/> from lucide react */}
             <div className="mb-10">Penna ikon här</div>

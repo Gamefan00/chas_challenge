@@ -2,11 +2,11 @@ import React from "react";
 
 const Footer = () => {
   return (
-    <footer className="bg-footer text-background w-full flex-col">
-      <div className="flex justify-between gap-10 p-10">
+    <footer className="bg-footer text-background w-full">
+      <div className="flex flex-col justify-around gap-10 p-10 sm:flex-row">
         <div className="flex flex-col items-start gap-2">
           <h2>Ansökshjälpen</h2>
-          <div className="bg-primary h-[2px] w-2/12" />
+          <div className="bg-primary h-[2px] w-[45px]" />
           <div className="flex flex-col gap-4 opacity-90">
             <a href="">Om oss</a>
             <a href="">Tillgänglighetsredogörelse</a>
@@ -16,7 +16,7 @@ const Footer = () => {
         </div>
         <div className="flex flex-col items-start gap-2">
           <h2>Resurser</h2>
-          <div className="bg-primary h-[2px] w-2/12" />
+          <div className="bg-primary h-[2px] w-[45px]" />
           <div className="flex flex-col gap-4 opacity-90">
             <a href="">Lager & regler</a>
             <a href="">Försäkringskassan</a>
@@ -26,7 +26,7 @@ const Footer = () => {
         </div>
         <div className="flex flex-col items-start gap-2">
           <h2>Kontakt</h2>
-          <div className="bg-primary h-[2px] w-2/12" />
+          <div className="bg-primary h-[2px] w-[45px]" />
           <div className="flex flex-col gap-4 opacity-90">
             <a href="">inte@ansokningshalpen.se</a>
             <a href="">070-123 45 67</a>
@@ -36,7 +36,7 @@ const Footer = () => {
         </div>
       </div>
       <div className="bg-base-100 h-px w-full opacity-20" />
-      <div className="flex justify-center p-4 text-sm">
+      <div className="flex justify-center p-4">
         <h4 className="">© 2025 Ansökshjälpen. Alla rättigheter förbehållna</h4>
       </div>
     </footer>

@@ -36,14 +36,14 @@ const FAQ = () => {
   return (
     <div className="card bg-base-100 w-full shadow-md">
       <div className="card-body p-12 md:px-36 md:py-24">
-        <motion.h6
-          className="mb-8 text-center text-4xl font-bold"
+        <motion.h2
+          className="mb-8 text-center"
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
           Vanliga frågor
-        </motion.h6>
+        </motion.h2>
         <div className="w-full">
           {faqData.map((faq, index) => (
             <motion.div
