@@ -12,7 +12,7 @@ const linksData = [
 
 const Navbar = () => {
   return (
-    <div className="navbar relative z-50 justify-between px-4 shadow-md">
+    <div className="navbar relative z-50 justify-between px-4 shadow-sm">
       {/* Logo and site name  */}
       <div className="items-center">
         <Link href="/" className="flex items-center">
