@@ -30,8 +30,8 @@ const HowItWorks = () => {
   ];
 
   return (
-    <div className="card bg-base-100 w-full py-8 shadow-sm">
-      <div className="card-body gap-8">
+    <div className="card bg-base-100 w-full p-8 shadow-sm">
+      <div className="card-body relative gap-8">
         <h2 className="card-title mx-auto">Så fungerar det</h2>
         {/* Steps grid */}
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
@@ -43,6 +43,8 @@ const HowItWorks = () => {
               description={step.description}
             />
           ))}
+          {/* Vertical bar */}
+          <div className="bg-accent absolute top-[110px] left-0 hidden h-[2px] w-full lg:block"></div>
         </div>
         {/* Call to action */}
         <div class="card-actions justify-center">
@@ -56,7 +58,7 @@ const HowItWorks = () => {
 export function StepSection({ number, title, description }) {
   return (
     <div className="mx-auto flex max-w-64 flex-col items-center gap-4 text-center">
-      <div className="bg-primary text-background flex h-14 w-14 items-center justify-center rounded-full text-lg font-bold">
+      <div className="bg-primary text-background z-10 flex h-14 w-14 items-center justify-center rounded-full text-lg font-bold">
         {number}
       </div>
       <h3>{title}</h3>
