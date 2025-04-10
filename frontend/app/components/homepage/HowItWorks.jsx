@@ -27,7 +27,7 @@ const steps = [
 
 const HowItWorks = () => {
   return (
-    <div className="card bg-base-100 w-full p-8 shadow-sm">
+    <div className="card bg-base-100 w-full p-8 shadow-md">
       <div className="card-body relative gap-8">
         <h2 className="card-title mx-auto">Så fungerar det</h2>
         {/* Steps grid */}
