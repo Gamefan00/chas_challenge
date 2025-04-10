@@ -43,7 +43,7 @@ const AccessibilityHeader = () => {
   }
 
   return (
-    <div className="navbar justify-end px-4">
+    <div className="navbar bg-background justify-end border-b border-slate-200 px-4">
       <div className="flex items-center gap-6">
         {/* Font controls  */}
         <button
