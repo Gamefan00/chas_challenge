@@ -43,20 +43,20 @@ const AccessibilityHeader = () => {
   }
 
   return (
-    <div className="navbar bg-background justify-end border-b border-slate-200 px-4">
+    <div className="navbar bg-background h-10 min-h-10 justify-end border-b border-slate-200 px-4">
       <div className="flex items-center gap-6">
         {/* Font controls  */}
         <button
           onClick={() => changeFontSize("increase")}
           aria-label="Increase font size"
-          className="btn btn-link link-hover px-0 text-base font-normal"
+          className="btn btn-link link-hover h-6 px-0 text-base font-normal"
         >
           A+
         </button>
         <button
           onClick={() => changeFontSize("decrease")}
           aria-label="Decrease font size"
-          className="btn btn-link link-hover px-0 text-base font-normal"
+          className="btn btn-link link-hover h-6 px-0 text-base font-normal"
         >
           A-
         </button>
@@ -64,7 +64,7 @@ const AccessibilityHeader = () => {
         {/* High contrast mode toggle */}
         <button
           onClick={() => setIsHighContrastMode(!isHighContrastMode)}
-          className="btn btn-link link-hover px-0 text-base font-normal"
+          className="btn btn-link link-hover h-6 px-0 text-base font-normal"
         >
           Hög kontrast
         </button>
@@ -72,7 +72,7 @@ const AccessibilityHeader = () => {
         {/* Easy reading mode toggle  */}
         <button
           onClick={() => setIsEasyReadingMode(!isEasyReadingMode)}
-          className="btn btn-link link-hover px-0 text-base font-normal"
+          className="btn btn-link link-hover h-6 px-0 text-base font-normal"
         >
           Läsvänlig text
         </button>
@@ -85,7 +85,7 @@ const AccessibilityHeader = () => {
               setActiveLanguage(e.target.value);
             }}
             id="language-select"
-            className="select"
+            className="select h-8"
             value={activeLanguage}
           >
             <option value={"sv"}>Svenska</option>
