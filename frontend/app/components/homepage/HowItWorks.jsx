@@ -1,34 +1,31 @@
 import React from "react";
 
-const HowItWorks = () => {
-  // Initialize steps data
-  const steps = [
-    {
-      id: 1,
-      title: "Beskriv din situation",
-      description:
-        "Berätta om din funktionsnedsättning och dina behov på arbetsplatsen i en enkel konversation.",
-    },
-    {
-      id: 2,
-      title: "Få personlig vägledning",
-      description:
-        "Vår AI analyserar dina uppgifter och ger skräddarsydd hjälp för just dina behov.",
-    },
-    {
-      id: 3,
-      title: "Skapa din ansökan",
-      description:
-        "Få förslag på formuleringar som matchar Försäkringskassans krav och riktlinjer.",
-    },
-    {
-      id: 4,
-      title: "Ladda ner & använd",
-      description:
-        "Spara dina dokument och förbered dig för nästa steg i processen med våra stöddokument.",
-    },
-  ];
+const steps = [
+  {
+    id: 1,
+    title: "Beskriv din situation",
+    description:
+      "Berätta om din funktionsnedsättning och dina behov på arbetsplatsen i en enkel konversation.",
+  },
+  {
+    id: 2,
+    title: "Få personlig vägledning",
+    description: "Vår AI analyserar dina uppgifter och ger skräddarsydd hjälp för just dina behov.",
+  },
+  {
+    id: 3,
+    title: "Skapa din ansökan",
+    description: "Få förslag på formuleringar som matchar Försäkringskassans krav och riktlinjer.",
+  },
+  {
+    id: 4,
+    title: "Ladda ner & använd",
+    description:
+      "Spara dina dokument och förbered dig för nästa steg i processen med våra stöddokument.",
+  },
+];
 
+const HowItWorks = () => {
   return (
     <div className="card bg-base-100 w-full p-8 shadow-sm">
       <div className="card-body relative gap-8">
@@ -47,8 +44,8 @@ const HowItWorks = () => {
           <div className="bg-accent absolute top-[110px] left-0 hidden h-[2px] w-full lg:block"></div>
         </div>
         {/* Call to action */}
-        <div class="card-actions justify-center">
-          <button class="btn btn-primary">Starta din ansökan</button>
+        <div className="card-actions justify-center">
+          <button className="btn btn-primary">Starta din ansökan</button>
         </div>
       </div>
     </div>
