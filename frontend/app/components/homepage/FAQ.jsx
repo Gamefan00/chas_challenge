@@ -1,36 +1,78 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { ChevronDown } from "lucide-react";
 
 const FAQ = () => {
-  const [openIndex, setOpenIndex] = useState(null);
+  const [expandedFaq, setExpandedFaq] = useState(null);
+  const faqRefs = useRef([]);
 
   // Array of FAQ data containing questions and their corresponding answers
   const faqData = [
     {
+      id: 1,
       question: "Vad är arbetshjälpmedel?",
       answer:
         "Arbetshjälpmedel är produkter, verktyg eller anpassningar som gör det möjligt för personer med funktionsnedsättning att utföra sitt arbete. Det kan vara allt från ergonomiska möbler till specialiserad programvara eller tekniska hjälpmedel.",
     },
     {
+      id: 2,
       question: "Vem kan ansöka om arbetshjälpmedel?",
       answer:
         "Personer med funktionsnedsättning som är anställda, egenföretagare, eller som ska börja ett arbete eller arbetsmarknadsutbildning kan ansöka om arbetshjälpmedel.",
     },
     {
+      id: 3,
       question: "Hur fungerar ett utredningssamtal?",
       answer:
         "Ett utredningssamtal är ett möte där dina behov kartläggs. En handläggare träffar dig och eventuellt din arbetsgivare för att diskutera vilka hjälpmedel som kan underlätta ditt arbete. Samtalet kan ske på arbetsplatsen eller digitalt.",
     },
     {
+      id: 4,
       question: "Sparas mina uppgifter på Ansökshjälpen?",
       answer:
         "Ja, dina uppgifter sparas säkert och i enlighet med GDPR. De används endast för att hantera din ansökan och kommer inte att delas med tredje part utan ditt samtycke.",
     },
   ];
 
+  // Initialize the refs array
+  useEffect(() => {
+    faqRefs.current = faqRefs.current.slice(0, faqData.length);
+  }, [faqData.length]);
+
   // Function to toggle the visibility of an FAQ item's answer
-  const toggleFaq = (index) => {
-    setOpenIndex(index === openIndex ? null : index); // Close if already open, otherwise open the clicked item
+  const toggleFaq = (id) => {
+    setExpandedFaq(id === expandedFaq ? null : id); // Close if already open, otherwise open the clicked item
+  };
+
+  // Handle keyboard navigation
+  const handleKeyDown = (e, id, index) => {
+    switch (e.key) {
+      case " ":
+      case "Enter":
+        e.preventDefault();
+        toggleFaq(id);
+        break;
+      case "ArrowDown":
+        e.preventDefault();
+        const nextIndex = (index + 1) % faqData.length;
+        faqRefs.current[nextIndex]?.focus();
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        const prevIndex = (index - 1 + faqData.length) % faqData.length;
+        faqRefs.current[prevIndex]?.focus();
+        break;
+      case "Home":
+        e.preventDefault();
+        faqRefs.current[0]?.focus();
+        break;
+      case "End":
+        e.preventDefault();
+        faqRefs.current[faqData.length - 1]?.focus();
+        break;
+      default:
+        break;
+    }
   };
 
   return (
@@ -38,73 +80,68 @@ const FAQ = () => {
       <div className="card-body p-12 md:px-36 md:py-24">
         <motion.h2
           className="mb-8 text-center"
+          id="faq-heading"
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
           Vanliga frågor
         </motion.h2>
-        <div className="w-full">
+        <div className="w-full" role="region" aria-labelledby="faq-heading">
           {faqData.map((faq, index) => (
             <motion.div
-              key={index}
-              className="collapse-plus border-base-300 cursor-pointer border-b py-4"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: index * 0.1 }} // Staggered animation for each FAQ item
-              onClick={() => toggleFaq(index)}
+              key={faq.id}
+              className="collapse-plus border-base-300 border-b py-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.1 }}
             >
               {/* Button to display the question and toggle the answer */}
               <button
+                ref={(el) => (faqRefs.current[index] = el)}
                 className="flex w-full cursor-pointer items-center justify-between text-left"
-                onClick={(e) => {
-                  e.stopPropagation(); // Prevent event bubbling
-                  toggleFaq(index);
-                }}
+                onClick={() => toggleFaq(faq.id)}
+                onKeyDown={(e) => handleKeyDown(e, faq.id, index)}
+                aria-expanded={faq.id === expandedFaq}
+                aria-controls={`faq-answer-${faq.id}`}
+                id={`faq-question-${faq.id}`}
+                tabIndex={0}
               >
                 <h3 className="font-medium text-gray-900">{faq.question}</h3>
                 {/* Animated arrow icon to indicate open/close state */}
                 <motion.div
+                  animate={{ rotate: faq.id === expandedFaq ? 180 : 0 }}
+                  transition={{ duration: 0.2 }}
                   className="text-primary"
-                  animate={{ rotate: index === openIndex ? 180 : 0 }} // Rotate arrow when open
-                  transition={{ duration: 0.3 }}
+                  aria-hidden="true"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                  </svg>
+                  <ChevronDown className="h-5 w-5" />
                 </motion.div>
               </button>
 
               {/* AnimatePresence to handle the animation of the answer's visibility */}
               <AnimatePresence>
-                <motion.div
-                  initial={{ opacity: 0 }} // Initial state when hidden
-                  animate={{ opacity: 1 }} // Animate to visible state
-                  exit={{ opacity: 0 }} // Animate to hidden state when removed
-                  transition={{ duration: 0.2 }}
-                  className={`mt-2 overflow-hidden transition-all duration-200 ${
-                    index === openIndex ? "max-h-96" : "max-h-0"
-                  }`} // Dynamically set max height based on open state
-                >
-                  <motion.p
-                    className="w-full pr-12 leading-relaxed text-gray-600"
-                    initial={{ y: -5 }} // Slide in from above
-                    animate={{ y: 0 }}
-                    transition={{ duration: 0.2 }}
+                {faq.id === expandedFaq && (
+                  <motion.div
+                    id={`faq-answer-${faq.id}`}
+                    role="region"
+                    aria-labelledby={`faq-question-${faq.id}`}
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="overflow-hidden"
                   >
-                    {faq.answer}
-                  </motion.p>{" "}
-                </motion.div>
+                    <motion.div
+                      initial={{ y: -10, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ duration: 0.2, delay: 0.1 }}
+                      className="mt-2 pr-12 leading-relaxed text-gray-600"
+                    >
+                      <p>{faq.answer}</p>
+                    </motion.div>
+                  </motion.div>
+                )}
               </AnimatePresence>
             </motion.div>
           ))}
