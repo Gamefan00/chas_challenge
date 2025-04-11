@@ -77,7 +77,7 @@ const FAQ = () => {
 
   return (
     <div className="card bg-base-100 w-full shadow-md">
-      <div className="card-body p-12 md:px-36 md:py-24">
+      <div className="card-body p-12 md:py-24 lg:px-36">
         <motion.h2
           className="mb-8 text-center"
           id="faq-heading"
@@ -91,7 +91,7 @@ const FAQ = () => {
           {faqData.map((faq, index) => (
             <motion.div
               key={faq.id}
-              className="collapse-plus border-base-300 border-b py-4"
+              className="collapse-plus border-base-300 hover:bg-primary/10 border-b p-5 py-4 hover:rounded-lg"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: index * 0.1 }}
@@ -112,7 +112,6 @@ const FAQ = () => {
                     color: faq.id === expandedFaq ? "#0056b3" : "#111111",
                   }}
                   transition={{ duration: 0.3 }}
-                  className="font-medium text-gray-900"
                 >
                   {faq.question}
                 </motion.h4>
@@ -134,6 +133,7 @@ const FAQ = () => {
                     id={`faq-answer-${faq.id}`}
                     role="region"
                     aria-labelledby={`faq-question-${faq.id}`}
+                    aria-live="polite"
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
@@ -144,7 +144,7 @@ const FAQ = () => {
                       initial={{ y: -10, opacity: 0 }}
                       animate={{ y: 0, opacity: 1 }}
                       transition={{ duration: 0.2, delay: 0.1 }}
-                      className="mt-2 pr-12 leading-relaxed text-gray-600"
+                      className="mt-2 py-3 pr-12 leading-relaxed"
                     >
                       <p>{faq.answer}</p>
                     </motion.div>

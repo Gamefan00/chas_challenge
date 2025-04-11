@@ -1,5 +1,6 @@
 import React from "react";
 import { FileText, MessageSquareText, PenLine } from "lucide-react";
+import Link from "next/link";
 
 const icons = {
   FileText: FileText,
@@ -66,15 +67,16 @@ const FeatureCard = () => {
                 </div>
 
                 {/* Button with conditional styling for the last card*/}
-                <button
+                <Link
+                  href={feature.link}
                   className={`${
                     index === features.length - 1
-                      ? "btn btn-accent bg-accent p-2 shadow-md"
+                      ? "btn bg-base-100 text-primary p-2 shadow-md"
                       : "btn btn-primary p-2 shadow-md"
                   }`}
                 >
-                  <a href={feature.link}>{feature.buttonText}</a>
-                </button>
+                  {feature.buttonText}
+                </Link>
               </div>
             </div>
           );
