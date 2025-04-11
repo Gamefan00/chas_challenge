@@ -18,7 +18,7 @@ const Footer = () => {
           <h2>Resurser</h2>
           <div className="bg-primary h-[2px] w-[45px]" />
           <div className="flex flex-col gap-4 opacity-90">
-            <a href="">Lager & regler</a>
+            <a href="">Lagar & regler</a>
             <a href="">Försäkringskassan</a>
             <a href="">Funktionsrättsorganisationer</a>
             <a href="">Vanliga hjälpmedel</a>
