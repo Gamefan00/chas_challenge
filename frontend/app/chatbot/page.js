@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Markdown from "react-markdown";
 
 export default function ChatBot() {
   const BASE_URL = "localhost";
@@ -37,7 +38,19 @@ export default function ChatBot() {
           <button onClick={sendPrompt} className="btn btn-primary">
             Send
           </button>
-          <p>{outputText}</p>
+          <div className="flex flex-col gap-4 !text-sm">
+            <Markdown
+              components={{
+                // Force p elements to have foreground color
+                p(props) {
+                  const { node, ...rest } = props;
+                  return <p style={{ color: "var(--color-foreground)" }} {...rest} />;
+                },
+              }}
+            >
+              {outputText}
+            </Markdown>
+          </div>
         </div>
       </div>
     </div>
