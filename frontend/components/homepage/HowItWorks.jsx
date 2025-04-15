@@ -1,5 +1,8 @@
 import React from "react";
 import { delay, motion } from "framer-motion";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
+import { Button } from "../ui/button";
+import Link from "next/link";
 
 const steps = [
   {
@@ -51,53 +54,54 @@ const HowItWorks = () => {
   };
 
   return (
-    <motion.div
-      className="card bg-base-100 w-full py-12 shadow-md"
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
-    >
-      <div className="card-body relative gap-8">
-        <motion.h2
-          className="card-title mx-auto"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          Så fungerar det
-        </motion.h2>
-
-        <div className="relative mb-12">
-          {/* horizontal line */}
-          <div className="bg-primary/20 absolute top-7 left-0 z-0 hidden h-0.5 w-full md:block"></div>
-          <motion.div
-            className="flex flex-col space-y-5 md:flex-row md:justify-between md:space-y-0"
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-          >
-            {steps.map((step) => (
-              <StepSection
-                key={step.id}
-                number={step.id}
-                title={step.title}
-                description={step.description}
-              />
-            ))}
-          </motion.div>
-        </div>
-
-        {/* Call to action */}
+    <section className="w-full">
+      <Card>
         <motion.div
-          className="card-actions justify-center"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, delay: 0.8 }}
+          className="w-full py-12"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
         >
-          <button className="btn btn-primary">Starta din ansökan</button>
+          <CardHeader className="relative gap-8">
+            <CardTitle className="mx-auto">
+              <h2>Så fungerar det</h2>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="relative mb-12">
+              {/* horizontal line */}
+              <div className="bg-primary/20 absolute top-7 left-0 z-0 hidden h-0.5 w-full md:block"></div>
+              <motion.div
+                className="flex flex-col space-y-5 md:flex-row md:justify-between md:space-y-0"
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+              >
+                {steps.map((step) => (
+                  <StepSection
+                    key={step.id}
+                    number={step.id}
+                    title={step.title}
+                    description={step.description}
+                  />
+                ))}
+              </motion.div>
+            </div>
+          </CardContent>
+          {/* Call to action */}
+          <motion.CardFooter
+            className="flex w-full justify-center"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.8 }}
+          >
+            <Button asChild>
+              <Link href={"/"}>Starta din ansökan</Link>
+            </Button>
+          </motion.CardFooter>
         </motion.div>
-      </div>
-    </motion.div>
+      </Card>
+    </section>
   );
 };
 
@@ -129,7 +133,7 @@ const StepSection = ({ number, title, description }) => {
   return (
     <div className="z-10 mx-auto flex max-w-md flex-col items-center gap-4 text-center lg:max-w-64">
       <motion.div
-        className="bg-primary text-background z-10 flex h-14 w-14 items-center justify-center rounded-full text-lg font-bold shadow-md"
+        className="bg-primary text-primary-foreground z-10 flex h-14 w-14 items-center justify-center rounded-full text-lg font-bold shadow-md"
         variants={circleVariants}
       >
         {number}

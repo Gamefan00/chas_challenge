@@ -1,7 +1,7 @@
 import "./globals.css";
-import Footer from "./components/homepage/Footer";
-import Navbar from "./components/homepage/Navbar";
-import AccessibilityHeader from "./components/homepage/AccessibilityHeader";
+import Footer from "../components/homepage/Footer";
+import Navbar from "../components/homepage/Navbar";
+import AccessibilityHeader from "../components/homepage/AccessibilityHeader";
 
 export const metadata = {
   title: "Create Next App",
@@ -12,7 +12,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`antialiased`}>
-        <AccessibilityHeader />
+        {/* <AccessibilityHeader /> */}
         <Navbar />
         {children}
         <Footer />
