@@ -49,9 +49,9 @@ const FAQ = () => {
           <CardTitle>
             <motion.h2
               className="my-8 text-center"
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
+              transition={{ duration: 0.6 }}
             >
               Vanliga frågor
             </motion.h2>
