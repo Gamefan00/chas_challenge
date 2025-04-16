@@ -67,9 +67,7 @@ const FAQ = () => {
             <Accordion type="single" className="w-full" collapsible>
               {faqData.map((faq, index) => (
                 <AccordionItem key={faq.id} value={faq.id}>
-                  <AccordionTrigger className="data-[state=open]:text-primary cursor-pointer">
-                    {faq.question}
-                  </AccordionTrigger>
+                  <AccordionTrigger className="cursor-pointer">{faq.question}</AccordionTrigger>
                   <AccordionContent>
                     <p className="pb-2 leading-relaxed">{faq.answer}</p>
                   </AccordionContent>
