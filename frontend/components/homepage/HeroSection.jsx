@@ -16,7 +16,7 @@ const HeroSection = () => {
       initial={{ opacity: 0, y: 10 }}
       animate={{ y: 0, opacity: 100 }}
       transition={{ duration: 0.5 }}
-      className="w-full max-w-7xl"
+      className="w-full"
     >
       <Card>
         <div className="mx-auto max-w-lg py-8">
