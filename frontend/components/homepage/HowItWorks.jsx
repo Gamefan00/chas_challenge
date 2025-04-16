@@ -90,16 +90,18 @@ const HowItWorks = () => {
             </div>
           </CardContent>
           {/* Call to action */}
-          <motion.CardFooter
+          <motion.div
             className="flex w-full justify-center"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.8 }}
           >
-            <Button asChild>
-              <Link href={"/"}>Starta din ansökan</Link>
-            </Button>
-          </motion.CardFooter>
+            <CardFooter>
+              <Button asChild>
+                <Link href={"/"}>Starta din ansökan</Link>
+              </Button>
+            </CardFooter>
+          </motion.div>
         </motion.div>
       </Card>
     </section>
@@ -132,7 +134,7 @@ const StepSection = ({ number, title, description }) => {
     },
   };
   return (
-    <div className="z-10 mx-auto flex max-w-sm flex-col items-center gap-4 text-center ">
+    <div className="z-10 mx-auto flex max-w-sm flex-col items-center gap-4 text-center">
       <motion.div
         className="bg-primary text-primary-foreground z-10 flex h-14 w-14 items-center justify-center rounded-full text-lg font-bold shadow-md"
         variants={circleVariants}
