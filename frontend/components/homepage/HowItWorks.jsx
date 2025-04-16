@@ -40,6 +40,7 @@ const HowItWorks = () => {
       },
     },
   };
+
   const itemsVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: (i) => ({
@@ -70,9 +71,9 @@ const HowItWorks = () => {
           <CardContent>
             <div className="relative mb-12">
               {/* horizontal line */}
-              <div className="bg-primary/20 absolute top-7 left-0 z-0 hidden h-0.5 w-full md:block"></div>
+              <div className="bg-primary/20 absolute top-7 left-0 z-0 hidden h-0.5 w-full lg:block"></div>
               <motion.div
-                className="flex flex-col space-y-5 md:flex-row md:justify-between md:space-y-0"
+                className="grid grid-cols-1 gap-8 sm:grid-cols-2 md:justify-between lg:grid-cols-4"
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
@@ -131,7 +132,7 @@ const StepSection = ({ number, title, description }) => {
     },
   };
   return (
-    <div className="z-10 mx-auto flex max-w-md flex-col items-center gap-4 text-center lg:max-w-64">
+    <div className="z-10 mx-auto flex max-w-sm flex-col items-center gap-4 text-center ">
       <motion.div
         className="bg-primary text-primary-foreground z-10 flex h-14 w-14 items-center justify-center rounded-full text-lg font-bold shadow-md"
         variants={circleVariants}
