@@ -216,6 +216,10 @@ p {
   padding-top: 0;
 }
 
+.user-message .markdown-container p {
+  color: white !important;
+}
+
 .markdown-container h1,
 .markdown-container h2,
 .markdown-container h3,

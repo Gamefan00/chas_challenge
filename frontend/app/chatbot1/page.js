@@ -6,6 +6,10 @@ import Markdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
+import rehypeRaw from "rehype-raw";
+import rehypeSanitize from "rehype-sanitize";
+import remarkGfm from "remark-gfm";
+
 export default function ChatBot() {
   const BASE_URL = "localhost";
   const [prompt, setPrompt] = useState("");
@@ -52,10 +56,40 @@ export default function ChatBot() {
               [...messages].reverse().map((message) => (
                 <div
                   key={message.id}
-                  className={`${message.role === "user" && "bg-card ml-auto max-w-1/2 rounded-lg"} w-full p-2`}
+                  className={`${
+                    message.role === "user"
+                      ? "bg-primary user-message ml-auto"
+                      : "bg-card text-card-foreground mr-auto"
+                  } max-w-3xl rounded-lg shadow-sm`}
                 >
-                  <div className="markdown-body">
-                    <Markdown>{message.content[0]?.text?.value}</Markdown>
+                  <div className="markdown-container p-4">
+                    <Markdown
+                      remarkPlugins={[remarkGfm]}
+                      rehypePlugins={[rehypeRaw, rehypeSanitize]}
+                      components={{
+                        code(props) {
+                          const { children, className, ...rest } = props;
+                          return (
+                            <code
+                              className={`${className} bg-muted rounded px-1.5 py-0.5`}
+                              {...rest}
+                            >
+                              {children}
+                            </code>
+                          );
+                        },
+                        pre(props) {
+                          return (
+                            <pre
+                              className="bg-muted overflow-x-auto rounded-md p-4 text-sm"
+                              {...props}
+                            />
+                          );
+                        },
+                      }}
+                    >
+                      {message.content[0]?.text?.value || ""}
+                    </Markdown>
                   </div>
                 </div>
               ))}
@@ -66,12 +100,12 @@ export default function ChatBot() {
           <div className="mb-24 flex w-full flex-col items-center gap-4">
             <Textarea
               onChange={(e) => setPrompt(e.target.value)}
-              className="w-full max-w-md"
-              placeholder="Ask away..."
+              className="bg-card w-full max-w-xl"
+              placeholder="Hur kan jag hjälpa dig?"
               value={prompt}
             />
             <Button onClick={sendPrompt} className="btn btn-primary">
-              {isLoading ? <Loader2 className="animate-spin" /> : "Send"}
+              {isLoading ? <Loader2 className="animate-spin" /> : "Skicka"}
             </Button>
           </div>
         </div>
