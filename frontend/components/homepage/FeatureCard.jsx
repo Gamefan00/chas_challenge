@@ -27,7 +27,7 @@ const FeatureCard = () => {
       description:
         "Få hjälp med att välja rätt formulär och formulera dina svar på ett sätt som ökar dina chanser att få rätt stöd.",
       buttonText: "Starta formulärguide",
-      link: "/",
+      link: "/chatbot1",
     },
     {
       icon: "MessageSquareText",
@@ -91,7 +91,9 @@ const FeatureCard = () => {
 
                 {/* Button with conditional styling for the last card*/}
                 <CardFooter className="mt-auto">
-                  <Button href={feature.link}>{feature.buttonText}</Button>
+                  <Button asChild>
+                    <Link href={feature.link}>{feature.buttonText}</Link>
+                  </Button>
                 </CardFooter>
               </div>
             </Card>
