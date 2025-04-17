@@ -54,11 +54,7 @@ const Navbar = () => {
             </Button>
           </SheetTrigger>
           <SheetContent>
-            <SheetHeader>
-              <SheetTitle>Title</SheetTitle>
-              <SheetDescription>Description</SheetDescription>
-            </SheetHeader>
-            <div className="flex flex-col items-start gap-4">
+            <div className="mt-5 flex flex-col items-start gap-4">
               {linksData.map((link, index) => (
                 <Button key={index} variant={"link"} asChild>
                   <a href={link.href}>{link.title}</a>
