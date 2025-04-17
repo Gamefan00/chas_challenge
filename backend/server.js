@@ -18,47 +18,113 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Store thread ID
-let threadId = null;
+// Define your system message - this will be consistent across requests
+const systemMessage = {
+  role: "system",
+  content: [
+    {
+      type: "input_text",
+      text: "Du är expert på arbetshjälpmedel.\n\nRegler:\nDu vägleder användaren (individer eller arbetsgivare) genom processen att ansöka om arbetshjälpmedel från Försäkringskassan, inklusive:\nVal av rätt blankett (FK 7545 eller FK 7546)\nStöd med svar vid utredningssamtal\nFörklaringar av regler och lagar (t.ex. AML, HSL, Diskrimineringslagen)\nTextförslag för fritextfält\nSekretesskyddad hantering av konversationer och dokument",
+    },
+  ],
+};
 
-// Add user message to thread and send back the thread messages
-app.post("/output_text", async (req, res) => {
-  const { prompt } = req.body;
+// Store conversation history
+let conversationHistory = [systemMessage];
 
-  // Check if a thread already exists and create a new one if not
-  if (!threadId) {
-    const thread = await openai.beta.threads.create();
-    threadId = thread.id;
-    console.log("Created new thread:", threadId);
-  }
+// Endpoint to process user messages and get responses
+app.post("/chat", async (req, res) => {
+  try {
+    const { message } = req.body;
 
-  // Add new message to thread
-  const message = await openai.beta.threads.messages.create(threadId, {
-    role: "user",
-    content: prompt,
-  });
+    // Add user message to history
+    const userMessage = {
+      role: "user",
+      content: [
+        {
+          type: "input_text",
+          text: message,
+        },
+      ],
+    };
 
-  // Run the assistant to generate a response
-  let run = await openai.beta.threads.runs.createAndPoll(threadId, {
-    assistant_id: process.env.ASSISTANT_ID,
-  });
+    // Create input for the API call
+    const input = [...conversationHistory, userMessage];
 
-  // Get thread messages and send them to frontend when run is completed
-  if (run.status === "completed") {
-    const messages = await openai.beta.threads.messages.list(run.thread_id);
-    res.json(messages);
-  } else {
-    console.log(run.status);
+    // Call the Responses API
+    const response = await openai.responses.create({
+      model: "gpt-4.1-mini", // Or your preferred model
+      input: input,
+      text: {
+        format: {
+          type: "text",
+        },
+      },
+      reasoning: {},
+      tools: [
+        {
+          type: "file_search",
+          vector_store_ids: ["vs_67ee4b3df0f481918a769c7ee3c61880"],
+        },
+      ],
+      temperature: 1,
+      max_output_tokens: 2048,
+      top_p: 1,
+      store: true,
+    });
+
+    // Add assistant response to history
+    const assistantMessage = {
+      role: "assistant",
+      content: [
+        {
+          type: "output_text",
+          text: response.output_text,
+        },
+      ],
+    };
+
+    // Update conversation history (limit size if needed)
+    conversationHistory = [
+      ...conversationHistory,
+      userMessage,
+      assistantMessage,
+    ];
+
+    // Optionally limit history size to prevent token overflow
+    if (conversationHistory.length > 20) {
+      // Keep system message and last N messages
+      conversationHistory = [
+        systemMessage,
+        ...conversationHistory.slice(conversationHistory.length - 19),
+      ];
+    }
+
+    // Send response back to client
+    res.json({ message: response.output_text });
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ error: "Failed to process your request" });
   }
 });
 
-// Get thread messages on page load, should be done through localstorage maybe
-app.get("/get_messages", async (req, res) => {
-  if (!threadId) {
-    return res.status(404).json({ error: "Thread does not exist." });
-  }
-  const messages = await openai.beta.threads.messages.list(threadId);
-  res.json(messages);
+// Get conversation history
+app.get("/history", (req, res) => {
+  // Return only the text part of the conversation for display purposes
+  const formattedHistory = conversationHistory
+    .filter((msg) => msg.role !== "system") // Exclude system message
+    .map((msg) => ({
+      role: msg.role,
+      content: msg.content[0].text,
+    }));
+
+  res.json(formattedHistory);
+});
+
+// Clear conversation history
+app.post("/clear", (req, res) => {
+  conversationHistory = [systemMessage];
+  res.json({ message: "Conversation history cleared" });
 });
 
 // Start server
