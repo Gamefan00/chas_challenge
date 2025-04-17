@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { Menu, Plus } from "lucide-react";
 import Link from "next/link";
 import React from "react";
