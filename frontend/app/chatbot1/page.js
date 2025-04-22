@@ -1,62 +1,149 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Loader2, Send } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
 import Markdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import Sidebar from "@/components/chatpage/Sidebar";
+import { Card } from "@/components/ui/card";
 
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize from "rehype-sanitize";
 import remarkGfm from "remark-gfm";
+
+// Define steps for reference in the component
+const steps = [
+  { id: "step-1", label: "Välj ärendtyp" },
+  { id: "step-2", label: "Funktionsnedsättning" },
+  { id: "step-3", label: "Grundläggande behov" },
+  { id: "step-4", label: "Andra behov" },
+  { id: "step-5", label: "Nuvarande stöd" },
+  { id: "step-6", label: "Granska och skicka" },
+];
 
 export default function ChatBot() {
   // Use environment variable or default to localhost
   const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "localhost:4000";
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [messageHistory, setMessageHistory] = useState([]);
 
-  // Load existing history on pageload
-  useEffect(() => {
-    async function getHistory() {
-      try {
-        const response = await fetch(`http://${BASE_URL}/history`, {
-          method: "GET",
-        });
-        const data = await response.json();
-        if (Array.isArray(data)) {
-          setMessageHistory(
-            data.map((msg) => ({
-              role: msg.role,
-              text: msg.content,
-            })),
-          );
-        }
-      } catch (error) {
-        console.error("Failed to load history:", error);
-      }
+  // Step management
+  const [currentStep, setCurrentStep] = useState("step-1");
+  const [completedSteps, setCompletedSteps] = useState([]);
+
+  // Store separate chat histories for each step
+  const [chatHistories, setChatHistories] = useState({
+    "step-1": [],
+    "step-2": [],
+    "step-3": [],
+    "step-4": [],
+    "step-5": [],
+    "step-6": [],
+  });
+
+  // Reference to message container for scrolling
+  const messageContainerRef = useRef(null);
+
+  // Get current step's chat history
+  const currentChatHistory = chatHistories[currentStep] || [];
+
+  // Scroll to bottom of messages
+  const scrollToBottom = () => {
+    if (messageContainerRef.current) {
+      messageContainerRef.current.scrollTop = messageContainerRef.current.scrollHeight;
     }
-    getHistory();
+  };
+
+  // Load existing histories on page load
+  useEffect(() => {
+    async function loadStepHistories() {
+      const newHistories = { ...chatHistories };
+      const newCompletedSteps = [...completedSteps];
+
+      // Load history for each step
+      for (const stepId of Object.keys(newHistories)) {
+        try {
+          const response = await fetch(`http://${BASE_URL}/history/${stepId}`);
+          if (response.ok) {
+            const data = await response.json();
+            if (Array.isArray(data)) {
+              newHistories[stepId] = data.map((msg) => ({
+                role: msg.role,
+                text: msg.content,
+              }));
+
+              // Mark step as having messages (which might just be the welcome message)
+              if (data.length > 0) {
+                // If there are more than just the welcome message, mark as completed
+                if (data.length > 1 && !newCompletedSteps.includes(stepId)) {
+                  newCompletedSteps.push(stepId);
+                }
+              }
+            }
+          }
+        } catch (error) {
+          console.error(`Failed to load history for step ${stepId}:`, error);
+        }
+      }
+
+      setChatHistories(newHistories);
+      setCompletedSteps(newCompletedSteps);
+    }
+
+    loadStepHistories();
   }, [BASE_URL]);
 
-  // Send user prompt to the assistant api and await response
+  // Navigate to a different step
+  const navigateToStep = (stepId) => {
+    setCurrentStep(stepId);
+    // Scroll to bottom after a short delay to ensure DOM is updated
+    setTimeout(scrollToBottom, 100);
+  };
+
+  // Complete current step and move to next
+  const completeCurrentStep = () => {
+    const stepOrder = ["step-1", "step-2", "step-3", "step-4", "step-5", "step-6"];
+    const currentIndex = stepOrder.indexOf(currentStep);
+
+    if (currentIndex < stepOrder.length - 1) {
+      // Mark as completed
+      if (!completedSteps.includes(currentStep)) {
+        setCompletedSteps([...completedSteps, currentStep]);
+      }
+
+      // Move to next step
+      setCurrentStep(stepOrder[currentIndex + 1]);
+
+      // Scroll to bottom after a short delay
+      setTimeout(scrollToBottom, 100);
+    }
+  };
+
+  // Send user message for current step
   async function handleSendMessage() {
     if (!message.trim()) return;
 
     setIsLoading(true);
-    console.log(`Sending message: ${message}`);
 
-    // Append user message to local message array
-    const newHistory = [...messageHistory, { role: "user", text: message }];
-    setMessageHistory(newHistory);
+    // Update the current step's chat history
+    const updatedHistory = [...currentChatHistory, { role: "user", text: message }];
+
+    setChatHistories({
+      ...chatHistories,
+      [currentStep]: updatedHistory,
+    });
+
     setMessage(""); // Clear input right away for better UX
 
     try {
       const response = await fetch(`http://${BASE_URL}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message }),
+        body: JSON.stringify({
+          message,
+          currentStep,
+        }),
       });
 
       if (!response.ok) {
@@ -64,28 +151,36 @@ export default function ChatBot() {
       }
 
       const data = await response.json();
-      console.log("Response from server:", data);
 
-      // Add assistant's response to message history
-      setMessageHistory([
-        ...newHistory,
-        {
-          role: "assistant",
-          text: data.message, // Backend returns { message: "..." }
-        },
-      ]);
+      // Update the current step's chat history with the response
+      setChatHistories({
+        ...chatHistories,
+        [currentStep]: [...updatedHistory, { role: "assistant", text: data.message }],
+      });
+
+      // If this is the first user message in this step (considering the welcome message),
+      // mark the step as completed
+      if (
+        updatedHistory.filter((msg) => msg.role === "user").length === 1 &&
+        !completedSteps.includes(currentStep)
+      ) {
+        setCompletedSteps([...completedSteps, currentStep]);
+      }
     } catch (error) {
       console.error("Error sending message:", error);
-      // Optionally show error to user
-      setMessageHistory([
-        ...newHistory,
-        {
-          role: "assistant",
-          text: "Sorry, there was an error processing your request. Please try again.",
-        },
-      ]);
+
+      // Show error message to user
+      setChatHistories({
+        ...chatHistories,
+        [currentStep]: [
+          ...updatedHistory,
+          { role: "assistant", text: "Tyvärr uppstod ett fel. Vänligen försök igen." },
+        ],
+      });
     } finally {
       setIsLoading(false);
+      // Scroll to bottom after a short delay
+      setTimeout(scrollToBottom, 100);
     }
   }
 
@@ -98,66 +193,96 @@ export default function ChatBot() {
   };
 
   return (
-    <div className="bg-background flex w-full flex-col px-4 md:pb-20">
-      <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col items-center gap-12 md:gap-20">
-        <div className="flex min-h-screen w-full flex-col items-center justify-between gap-4">
-          {/* Render messages in chronological order (oldest first) */}
-          <div className="chat-messages mt-12 flex w-full max-w-4xl flex-col gap-4 !text-sm">
-            {messageHistory.map((message, index) => (
+    <div className="flex h-[90vh] w-full bg-gray-50">
+      {/* Interactive Sidebar */}
+      <Sidebar
+        currentStep={currentStep}
+        completedSteps={completedSteps}
+        onNavigate={navigateToStep}
+      />
+
+      {/* Main Content */}
+      <div className="flex flex-1 flex-col">
+        {/* Chat Messages */}
+        <div ref={messageContainerRef} className="flex-1 overflow-y-auto p-4">
+          <div className="mx-auto max-w-3xl">
+            {currentChatHistory.map((message, index) => (
               <div
                 key={index}
-                className={`${
-                  message.role === "user"
-                    ? "bg-primary user-message ml-auto"
-                    : "bg-card text-card-foreground mr-auto"
-                } max-w-3xl rounded-lg shadow-sm`}
+                className={`mb-4 ${
+                  message.role === "user" ? "flex justify-end" : "flex justify-start"
+                }`}
               >
-                <div className="markdown-container p-4">
-                  <Markdown
-                    remarkPlugins={[remarkGfm]}
-                    rehypePlugins={[rehypeRaw, rehypeSanitize]}
-                    components={{
-                      code(props) {
-                        const { children, className, ...rest } = props;
-                        return (
-                          <code className={`${className} bg-muted rounded px-1.5 py-0.5`} {...rest}>
-                            {children}
-                          </code>
-                        );
-                      },
-                      pre(props) {
-                        return (
-                          <pre
-                            className="bg-muted overflow-x-auto rounded-md p-4 text-sm"
-                            {...props}
-                          />
-                        );
-                      },
-                    }}
-                  >
-                    {message.text || ""}
-                  </Markdown>
-                </div>
+                <Card
+                  className={`rounded-xl p-4 ${
+                    message.role === "user" ? "user-msg bg-primary" : "bg-white"
+                  }`}
+                >
+                  <div className="markdown-container">
+                    <Markdown
+                      remarkPlugins={[remarkGfm]}
+                      rehypePlugins={[rehypeRaw, rehypeSanitize]}
+                      components={{
+                        code(props) {
+                          const { children, className, ...rest } = props;
+                          return (
+                            <code
+                              className={`${className} text-primary bg-primary rounded px-1.5 py-0.5`}
+                              {...rest}
+                            >
+                              {children}
+                            </code>
+                          );
+                        },
+                        pre(props) {
+                          return (
+                            <pre
+                              className="text-primary bg-primary overflow-x-auto rounded-md p-4 text-sm"
+                              {...props}
+                            />
+                          );
+                        },
+                      }}
+                    >
+                      {message.text || ""}
+                    </Markdown>
+                  </div>
+                </Card>
               </div>
             ))}
           </div>
+        </div>
 
-          {/* User input area */}
-          <div className="mb-24 flex w-full flex-col items-center gap-4">
+        {/* Input Area */}
+        <div className="border-t bg-white p-4">
+          <div className="mx-auto flex max-w-3xl items-center gap-5">
             <Textarea
+              value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="bg-card w-full max-w-xl"
-              placeholder="Hur kan jag hjälpa dig?"
-              value={message}
+              placeholder="Skriv ett meddelande..."
+              className="min-h-12 resize-none rounded-xl border-gray-300 bg-white p-3 shadow-sm"
             />
             <Button
               onClick={handleSendMessage}
-              className="btn btn-primary"
               disabled={isLoading || !message.trim()}
+              size="icon"
+              className="bg-primary hover:bg-primary/80 h-10 w-10 rounded-full text-white"
             >
-              {isLoading ? <Loader2 className="animate-spin" /> : "Skicka"}
+              {isLoading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <Send className="h-5 w-5" />
+              )}
             </Button>
+            {currentChatHistory.filter((msg) => msg.role === "user").length > 0 && (
+              <Button
+                onClick={completeCurrentStep}
+                className="bg-primary hover:bg-primary/80 text-white"
+              >
+                Nästa steg
+              </Button>
+            )}
           </div>
         </div>
       </div>
