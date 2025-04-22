@@ -3,7 +3,16 @@ import { Menu, Plus } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetClose, SheetContent, SheetFooter, SheetTrigger } from "../ui/sheet";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetFooter,
+  SheetTrigger,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "../ui/sheet";
 
 // Data for the links in the Navbar. Add, remove or change links here
 const linksData = [
@@ -44,6 +53,7 @@ const Navbar = () => {
             </Button>
           </SheetTrigger>
           <SheetContent>
+            <SheetTitle></SheetTitle>
             <div className="mt-5 flex flex-col items-start gap-4">
               {linksData.map((link, index) => (
                 <Button key={index} variant={"link"} asChild>
