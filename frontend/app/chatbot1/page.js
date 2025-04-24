@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Send } from "lucide-react";
+import { Loader2, Send, Copy } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import Markdown from "react-markdown";
 import { Button } from "@/components/ui/button";
@@ -247,6 +247,19 @@ export default function ChatBot() {
                     >
                       {message.text || ""}
                     </Markdown>
+
+                    {message.role === "assistant" && (
+                      <div className="mt-2 flex justify-end">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => navigator.clipboard.writeText(message.text)}
+                          className="text-sm"
+                        >
+                          <Copy />
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </Card>
               </div>
