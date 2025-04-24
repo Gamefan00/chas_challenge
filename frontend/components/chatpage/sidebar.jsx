@@ -19,7 +19,7 @@ export default function Sidebar({
   onNavigate = () => {},
 }) {
   return (
-    <div className="flex h-full w-64 flex-col border-r bg-white p-4">
+    <div className="bg-background flex h-full w-64 flex-col border-r p-4">
       <nav className="flex flex-col space-y-1">
         {steps.map((step) => {
           // Determine if this step is completed or active
@@ -40,7 +40,7 @@ export default function Sidebar({
               disabled={!isAccessible}
               className={cn(
                 "flex items-center rounded-full px-3 py-2 text-left transition-colors",
-                isActive && "bg-blue-100",
+                isActive && "bg-background text-primary",
                 isCompleted ? "text-green-600" : "text-accent-foreground",
                 !isAccessible && "cursor-not-allowed opacity-50",
               )}
@@ -49,16 +49,16 @@ export default function Sidebar({
                 {isCompleted ? (
                   // Green circle with white checkmark
                   <div className="flex h-5 w-5 items-center justify-center rounded-full bg-green-500">
-                    <Check className="h-3 w-3 text-white" strokeWidth={3} />
+                    <Check className="text-foreground h-3 w-3" strokeWidth={3} />
                   </div>
                 ) : (
                   <div
                     className={cn(
                       "h-5 w-5 rounded-full border-2",
-                      isActive ? "border-primary bg-primary" : "border-gray-300",
+                      isActive ? "border-primary bg-primary" : "border-border",
                     )}
                   >
-                    {isActive && <div className="h-full w-full rounded-full bg-white" />}
+                    {isActive && <div className="bg-background h-full w-full rounded-full" />}
                   </div>
                 )}
               </div>

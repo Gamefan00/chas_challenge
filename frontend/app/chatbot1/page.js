@@ -194,7 +194,7 @@ export default function ChatBot() {
   };
 
   return (
-    <div className="flex h-[90vh] w-full bg-gray-50">
+    <div className="bg-background flex h-[90vh] w-full">
       {/* Interactive Sidebar */}
       <Sidebar
         currentStep={currentStep}
@@ -216,7 +216,7 @@ export default function ChatBot() {
               >
                 <Card
                   className={`rounded-xl p-4 ${
-                    message.role === "user" ? "user-msg bg-primary" : "bg-white"
+                    message.role === "user" ? "user-msg bg-primary" : "bg-card"
                   }`}
                 >
                   <div className="markdown-container">
@@ -228,7 +228,7 @@ export default function ChatBot() {
                           const { children, className, ...rest } = props;
                           return (
                             <code
-                              className={`${className} text-primary bg-primary rounded px-1.5 py-0.5`}
+                              className={`${className} text-primary bg-background rounded px-1.5 py-0.5`}
                               {...rest}
                             >
                               {children}
@@ -255,20 +255,20 @@ export default function ChatBot() {
         </div>
 
         {/* Input Area */}
-        <div className="border-t bg-white p-4">
+        <div className="bg-background border-t p-4">
           <div className="mx-auto flex max-w-3xl items-center gap-5">
             <Textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Skriv ett meddelande..."
-              className="min-h-12 resize-none rounded-xl border-gray-300 bg-white p-3 shadow-sm"
+              className="border-border bg-background min-h-12 resize-none rounded-xl p-3 shadow-sm"
             />
             <Button
               onClick={handleSendMessage}
               disabled={isLoading || !message.trim()}
               size="icon"
-              className="bg-primary hover:bg-primary/80 h-10 w-10 rounded-full text-white"
+              className="bg-primary hover:bg-primary/80 text-foreground h-10 w-10 rounded-full"
             >
               {isLoading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
@@ -279,7 +279,7 @@ export default function ChatBot() {
             {currentChatHistory.filter((msg) => msg.role === "user").length > 0 && (
               <Button
                 onClick={completeCurrentStep}
-                className="bg-primary hover:bg-primary/80 text-white"
+                className="bg-primary hover:bg-primary/80 text-foreground"
               >
                 Nästa steg
               </Button>
