@@ -24,7 +24,7 @@ const steps = [
 
 export default function ChatBot() {
   // Use environment variable or default to localhost
-  const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "localhost:4000";
+  const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -64,7 +64,8 @@ export default function ChatBot() {
       // Load history for each step
       for (const stepId of Object.keys(newHistories)) {
         try {
-          const response = await fetch(`http://${BASE_URL}/history/${stepId}`);
+          const response = await fetch(`${BASE_URL}/history/${stepId}`);
+
           if (response.ok) {
             const data = await response.json();
             if (Array.isArray(data)) {
@@ -137,7 +138,7 @@ export default function ChatBot() {
     setMessage(""); // Clear input right away for better UX
 
     try {
-      const response = await fetch(`http://${BASE_URL}/chat`, {
+      const response = await fetch(`${BASE_URL}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
