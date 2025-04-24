@@ -285,7 +285,7 @@ export default function ChatBot() {
               onClick={handleSendMessage}
               disabled={isLoading || !message.trim()}
               size="icon"
-              className="bg-primary hover:bg-primary/80 text-foreground h-10 w-10 rounded-full"
+              className="bg-primary h-10 w-10 rounded-full"
             >
               {isLoading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
@@ -296,7 +296,7 @@ export default function ChatBot() {
             {currentChatHistory.filter((msg) => msg.role === "user").length > 0 && (
               <Button
                 onClick={completeCurrentStep}
-                className="bg-primary hover:bg-primary/80 text-foreground"
+                className="bg-primary hover:bg-primary/80 text-primary-foreground"
               >
                 Nästa steg
               </Button>
