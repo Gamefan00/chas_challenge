@@ -211,7 +211,9 @@ export default function ChatBot() {
               <div
                 key={index}
                 className={`mb-4 ${
-                  message.role === "user" ? "flex justify-end" : "flex justify-start"
+                  message.role === "user"
+                    ? "flex flex-col items-end justify-end"
+                    : "flex flex-col items-start justify-start"
                 }`}
               >
                 <Card
@@ -247,21 +249,23 @@ export default function ChatBot() {
                     >
                       {message.text || ""}
                     </Markdown>
-
-                    {message.role === "assistant" && (
-                      <div className="mt-2 flex justify-end">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => navigator.clipboard.writeText(message.text)}
-                          className="text-sm"
-                        >
-                          <Copy />
-                        </Button>
-                      </div>
-                    )}
                   </div>
                 </Card>
+                {message.role === "assistant" && (
+                  <div className="group relative mt-2 flex justify-end">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigator.clipboard.writeText(message.text)}
+                      className="text-sm"
+                    >
+                      <Copy />
+                    </Button>
+                    <span className="absolute -top-6 right-[-10px] hidden rounded bg-gray-800 px-2 py-1 text-xs text-white group-hover:block">
+                      Kopiera
+                    </span>
+                  </div>
+                )}
               </div>
             ))}
           </div>
