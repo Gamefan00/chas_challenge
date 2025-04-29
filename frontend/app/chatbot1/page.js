@@ -5,7 +5,8 @@ import { useEffect, useState, useRef } from "react";
 import Markdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import Sidebar from "@/components/chatpage/Sidebar";
+import TopTrackingbar from "@/components/chatpage/TopTrackingBar";
+import Sidebar from "@/components/chatpage/SidebarNav";
 import { Card } from "@/components/ui/card";
 
 import rehypeRaw from "rehype-raw";
@@ -14,12 +15,12 @@ import remarkGfm from "remark-gfm";
 
 // Define steps for reference in the component
 const steps = [
-  { id: "step-1", label: "Välj ärendetyp" },
-  { id: "step-2", label: "Funktionsnedsättning" },
-  { id: "step-3", label: "Grundläggande behov" },
-  { id: "step-4", label: "Andra behov" },
-  { id: "step-5", label: "Nuvarande stöd" },
-  { id: "step-6", label: "Granska och skicka" },
+  { id: "step-1", label: "Välj ärendetyp", heading: "Vem ansöker?" },
+  { id: "step-2", label: "Funktionsnedsättning", heading: "Om din funktionsnedsättning" },
+  { id: "step-3", label: "Grundläggande behov", heading: "Dina arbetsrelaterade behov" },
+  { id: "step-4", label: "Andra behov", heading: "Övriga behov i arbetet" },
+  { id: "step-5", label: "Nuvarande stöd", heading: "Stöd du redan får" },
+  { id: "step-6", label: "Granska och skicka", heading: "Sammanfatta och ladda ner" },
 ];
 
 export default function ChatBot() {
@@ -27,10 +28,61 @@ export default function ChatBot() {
   const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
 
-  // Step management
-  const [currentStep, setCurrentStep] = useState("step-1");
+  // Add a hydration state to prevent flash of initial content
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  // Step management with localStorage persistence
+  const [currentStep, setCurrentStep] = useState("step-1"); // Default initial value
   const [completedSteps, setCompletedSteps] = useState([]);
+
+  // Load data from localStorage once on client side
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      // Load current step from localStorage
+      const savedStep = localStorage.getItem("currentStep");
+      if (savedStep) {
+        setCurrentStep(savedStep);
+      }
+
+      // Load completed steps from localStorage
+      const savedCompletedSteps = localStorage.getItem("completedSteps");
+      if (savedCompletedSteps) {
+        try {
+          const parsedSteps = JSON.parse(savedCompletedSteps);
+          if (Array.isArray(parsedSteps)) {
+            setCompletedSteps(parsedSteps);
+            console.log("Loaded completed steps:", parsedSteps); // Debug log
+          }
+        } catch (e) {
+          console.error("Error parsing completedSteps from localStorage:", e);
+          // If parsing fails, reset localStorage
+          localStorage.removeItem("completedSteps");
+        }
+      }
+
+      // Mark hydration as complete
+      setIsHydrated(true);
+    }
+  }, []);
+
+  // Update localStorage when currentStep changes
+  useEffect(() => {
+    if (isHydrated && typeof window !== "undefined") {
+      localStorage.setItem("currentStep", currentStep);
+    }
+  }, [currentStep, isHydrated]);
+
+  // Update localStorage when completedSteps changes
+  useEffect(() => {
+    if (isHydrated && typeof window !== "undefined") {
+      localStorage.setItem("completedSteps", JSON.stringify(completedSteps));
+    }
+  }, [completedSteps, isHydrated]);
+
+  const currentStepData = steps.find((step) => step.id === currentStep);
+  const heading = currentStepData?.heading || "Chat";
 
   // Store separate chat histories for each step
   const [chatHistories, setChatHistories] = useState({
@@ -45,16 +97,24 @@ export default function ChatBot() {
   // Reference to message container for scrolling
   const messageContainerRef = useRef(null);
 
+  // Auto-scroll when messages change
+  useEffect(() => {
+    if (messageContainerRef.current) {
+      messageContainerRef.current.scrollTop = messageContainerRef.current.scrollHeight;
+    }
+  }, [chatHistories]);
+
   // Get current step's chat history
   const currentChatHistory = chatHistories[currentStep] || [];
 
   // Load existing histories on page load
   useEffect(() => {
+    if (!isHydrated) return; // Skip loading if not hydrated yet
+
     async function loadStepHistories() {
       const newHistories = { ...chatHistories };
-      const newCompletedSteps = [...completedSteps];
 
-      // Load history for each step
+      // Load history for each step from API
       for (const stepId of Object.keys(newHistories)) {
         try {
           const response = await fetch(`${BASE_URL}/history/${stepId}`);
@@ -74,15 +134,19 @@ export default function ChatBot() {
       }
 
       setChatHistories(newHistories);
-      setCompletedSteps(newCompletedSteps);
     }
 
     loadStepHistories();
-  }, [BASE_URL]);
+  }, [BASE_URL, isHydrated]);
 
   // Navigate to a different step
   const navigateToStep = (stepId) => {
     setCurrentStep(stepId);
+
+    // Immediately save to localStorage
+    if (typeof window !== "undefined") {
+      localStorage.setItem("currentStep", stepId);
+    }
   };
 
   // Complete current step and move to next
@@ -91,13 +155,25 @@ export default function ChatBot() {
     const currentIndex = stepOrder.indexOf(currentStep);
 
     if (currentIndex < stepOrder.length - 1) {
-      // Mark as completed
+      // Mark as completed if not already completed
       if (!completedSteps.includes(currentStep)) {
-        setCompletedSteps([...completedSteps, currentStep]);
+        const updatedCompletedSteps = [...completedSteps, currentStep];
+        setCompletedSteps(updatedCompletedSteps);
+
+        // Immediately save to localStorage
+        if (typeof window !== "undefined") {
+          localStorage.setItem("completedSteps", JSON.stringify(updatedCompletedSteps));
+        }
       }
 
       // Move to next step
-      setCurrentStep(stepOrder[currentIndex + 1]);
+      const nextStep = stepOrder[currentIndex + 1];
+      setCurrentStep(nextStep);
+
+      // Immediately save to localStorage
+      if (typeof window !== "undefined") {
+        localStorage.setItem("currentStep", nextStep);
+      }
     }
   };
 
@@ -162,6 +238,15 @@ export default function ChatBot() {
     }
   };
 
+  // Show loading state until hydration is complete
+  if (!isHydrated) {
+    return (
+      <div className="bg-background flex h-[90vh] w-full items-center justify-center">
+        <Loader2 className="text-primary h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="bg-background flex h-[90vh] w-full">
       {/* Interactive Sidebar */}
@@ -172,9 +257,11 @@ export default function ChatBot() {
       />
 
       {/* Main Content */}
-      <div className="flex flex-1 flex-col">
+      <div className="mx-auto flex max-w-3xl flex-1 flex-col px-4">
+        <TopTrackingbar heading={heading} />
+
         {/* Chat Messages */}
-        <div ref={messageContainerRef} className="flex-1 overflow-y-auto p-4">
+        <div ref={messageContainerRef} className="flex-1 overflow-y-auto">
           <div className="mx-auto max-w-3xl">
             {currentChatHistory.map((message, index) => (
               <div
@@ -225,10 +312,16 @@ export default function ChatBot() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => navigator.clipboard.writeText(message.text)}
+                      onClick={() => {
+                        navigator.clipboard.writeText(message.text);
+                        setIsCopied(true);
+                        setTimeout(() => {
+                          setIsCopied(false);
+                        }, 3000);
+                      }}
                       className="text-sm"
                     >
-                      <Copy />
+                      {isCopied ? <p>Copied</p> : <Copy />}
                     </Button>
                     <span className="absolute -top-6 right-[-10px] hidden rounded bg-gray-800 px-2 py-1 text-xs text-white group-hover:block">
                       Kopiera
@@ -241,7 +334,7 @@ export default function ChatBot() {
         </div>
 
         {/* Input Area */}
-        <div className="bg-background border-t p-4">
+        <div className="bg-background p-4">
           <div className="mx-auto flex max-w-3xl items-center gap-5">
             <Textarea
               value={message}
@@ -262,14 +355,6 @@ export default function ChatBot() {
                 <Send className="h-5 w-5" />
               )}
             </Button>
-            {currentChatHistory.filter((msg) => msg.role === "user").length > 0 && (
-              <Button
-                onClick={completeCurrentStep}
-                className="bg-primary hover:bg-primary/80 text-primary-foreground"
-              >
-                Nästa steg
-              </Button>
-            )}
           </div>
         </div>
       </div>
