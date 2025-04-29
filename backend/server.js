@@ -60,6 +60,18 @@ let stepConversations = {
   "step-6": [systemMessage],
 };
 
+app.get("/array-length", (req, res) => {
+  try {
+    const length = Object.keys(stepConversations).length;
+    res.json({ length });
+  } catch (error) {
+    console.error("Error occurred while getting the length:", error);
+    res
+      .status(500)
+      .json({ error: "An error occurred while processing your request" });
+  }
+});
+
 // Initialize conversations with welcome messages
 for (const step in stepConversations) {
   // Add welcome message as assistant's first message
