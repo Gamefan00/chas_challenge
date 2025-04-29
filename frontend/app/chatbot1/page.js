@@ -14,7 +14,7 @@ import remarkGfm from "remark-gfm";
 
 // Define steps for reference in the component
 const steps = [
-  { id: "step-1", label: "Välj ärendtyp" },
+  { id: "step-1", label: "Välj ärendetyp" },
   { id: "step-2", label: "Funktionsnedsättning" },
   { id: "step-3", label: "Grundläggande behov" },
   { id: "step-4", label: "Andra behov" },
@@ -48,13 +48,6 @@ export default function ChatBot() {
   // Get current step's chat history
   const currentChatHistory = chatHistories[currentStep] || [];
 
-  // Scroll to bottom of messages
-  const scrollToBottom = () => {
-    if (messageContainerRef.current) {
-      messageContainerRef.current.scrollTop = messageContainerRef.current.scrollHeight;
-    }
-  };
-
   // Load existing histories on page load
   useEffect(() => {
     async function loadStepHistories() {
@@ -73,14 +66,6 @@ export default function ChatBot() {
                 role: msg.role,
                 text: msg.content,
               }));
-
-              // Mark step as having messages (which might just be the welcome message)
-              if (data.length > 0) {
-                // If there are more than just the welcome message, mark as completed
-                if (data.length > 1 && !newCompletedSteps.includes(stepId)) {
-                  newCompletedSteps.push(stepId);
-                }
-              }
             }
           }
         } catch (error) {
@@ -98,8 +83,6 @@ export default function ChatBot() {
   // Navigate to a different step
   const navigateToStep = (stepId) => {
     setCurrentStep(stepId);
-    // Scroll to bottom after a short delay to ensure DOM is updated
-    setTimeout(scrollToBottom, 100);
   };
 
   // Complete current step and move to next
@@ -115,9 +98,6 @@ export default function ChatBot() {
 
       // Move to next step
       setCurrentStep(stepOrder[currentIndex + 1]);
-
-      // Scroll to bottom after a short delay
-      setTimeout(scrollToBottom, 100);
     }
   };
 
@@ -158,15 +138,6 @@ export default function ChatBot() {
         ...chatHistories,
         [currentStep]: [...updatedHistory, { role: "assistant", text: data.message }],
       });
-
-      // If this is the first user message in this step (considering the welcome message),
-      // mark the step as completed
-      if (
-        updatedHistory.filter((msg) => msg.role === "user").length === 1 &&
-        !completedSteps.includes(currentStep)
-      ) {
-        setCompletedSteps([...completedSteps, currentStep]);
-      }
     } catch (error) {
       console.error("Error sending message:", error);
 
@@ -180,8 +151,6 @@ export default function ChatBot() {
       });
     } finally {
       setIsLoading(false);
-      // Scroll to bottom after a short delay
-      setTimeout(scrollToBottom, 100);
     }
   }
 

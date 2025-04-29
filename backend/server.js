@@ -114,7 +114,7 @@ app.post("/chat", async (req, res) => {
 
     // Call the Responses API
     const response = await openai.responses.create({
-      model: "gpt-4.1-mini", 
+      model: "gpt-4.1-mini",
       input: input,
       text: {
         format: {
@@ -155,7 +155,7 @@ app.post("/chat", async (req, res) => {
     // Optionally limit history size to prevent token overflow
     if (stepConversations[currentStep].length > 20) {
       // Keep system message and welcome message, then add the most recent messages
-      const welcomeMessage = stepConversations[currentStep][1]; // Assuming index 1 is welcome message
+      const welcomeMessage = stepConversations[currentStep][1];
       stepConversations[currentStep] = [
         systemMessage,
         welcomeMessage,
@@ -276,7 +276,7 @@ initializeConversations();
 function getStepDescription(step) {
   switch (step) {
     case "step-1":
-      return "Välj ärendtyp - Hjälp användaren att bestämma om de ska använda blankett FK 7545 eller FK 7546 baserat på om de är arbetstagare eller arbetsgivare.";
+      return "Välj ärendetyp - Hjälp användaren att bestämma om de ska använda blankett FK 7545 eller FK 7546 baserat på om de är arbetstagare eller arbetsgivare.";
     case "step-2":
       return "Funktionsnedsättning - Hjälp användaren att beskriva sin funktionsnedsättning och hur den påverkar arbetsförmågan.";
     case "step-3":
