@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import TopTrackingbar from "@/components/chatpage/TopTrackingBar";
 import Sidebar from "@/components/chatpage/SidebarNav";
 import { Card } from "@/components/ui/card";
+import MessageLoading from "@/components/ui/message-loading";
 
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize from "rehype-sanitize";
@@ -23,12 +24,37 @@ const steps = [
   { id: "step-6", label: "Granska och skicka", heading: "Sammanfatta och ladda ner" },
 ];
 
+function CopyButton({ message }) {
+  const [isCopied, setIsCopied] = useState(false);
+
+  return (
+    <div className="group relative mt-2 flex justify-end">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => {
+          navigator.clipboard.writeText(message);
+          setIsCopied(true);
+          setTimeout(() => {
+            setIsCopied(false);
+          }, 4000);
+        }}
+        className="text-sm"
+      >
+        {isCopied ? <p>Kopierat</p> : <Copy />}
+      </Button>
+      <span className="absolute -top-6 right-[-22px] hidden rounded bg-gray-800 px-2 py-1 text-xs text-white group-hover:block">
+        {isCopied ? "Kopierat" : "kopiera"}
+      </span>
+    </div>
+  );
+}
+
 export default function ChatBot() {
   // Use environment variable or default to localhost
   const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isCopied, setIsCopied] = useState(false);
 
   // Add a hydration state to prevent flash of initial content
   const [isHydrated, setIsHydrated] = useState(false);
@@ -148,6 +174,23 @@ export default function ChatBot() {
       localStorage.setItem("currentStep", stepId);
     }
   };
+  // Listen for custom event from TopTrackingBar
+  useEffect(() => {
+    const handleStepCompleted = (event) => {
+      const { step } = event.detail;
+      // Update the completedSteps array without navigating
+      if (!completedSteps.includes(step)) {
+        const updatedCompletedSteps = [...completedSteps, step];
+        setCompletedSteps(updatedCompletedSteps);
+      }
+    };
+    window.addEventListener("stepCompleted", handleStepCompleted);
+
+    // Clean up eventlistener
+    return () => {
+      window.removeEventListener("stepCompleted", handleStepCompleted);
+    };
+  }, [completedSteps]);
 
   // Complete current step and move to next
   const completeCurrentStep = () => {
@@ -165,14 +208,16 @@ export default function ChatBot() {
           localStorage.setItem("completedSteps", JSON.stringify(updatedCompletedSteps));
         }
       }
+      // Only move to next step ig not on the last step
+      if (currentIndex < stepOrder.length - 1) {
+        // Move to next step
+        const nextStep = stepOrder[currentIndex + 1];
+        setCurrentStep(nextStep);
 
-      // Move to next step
-      const nextStep = stepOrder[currentIndex + 1];
-      setCurrentStep(nextStep);
-
-      // Immediately save to localStorage
-      if (typeof window !== "undefined") {
-        localStorage.setItem("currentStep", nextStep);
+        // Immediately save to localStorage
+        if (typeof window !== "undefined") {
+          localStorage.setItem("currentStep", nextStep);
+        }
       }
     }
   };
@@ -257,8 +302,14 @@ export default function ChatBot() {
       />
 
       {/* Main Content */}
-      <div className="mx-auto flex max-w-3xl flex-1 flex-col px-4">
-        <TopTrackingbar heading={heading} />
+      <div className="mx-auto flex max-w-4xl flex-1 flex-col px-4">
+        <TopTrackingbar
+          heading={heading}
+          currentStep={currentStep}
+          navigateToStep={navigateToStep}
+          completedSteps={completedSteps}
+          completeCurrentStep={completeCurrentStep}
+        />
 
         {/* Chat Messages */}
         <div ref={messageContainerRef} className="flex-1 overflow-y-auto">
@@ -273,7 +324,7 @@ export default function ChatBot() {
                 }`}
               >
                 <Card
-                  className={`rounded-xl p-4 ${
+                  className={`max-w-[80%] rounded-xl p-4 break-words ${
                     message.role === "user" ? "user-msg bg-primary" : "bg-card"
                   }`}
                 >
@@ -307,34 +358,20 @@ export default function ChatBot() {
                     </Markdown>
                   </div>
                 </Card>
-                {message.role === "assistant" && (
-                  <div className="group relative mt-2 flex justify-end">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        navigator.clipboard.writeText(message.text);
-                        setIsCopied(true);
-                        setTimeout(() => {
-                          setIsCopied(false);
-                        }, 3000);
-                      }}
-                      className="text-sm"
-                    >
-                      {isCopied ? <p>Copied</p> : <Copy />}
-                    </Button>
-                    <span className="absolute -top-6 right-[-10px] hidden rounded bg-gray-800 px-2 py-1 text-xs text-white group-hover:block">
-                      Kopiera
-                    </span>
-                  </div>
-                )}
+
+                {message.role === "assistant" && <CopyButton message={message.text} />}
               </div>
             ))}
           </div>
+          {isLoading && (
+            <Card className="inline-block items-start rounded-xl px-3 py-1 pb-0">
+              <MessageLoading />
+            </Card>
+          )}
         </div>
 
         {/* Input Area */}
-        <div className="bg-background p-4">
+        <div className="bg-background p-4 pl-0">
           <div className="mx-auto flex max-w-3xl items-center gap-5">
             <Textarea
               value={message}
@@ -349,11 +386,7 @@ export default function ChatBot() {
               size="icon"
               className="bg-primary h-10 w-10 rounded-full"
             >
-              {isLoading ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : (
-                <Send className="h-5 w-5" />
-              )}
+              <Send className="h-5 w-5" />
             </Button>
           </div>
         </div>
