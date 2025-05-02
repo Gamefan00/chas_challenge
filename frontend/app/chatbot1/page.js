@@ -2,12 +2,12 @@
 
 import { Loader2, Send, Copy } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
-import Markdown from "react-markdown";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import Markdown from "react-markdown";
 import TopTrackingbar from "@/components/chatpage/TopTrackingBar";
 import Sidebar from "@/components/chatpage/SidebarNav";
-import { Card } from "@/components/ui/card";
 import MessageLoading from "@/components/ui/message-loading";
 
 import rehypeRaw from "rehype-raw";

@@ -15,20 +15,6 @@ const TopTrackingBar = ({
   // Use a ref to track if we've already triggered the last step completion
   const lastStepCompletedRef = useRef(false);
 
-  useEffect(() => {
-    // Fetch steps array from backend
-    fetch(`${BASE_URL}/array-length`)
-      .then((response) => response.json())
-      .then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
-          setSteps(data);
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching steps:", error);
-      });
-  }, [BASE_URL]);
-
   // Autocomplete the last step when user reaches it
   useEffect(() => {
     const currentIndex = steps.indexOf(currentStep);
