@@ -133,6 +133,34 @@ export default function ChatBot() {
   // Get current step's chat history
   const currentChatHistory = chatHistories[currentStep] || [];
 
+  // Send chat history to the backend
+  useEffect(() => {
+    if (!currentChatHistory || currentChatHistory.length === 0) return;
+
+    async function sendHistoryToBackend() {
+      console.log("currentChatHistory", currentChatHistory);
+      const userId = localStorage.getItem("userId");
+
+      try {
+        const response = await fetch(`${BASE_URL}/history`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId,
+            currentChatHistory,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Server responded with ${response.status}`);
+        }
+      } catch (error) {
+        console.error("Error sending message:", error);
+      }
+    }
+    sendHistoryToBackend();
+  }, [currentChatHistory]);
+
   // Load existing histories on page load
   useEffect(() => {
     if (!isHydrated) return; // Skip loading if not hydrated yet

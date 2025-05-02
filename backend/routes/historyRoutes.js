@@ -1,22 +1,26 @@
 import express from 'express';
 import { stepConversations, systemMessage } from '../utils/conversationManager.js';
+import query from '../utils/supabaseQuery.js';
 
 const router = express.Router();
 
-router.get('/', (req, res) => {
-  const firstStepWithMessages =
-    Object.entries(stepConversations).find(([_, messages]) => messages.length > 1)?.[0] || 'step-1';
+router.post('/', async (req, res) => {
+  const { userId, currentChatHistory } = req.body;
 
-  const history = stepConversations[firstStepWithMessages] || [systemMessage];
+  console.log('userId:', userId);
+  console.log('currentChatHistory:', currentChatHistory);
 
-  const formattedHistory = history
-    .filter((msg) => msg.role !== 'system')
-    .map((msg) => ({
-      role: msg.role,
-      content: msg.content[0].text,
-    }));
+  try {
+    // Check if user_id is already in database and if yes update row instead of creating a new one
+    await query(
+      'INSERT INTO chat_histories (user_id, history) VALUES ($1, $2) ON CONFLICT (user_id) DO UPDATE SET history = EXCLUDED.history',
+      [userId, JSON.stringify(currentChatHistory)]
+    );
+  } catch (error) {
+    console.log(error);
+  }
 
-  res.json(formattedHistory);
+  res.json({ message: 'Chat history sent to backend.' });
 });
 
 router.get('/:stepId', (req, res) => {
@@ -32,5 +36,19 @@ router.get('/:stepId', (req, res) => {
 
   res.json(formattedHistory);
 });
+
+// router.post('/chatHistory', (req, res) => {
+//   try {
+//     // Post whole chat history to backend
+
+//     const { userId, chatHistory } = req.body;
+
+//     console.log(userId, chatHistory);
+
+//     // Send whole chat history to database together with UUID
+//   } catch (error) {
+//     console.log(error);
+//   }
+// });
 
 export default router;

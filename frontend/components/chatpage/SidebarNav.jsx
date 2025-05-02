@@ -31,6 +31,7 @@ export default function SidebarNav({
   onNavigate = () => {},
 }) {
   const [localCompletedSteps, setLocalCompletedSteps] = useState(completedSteps);
+  const [isSidebarOpen, setSidebarOpen] = useState(true);
 
   // Check localStorage on mount and when props change
   useEffect(() => {
@@ -100,70 +101,80 @@ export default function SidebarNav({
   }, [currentStep, localCompletedSteps]);
 
   return (
-    <>
-      <Sidebar className="relative w-64">
-        <SidebarContent>
-          <SidebarGroup>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {steps.map((step) => {
-                  // Determine if this step is completed or active
-                  const isCompleted = localCompletedSteps.includes(step.id);
-                  const isActive = currentStep === step.id;
+    <div className="flex">
+      <div className={cn("transition-transform duration-300")}>
+        <Sidebar className="relative w-64">
+          {isSidebarOpen && (
+            <div className="relative z-10 mt-2 ml-2">
+              <SidebarTrigger onClick={() => setSidebarOpen(false)} />
+            </div>
+          )}
+          <SidebarContent>
+            <SidebarGroup>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {steps.map((step) => {
+                    // Determine if this step is completed or active
+                    const isCompleted = localCompletedSteps.includes(step.id);
+                    const isActive = currentStep === step.id;
 
-                  // Calculate if this step is accessible
-                  const previousStepIndex = steps.findIndex((s) => s.id === step.id) - 1;
-                  const previousStepId =
-                    previousStepIndex >= 0 ? steps[previousStepIndex].id : null;
-                  const isPreviousCompleted =
-                    !previousStepId || localCompletedSteps.includes(previousStepId);
-                  const isAccessible = isActive || isCompleted || isPreviousCompleted;
+                    // Calculate if this step is accessible
+                    const previousStepIndex = steps.findIndex((s) => s.id === step.id) - 1;
+                    const previousStepId =
+                      previousStepIndex >= 0 ? steps[previousStepIndex].id : null;
+                    const isPreviousCompleted =
+                      !previousStepId || localCompletedSteps.includes(previousStepId);
+                    const isAccessible = isActive || isCompleted || isPreviousCompleted;
 
-                  const forceShowCompleted = step.id === "step-6" && isActive;
+                    const forceShowCompleted = step.id === "step-6" && isActive;
 
-                  return (
-                    <SidebarMenuItem key={step.id}>
-                      <SidebarMenuButton
-                        onClick={() => isAccessible && onNavigate(step.id)}
-                        disabled={!isAccessible}
-                        className={cn(
-                          "w-full justify-start",
-                          isActive && "bg-primary/10 text-primary",
-                          isCompleted ? "text-green-600" : "text-accent-foreground",
-                          !isAccessible && "cursor-not-allowed opacity-50",
-                        )}
-                      >
-                        <div className="mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center">
-                          {isCompleted || forceShowCompleted ? (
-                            // Green circle with white checkmark
-                            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-green-500">
-                              <Check className="h-3 w-3 text-white" strokeWidth={3} />
-                            </div>
-                          ) : (
-                            <div
-                              className={cn(
-                                "h-5 w-5 rounded-full border-2",
-                                isActive ? "border-primary bg-primary" : "border-border",
-                              )}
-                            >
-                              {isActive && (
-                                <div className="bg-background h-full w-full rounded-full" />
-                              )}
-                            </div>
+                    return (
+                      <SidebarMenuItem key={step.id}>
+                        <SidebarMenuButton
+                          onClick={() => isAccessible && onNavigate(step.id)}
+                          disabled={!isAccessible}
+                          className={cn(
+                            "w-full justify-start",
+                            isActive && "bg-primary/10 text-primary",
+                            isCompleted ? "text-green-600" : "text-accent-foreground",
+                            !isAccessible && "cursor-not-allowed opacity-50",
                           )}
-                        </div>
-                        <span className={cn("text-sm", isActive && "font-medium")}>
-                          {step.label}
-                        </span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  );
-                })}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        </SidebarContent>
-      </Sidebar>
-    </>
+                        >
+                          <div className="mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center">
+                            {isCompleted || forceShowCompleted ? (
+                              // Green circle with white checkmark
+                              <div className="flex h-5 w-5 items-center justify-center rounded-full bg-green-500">
+                                <Check className="h-3 w-3 text-white" strokeWidth={3} />
+                              </div>
+                            ) : (
+                              <div
+                                className={cn(
+                                  "h-5 w-5 rounded-full border-2",
+                                  isActive ? "border-primary bg-primary" : "border-border",
+                                )}
+                              >
+                                {isActive && (
+                                  <div className="bg-background h-full w-full rounded-full" />
+                                )}
+                              </div>
+                            )}
+                          </div>
+                          <span className={cn("text-sm", isActive && "font-medium")}>
+                            {step.label}
+                          </span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </SidebarContent>
+        </Sidebar>
+      </div>
+      {!isSidebarOpen && (
+        <SidebarTrigger onClick={() => setSidebarOpen(true)} className="absolute z-10 mt-2 ml-2" />
+      )}
+    </div>
   );
 }
