@@ -43,7 +43,7 @@ const FeatureCard = () => {
       description:
         "Förstår dina rättigheter och skyldigheter kring arbetshjälpmedel genom att läsa guider, artiklar och expertråd.",
       buttonText: "Utforska resurser",
-      link: "/",
+      link: "/informationpage",
     },
   ];
 
