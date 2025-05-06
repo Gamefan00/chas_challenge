@@ -8,7 +8,6 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -32,6 +31,24 @@ export default function SidebarNav({
 }) {
   const [localCompletedSteps, setLocalCompletedSteps] = useState(completedSteps);
   const [isSidebarOpen, setSidebarOpen] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkIfMobile();
+
+    window.addEventListener("resize", checkIfMobile);
+
+    return () => {
+      window.removeEventListener("resize", checkIfMobile);
+    };
+  }, []);
+
+  useEffect(() => {
+    setSidebarOpen(!isMobile);
+  }, [isMobile]);
 
   // Check localStorage on mount and when props change
   useEffect(() => {
@@ -100,13 +117,52 @@ export default function SidebarNav({
     }
   }, [currentStep, localCompletedSteps]);
 
+  // Close sidebar when clicking outside in mobile view
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isMobile && isSidebarOpen) {
+        // Check if the click is outside the sidebar
+        const sidebarElement = document.querySelector(".sidebar-container");
+        const toggleButton = document.querySelector(".toggle-button");
+
+        if (
+          sidebarElement &&
+          !sidebarElement.contains(event.target) &&
+          toggleButton &&
+          !toggleButton.contains(event.target)
+        ) {
+          setSidebarOpen(false);
+        }
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isMobile, isSidebarOpen]);
+
   return (
     <div className="flex">
-      <div className={cn("transition-transform duration-300")}>
+      {/* Toggle button outside sidebar - visible when sidebar is closed */}
+      {!isSidebarOpen && (
+        <div className="absolute z-20 mt-2 ml-2">
+          <SidebarTrigger onClick={() => setSidebarOpen(true)} className="toggle-button" />
+        </div>
+      )}
+
+      {/* Sidebar with conditional rendering for width */}
+      <div
+        className={cn(
+          "sidebar-container transition-all duration-300",
+          isSidebarOpen ? "w-64" : "w-0 overflow-hidden",
+          isMobile && isSidebarOpen ? "absolute top-0 left-0 z-40 h-full" : "",
+        )}
+      >
         <Sidebar className="relative w-64">
           {isSidebarOpen && (
             <div className="relative z-10 mt-2 ml-2">
-              <SidebarTrigger onClick={() => setSidebarOpen(false)} />
+              <SidebarTrigger onClick={() => setSidebarOpen(false)} className="toggle-button" />
             </div>
           )}
           <SidebarContent>
@@ -172,9 +228,6 @@ export default function SidebarNav({
           </SidebarContent>
         </Sidebar>
       </div>
-      {!isSidebarOpen && (
-        <SidebarTrigger onClick={() => setSidebarOpen(true)} className="absolute z-10 mt-2 ml-2" />
-      )}
     </div>
   );
 }

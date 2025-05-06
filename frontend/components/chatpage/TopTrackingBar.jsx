@@ -62,7 +62,7 @@ const TopTrackingBar = ({
   const progressPercent = (currentStepIndex / maxSteps) * 100;
 
   return (
-    <div className="my-6 flex flex-col space-y-5">
+    <div className="my-10 flex flex-col space-y-5">
       <div className="flex items-center justify-between">
         <h3>{heading}</h3>
         <div className="flex max-w-3xl justify-start space-x-2">

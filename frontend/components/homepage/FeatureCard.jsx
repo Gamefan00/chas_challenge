@@ -27,7 +27,7 @@ const FeatureCard = () => {
       description:
         "Få hjälp med att välja rätt formulär och formulera dina svar på ett sätt som ökar dina chanser att få rätt stöd.",
       buttonText: "Starta formulärguide",
-      link: "/chatbot1",
+      link: "/chatbot",
     },
     {
       icon: "MessageSquareText",
@@ -35,7 +35,7 @@ const FeatureCard = () => {
       description:
         "Simulera ett utredningssamtal med vår AI och lär dig svara på handläggarens frågor på ett tydligt och effektivt sätt.",
       buttonText: "Förbered samtal",
-      link: "/",
+      link: "/interviewbot",
     },
     {
       icon: "PenLine",
