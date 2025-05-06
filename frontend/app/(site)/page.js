@@ -1,8 +1,8 @@
 "use client";
-import HeroSection from "../components/homepage/HeroSection";
-import FeatureCard from "../components/homepage/FeatureCard";
-import HowItWorks from "../components/homepage/HowItWorks";
-import FAQ from "../components/homepage/FAQ";
+import HeroSection from "../../components/homepage/HeroSection";
+import FeatureCard from "../../components/homepage/FeatureCard";
+import HowItWorks from "../../components/homepage/HowItWorks";
+import FAQ from "../../components/homepage/FAQ";
 
 const page = () => {
   return (
