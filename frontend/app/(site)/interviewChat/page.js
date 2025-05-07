@@ -15,14 +15,114 @@ import rehypeSanitize from "rehype-sanitize";
 import remarkGfm from "remark-gfm";
 
 // Define steps for reference in the component
+// const steps = [
+//   { id: "step-1", label: "Välj ärendetyp", heading: "Vem ansöker?" },
+//   { id: "step-2", label: "Funktionsnedsättning", heading: "Om din funktionsnedsättning" },
+//   { id: "step-3", label: "Grundläggande behov", heading: "Dina arbetsrelaterade behov" },
+//   { id: "step-4", label: "Andra behov", heading: "Övriga behov i arbetet" },
+//   { id: "step-5", label: "Nuvarande stöd", heading: "Stöd du redan får" },
+//   { id: "step-6", label: "Granska och skicka", heading: "Sammanfatta och ladda ner" },
+// ];
+
+// const steps = [
+//   { id: "step-1", label: "Start av intervju", heading: "Förberedelse av intervju" },
+//   { id: "step-2", label: "Funktionsnedsättning", heading: "Om din funktionsnedsättning" },
+//   { id: "step-3", label: "Grundläggande behov", heading: "Dina arbetsrelaterade behov" },
+//   { id: "step-4", label: "Andra behov", heading: "Övriga behov i arbetet" },
+//   { id: "step-5", label: "Nuvarande stöd", heading: "Stöd du redan får" },
+//   { id: "step-6", label: "Granska och skicka", heading: "Sammanfatta och ladda ner" },
+//   { id: "step-7", label: "Start av intervju", heading: "Förberedelse av intervju" },
+//   { id: "step-8", label: "Funktionsnedsättning", heading: "Om din funktionsnedsättning" },
+//   { id: "step-9", label: "Grundläggande behov", heading: "Dina arbetsrelaterade behov" },
+//   { id: "step-10", label: "Andra behov", heading: "Övriga behov i arbetet" },
+//   { id: "step-11", label: "Nuvarande stöd", heading: "Stöd du redan får" },
+//   { id: "step-12", label: "Granska och skicka", heading: "Sammanfatta och ladda ner" },
+//   { id: "step-13", label: "Andra behov", heading: "Övriga behov i arbetet" },
+//   { id: "step-14", label: "Nuvarande stöd", heading: "Stöd du redan får" },
+//   { id: "step-15", label: "Granska och skicka", heading: "Sammanfatta och ladda ner" },
+// ];
 const steps = [
-  { id: "step-1", label: "Välj ärendetyp", heading: "Vem ansöker?" },
-  { id: "step-2", label: "Funktionsnedsättning", heading: "Om din funktionsnedsättning" },
-  { id: "step-3", label: "Grundläggande behov", heading: "Dina arbetsrelaterade behov" },
-  { id: "step-4", label: "Andra behov", heading: "Övriga behov i arbetet" },
-  { id: "step-5", label: "Nuvarande stöd", heading: "Stöd du redan får" },
-  { id: "step-6", label: "Granska och skicka", heading: "Sammanfatta och ladda ner" },
+  {
+    id: "step-1",
+    label: "Beskriv dig själv",
+    heading: "Kan du kort berätta om dig själv och din nuvarande arbetssituation?",
+  },
+  {
+    id: "step-2",
+    label: "Diagnos och påverkan",
+    heading: "Vilken funktionsnedsättning har du, och hur påverkar den dig i arbetslivet?",
+  },
+  {
+    id: "step-3",
+    label: "Utmaningar i arbetet",
+    heading: "Vilka arbetsuppgifter har du svårast med på grund av din funktionsnedsättning?",
+  },
+  {
+    id: "step-4",
+    label: "Tidigare hjälpmedel",
+    heading: "Har du använt några hjälpmedel tidigare? Vad fungerade bra/dåligt?",
+  },
+  {
+    id: "step-5",
+    label: "Arbetsmiljö",
+    heading: "Hur ser din fysiska och sociala arbetsmiljö ut idag?",
+  },
+  {
+    id: "step-6",
+    label: "Kommunikation och samspel",
+    heading: "Har du behov av stöd i kommunikation eller samspel med kollegor eller kunder?",
+  },
+  {
+    id: "step-7",
+    label: "Kognitiva behov",
+    heading:
+      "Har du svårt att koncentrera dig, planera, komma ihåg eller strukturera arbetsuppgifter?",
+  },
+  {
+    id: "step-8",
+    label: "Fysiska behov",
+    heading:
+      "Behöver du fysiska anpassningar i din arbetsmiljö, t.ex. ergonomiska möbler eller hjälpmedel?",
+  },
+  {
+    id: "step-9",
+    label: "Digitala hjälpmedel",
+    heading: "Använder du dator, mobil eller annan teknik i arbetet? Vad behöver du där?",
+  },
+  {
+    id: "step-10",
+    label: "Resor och transporter",
+    heading: "Behöver du hjälp med att ta dig till och från arbetet?",
+  },
+  {
+    id: "step-11",
+    label: "Tidsaspekter",
+    heading: "Behöver du anpassning av arbetstider eller arbetstakt?",
+  },
+  {
+    id: "step-12",
+    label: "Stöd från arbetsgivare",
+    heading: "Får du idag något stöd från din arbetsgivare? Vad fungerar bra/mindre bra?",
+  },
+  {
+    id: "step-13",
+    label: "Stöd från andra aktörer",
+    heading:
+      "Har du kontakt med andra instanser, t.ex. arbetsförmedlingen, företagshälsovård eller sjukvård?",
+  },
+  {
+    id: "step-14",
+    label: "Önskade hjälpmedel",
+    heading: "Vad tror du skulle hjälpa dig att utföra ditt arbete bättre?",
+  },
+  {
+    id: "step-15",
+    label: "Sammanfattning och avslut",
+    heading: "Vill du lägga till något innan vi avslutar intervjun?",
+  },
 ];
+
+const stepsId = steps.map((step) => step.id);
 
 function CopyButton({ message }) {
   const [isCopied, setIsCopied] = useState(false);
@@ -118,6 +218,15 @@ export default function ChatBot() {
     "step-4": [],
     "step-5": [],
     "step-6": [],
+    "step-7": [],
+    "step-8": [],
+    "step-9": [],
+    "step-10": [],
+    "step-11": [],
+    "step-12": [],
+    "step-13": [],
+    "step-14": [],
+    "step-15": [],
   });
 
   // Reference to message container for scrolling
@@ -222,7 +331,23 @@ export default function ChatBot() {
 
   // Complete current step and move to next
   const completeCurrentStep = () => {
-    const stepOrder = ["step-1", "step-2", "step-3", "step-4", "step-5", "step-6"];
+    const stepOrder = [
+      "step-1",
+      "step-2",
+      "step-3",
+      "step-4",
+      "step-5",
+      "step-6",
+      "step-7",
+      "step-8",
+      "step-9",
+      "step-10",
+      "step-11",
+      "step-12",
+      "step-13",
+      "step-14",
+      "step-15",
+    ];
     const currentIndex = stepOrder.indexOf(currentStep);
 
     if (currentIndex < stepOrder.length - 1) {
@@ -327,6 +452,7 @@ export default function ChatBot() {
         currentStep={currentStep}
         completedSteps={completedSteps}
         onNavigate={navigateToStep}
+        type="interview"
       />
 
       {/* Main Content */}
@@ -337,6 +463,7 @@ export default function ChatBot() {
           navigateToStep={navigateToStep}
           completedSteps={completedSteps}
           completeCurrentStep={completeCurrentStep}
+          steps={stepsId}
         />
 
         {/* Chat Messages */}

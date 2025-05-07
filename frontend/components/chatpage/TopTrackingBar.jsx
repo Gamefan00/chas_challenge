@@ -8,8 +8,9 @@ const TopTrackingBar = ({
   navigateToStep,
   completedSteps,
   completeCurrentStep,
+  steps
 }) => {
-  const [steps, setSteps] = useState(["step-1", "step-2", "step-3", "step-4", "step-5", "step-6"]);
+  // const [steps, setSteps] = useState(["step-1", "step-2", "step-3", "step-4", "step-5", "step-6"]);
   const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
   // Use a ref to track if we've already triggered the last step completion

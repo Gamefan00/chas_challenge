@@ -9,10 +9,10 @@ import Markdown from "react-markdown";
 import TopTrackingbar from "@/components/chatpage/TopTrackingBar";
 import Sidebar from "@/components/chatpage/SidebarNav";
 import MessageLoading from "@/components/ui/message-loading";
-
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize from "rehype-sanitize";
 import remarkGfm from "remark-gfm";
+import BackToBottomBtn from "@/components/chatpage/BackToBottomBtn";
 
 // Define steps for reference in the component
 const steps = [
@@ -23,6 +23,8 @@ const steps = [
   { id: "step-5", label: "Nuvarande stöd", heading: "Stöd du redan får" },
   { id: "step-6", label: "Granska och skicka", heading: "Sammanfatta och ladda ner" },
 ];
+
+const steptsId = steps.map((step) => step.id);
 
 function CopyButton({ message }) {
   const [isCopied, setIsCopied] = useState(false);
@@ -337,6 +339,7 @@ export default function ChatBot() {
           navigateToStep={navigateToStep}
           completedSteps={completedSteps}
           completeCurrentStep={completeCurrentStep}
+          steps={steptsId}
         />
 
         {/* Chat Messages */}
@@ -396,8 +399,9 @@ export default function ChatBot() {
               <MessageLoading />
             </Card>
           )}
+          {/* Back to Bottom Button */}
+          <BackToBottomBtn conatinerRef={messageContainerRef} threshold={30} />
         </div>
-
         {/* Input Area */}
         <div className="bg-background p-4 pl-0">
           <div className="mx-auto flex max-w-3xl items-center gap-5">

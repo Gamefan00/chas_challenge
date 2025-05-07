@@ -19,6 +19,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
 
 const steps = [
   {
@@ -114,26 +115,27 @@ export default function InformationPage() {
         {/* Hero Section */}
         <Card className="mb-8">
           <CardHeader className="text-center">
-            <CardTitle className="text-xl"> Omfattande guide till ansökningsprocessen </CardTitle>
-
+            <h1>Omfattande guide till ansökningsprocessen</h1>
             <CardDescription className="text-foreground mx-auto max-w-3xl">
               Här hittar du detaljerad information om hur du ansöker om arbetshjälpmedel, vilka
               utmaningar du kan möta, och hur våra experter kan hjälpa dig genom hela processen.
             </CardDescription>
           </CardHeader>
           <CardFooter className="flex justify-center">
-            <Button size="lg">Starta din ansökan</Button>
+            <Button size="lg">
+              <Link href="/applicationChat">Starta din ansökan</Link>
+            </Button>
           </CardFooter>
         </Card>
 
         {/* About Section */}
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle>Om ansökningsprocessen</CardTitle>
+            <CardTitle className="border-b pb-2">Om ansökningsprocessen</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
-              <p>
+              <p className="font-medium">
                 Att ansöka om arbetshjälpmedel kan vara en komplicerad process med många steg och
                 krav som måste uppfyllas. Vår tjänst har utvecklats för att förenkla denna process
                 och hjälpa dig att maximera dina chanser att få det stöd du behöver. Vi har samlat
@@ -142,24 +144,26 @@ export default function InformationPage() {
               </p>
 
               <div>
-                <h3 className="mb-3 font-semibold">Vem kan ansöka?</h3>
-                <p className="mb-3">Du kan ansöka om arbetshjälpmedel om du:</p>
-                <ul className="ml-6 list-disc space-y-2">
+                <h3 className="mb-3 border-b pb-2 font-semibold">Vem kan ansöka?</h3>
+                <p className="mb-3 font-semibold">Du kan ansöka om arbetshjälpmedel om du:</p>
+                <ul className="ml-6 list-disc space-y-4">
                   <li>Har en dokumenterad funktionsnedsättning eller arbetsskada</li>
                   <li>Är anställd eller egenföretagare</li>
                   <li>Behöver hjälpmedel för att kunna utföra ditt arbete</li>
                   <li>Är mellan 18 och 67 år</li>
                 </ul>
-                <p className="mt-3">
+                {/* <p className="mt-3">
                   I vissa fall kan även arbetssökande få stöd för arbetshjälpmedel, särskilt om det
                   underlättar processen att få ett arbete.
-                </p>
+                </p> */}
               </div>
 
               <div>
-                <h3 className="mb-3 font-semibold">Vilka typer av stöd finns?</h3>
-                <p className="mb-3">Det finns flera olika former av stöd som kan sökas:</p>
-                <ul className="ml-6 list-disc space-y-2">
+                <h3 className="mb-3 border-b pb-2 font-semibold">Vilka typer av stöd finns?</h3>
+                {/* <p className="mb-3 font-semibold">
+                  Det finns flera olika former av stöd som kan sökas:
+                </p> */}
+                <ul className="ml-6 list-disc space-y-4">
                   <li>
                     <strong>Fysiska hjälpmedel:</strong> Specialanpassade möbler, verktyg och
                     utrustning
@@ -184,10 +188,10 @@ export default function InformationPage() {
         {/* Step by Step Guide */}
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle>Steg-för-steg ansökningsguide</CardTitle>
+            <CardTitle className="border-b pb-2">Steg-för-steg ansökningsguide</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="mb-6">
+            <p className="mb-6 font-semibold">
               Här är en detaljerad beskrivning av ansökningsprocessen från start till slut:
             </p>
 
@@ -259,7 +263,9 @@ export default function InformationPage() {
             </CardDescription>
           </CardHeader>
           <CardFooter className="text-primary-foreground flex justify-center">
-            <Button size="lg">Starta din ansökan nu</Button>
+            <Button size="lg">
+              <Link href="applicationChat">Starta din ansökan nu</Link>
+            </Button>
           </CardFooter>
         </Card>
       </main>
