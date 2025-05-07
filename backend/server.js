@@ -1,13 +1,14 @@
-import express from 'express';
-import bodyParser from 'body-parser';
-import cors from 'cors';
-import dotenv from 'dotenv';
+import express from "express";
+import bodyParser from "body-parser";
+import cors from "cors";
+import dotenv from "dotenv";
 
-import chatRoutes from './routes/chatRoutes.js';
-import historyRoutes from './routes/historyRoutes.js';
-import clearRoutes from './routes/clearRoutes.js';
-import getUserIdRoutes from './routes/getUserIdRoute.js';
-import { initializeConversations } from './utils/conversationManager.js';
+import chatRoutes from "./routes/chatRoutes.js";
+import historyRoutes from "./routes/historyRoutes.js";
+import clearRoutes from "./routes/clearRoutes.js";
+import getUserIdRoutes from "./routes/getUserIdRoute.js";
+import authRoutes from "./routes/authRoutes.js";
+import { initializeConversations } from "./utils/conversationManager.js";
 
 // Load environment variables
 dotenv.config();
@@ -23,10 +24,11 @@ app.use(cors());
 initializeConversations();
 
 // Routes
-app.use('/chat', chatRoutes);
-app.use('/history', historyRoutes);
-app.use('/clear', clearRoutes);
-app.use('/getUserId', getUserIdRoutes);
+app.use("/chat", chatRoutes);
+app.use("/history", historyRoutes);
+app.use("/clear", clearRoutes);
+app.use("/getUserId", getUserIdRoutes);
+app.use("/auth", authRoutes);
 
 // Start server
 app.listen(PORT, () => {
