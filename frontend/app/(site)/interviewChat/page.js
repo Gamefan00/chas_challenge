@@ -13,6 +13,7 @@ import MessageLoading from "@/components/ui/message-loading";
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize from "rehype-sanitize";
 import remarkGfm from "remark-gfm";
+import BackToBottomBtn from "@/components/chatpage/BackToBottomBtn";
 
 // Define steps for reference in the component
 // const steps = [
@@ -446,7 +447,7 @@ export default function ChatBot() {
   }
 
   return (
-    <div className="bg-background flex h-[90vh] w-full">
+    <div className="bg-background relative flex h-[90vh] w-full">
       {/* Interactive Sidebar */}
       <Sidebar
         currentStep={currentStep}
@@ -467,7 +468,7 @@ export default function ChatBot() {
         />
 
         {/* Chat Messages */}
-        <div ref={messageContainerRef} className="flex-1 overflow-y-auto">
+        <div ref={messageContainerRef} className="flex-1 overflow-auto">
           <div className="mx-auto max-w-3xl">
             {currentChatHistory.map((message, index) => (
               <div
@@ -544,6 +545,9 @@ export default function ChatBot() {
               <Send className="h-5 w-5" />
             </Button>
           </div>
+        </div>
+        <div>
+          <BackToBottomBtn containerRef={messageContainerRef} threshold={30} />
         </div>
       </div>
     </div>

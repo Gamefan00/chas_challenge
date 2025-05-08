@@ -344,62 +344,60 @@ export default function ChatBot() {
 
         {/* Chat Messages */}
         <div ref={messageContainerRef} className="relative flex-1 overflow-auto">
-          <div>
-            <div className="relative mx-auto h-full max-w-3xl">
-              {currentChatHistory.map((message, index) => (
-                <div
-                  key={index}
-                  className={`mb-4 ${
-                    message.role === "user"
-                      ? "flex flex-col items-end justify-end"
-                      : "flex flex-col items-start justify-start"
+          <div className="relative mx-auto h-full max-w-3xl">
+            {currentChatHistory.map((message, index) => (
+              <div
+                key={index}
+                className={`mb-4 ${
+                  message.role === "user"
+                    ? "flex flex-col items-end justify-end"
+                    : "flex flex-col items-start justify-start"
+                }`}
+              >
+                <Card
+                  className={`max-w-[80%] rounded-xl p-4 break-words ${
+                    message.role === "user" ? "user-msg bg-primary" : "bg-card"
                   }`}
                 >
-                  <Card
-                    className={`max-w-[80%] rounded-xl p-4 break-words ${
-                      message.role === "user" ? "user-msg bg-primary" : "bg-card"
-                    }`}
-                  >
-                    <div className="markdown-container">
-                      <Markdown
-                        remarkPlugins={[remarkGfm]}
-                        rehypePlugins={[rehypeRaw, rehypeSanitize]}
-                        components={{
-                          code(props) {
-                            const { children, className, ...rest } = props;
-                            return (
-                              <code
-                                className={`${className} text-primary bg-background rounded px-1.5 py-0.5`}
-                                {...rest}
-                              >
-                                {children}
-                              </code>
-                            );
-                          },
-                          pre(props) {
-                            return (
-                              <pre
-                                className="text-primary bg-primary overflow-x-auto rounded-md p-4 text-sm"
-                                {...props}
-                              />
-                            );
-                          },
-                        }}
-                      >
-                        {message.text || ""}
-                      </Markdown>
-                    </div>
-                  </Card>
-
-                  {message.role === "assistant" && <CopyButton message={message.text} />}
-                </div>
-              ))}
-              {isLoading && (
-                <Card className="inline-block items-start rounded-xl px-3 py-1 pb-0">
-                  <MessageLoading />
+                  <div className="markdown-container">
+                    <Markdown
+                      remarkPlugins={[remarkGfm]}
+                      rehypePlugins={[rehypeRaw, rehypeSanitize]}
+                      components={{
+                        code(props) {
+                          const { children, className, ...rest } = props;
+                          return (
+                            <code
+                              className={`${className} text-primary bg-background rounded px-1.5 py-0.5`}
+                              {...rest}
+                            >
+                              {children}
+                            </code>
+                          );
+                        },
+                        pre(props) {
+                          return (
+                            <pre
+                              className="text-primary bg-primary overflow-x-auto rounded-md p-4 text-sm"
+                              {...props}
+                            />
+                          );
+                        },
+                      }}
+                    >
+                      {message.text || ""}
+                    </Markdown>
+                  </div>
                 </Card>
-              )}
-            </div>
+
+                {message.role === "assistant" && <CopyButton message={message.text} />}
+              </div>
+            ))}
+            {isLoading && (
+              <Card className="inline-block items-start rounded-xl px-3 py-1 pb-0">
+                <MessageLoading />
+              </Card>
+            )}
           </div>
         </div>
         {/* Input Area */}
@@ -423,7 +421,7 @@ export default function ChatBot() {
           </div>
         </div>
         {/* Back to Bottom Button */}
-        <div className="block">
+        <div>
           <BackToBottomBtn containerRef={messageContainerRef} threshold={30} />
         </div>
       </div>
