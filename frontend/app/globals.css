@@ -20,6 +20,7 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-success: var(--success);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -59,6 +60,7 @@
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
+  --success: #0dbd24;
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0 0 238);
@@ -164,50 +166,6 @@ p {
     @apply bg-background text-foreground;
   }
 }
-
-/* Assistant response styling  */
-/* 
-.chat-messages p,
-.markdown-body p,
-.markdown-body h1,
-.markdown-body h2,
-.markdown-body h3,
-.markdown-body h4,
-.markdown-body h5 {
-  color: var(--color-foreground);
-}
-
-.markdown-body p,
-.chat-messages p {
-  padding-top: 20px;
-  font-size: 14px;
-}
-
-.markdown-body h1 {
-  font-size: 24px;
-  padding-top: 20px;
-}
-
-.markdown-body h2 {
-  font-size: 22px;
-  padding-top: 20px;
-}
-
-.markdown-body h3 {
-  font-size: 20px;
-  padding-top: 20px;
-}
-
-.markdown-body h4 {
-  font-size: 18px;
-  padding-top: 20px;
-}
-
-.markdown-body h5 {
-  font-size: 16px;
-  padding-top: 20px;
-}
- */
 
 /* Enhanced markdown styling */
 .markdown-container {
