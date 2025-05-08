@@ -1,53 +1,57 @@
-import { ArrowUp } from "lucide-react";
+import { ArrowDown } from "lucide-react";
 import { Button } from "../ui/button";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
-export default function BackToBottomBtn({ conatinerRef, threshold = 30 }) {
-  // Scroll state management
-  const [showButton, setShowButton] = useState(false);
+export default function BackToBottomBtn({ containerRef, threshold }) {
+  const [isVisible, setIsVisible] = useState(false);
 
-  // Handle scroll detection
-
-  const handleScroll = () => {
-    const container = conatinerRef.current;
+  const handleScroll = useCallback(() => {
+    const container = containerRef.current;
     if (!container) return;
 
-    const isAtBottom =
-      container.scrollHeight - container.scrollTop - container.scrollHeight < threshold;
+    // Calculate distance from the bottom
+    const distanceFromBottom =
+      container.scrollHeight - container.scrollTop - container.clientHeight;
+    setIsVisible(distanceFromBottom > threshold);
 
-    setShowButton(!isAtBottom);
-  };
+    console.log("Distance from bottom", distanceFromBottom);
+    console.log("Is visible", distanceFromBottom > threshold);
 
-  // Setup scroll event listener
+    // if (!isAtBottom) {
+    //   setIsVisible(true);
+    //   console.log("isVisible true?", isVisible);
+    // } else {
+    //   setIsVisible(false);
+    //   console.log("isvisible false?", isVisible);
+    // }
+  }, [containerRef, threshold]);
+
   useEffect(() => {
-    const container = conatinerRef.current;
+    const container = containerRef.current;
     if (!container) return;
+
+    handleScroll(); // Initial check
 
     container.addEventListener("scroll", handleScroll);
-
-    // intial scroll check
-    handleScroll();
-
     return () => {
       container.removeEventListener("scroll", handleScroll);
     };
-  }, [conatinerRef, threshold]);
+  }, [containerRef, threshold]);
 
-  // Scroll to bottom function
-  const scrollToBottom = () => {
-    if (conatinerRef.current) {
-      conatinerRef.current.scrollTop = conatinerRef.current.scrollHeight;
+  const handleClick = () => {
+    const container = containerRef.current;
+    if (container) {
+      container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
     }
   };
 
-  // Check if the button should be visible
-  if (!showButton) {
-    return null;
-  }
-
   return (
-    <Button onClick={scrollToBottom} size="icon" className="fixed right-4 bottom-4 z-10 bg-white">
-      <ArrowUp className="h-5 w-5" />
-    </Button>
+    <div className="flex justify-center">
+      {isVisible && (
+        <Button className="absolute bottom-21 z-10 rounded-full" onClick={handleClick}>
+          <ArrowDown className="h-5 w-5" />
+        </Button>
+      )}
+    </div>
   );
 }
