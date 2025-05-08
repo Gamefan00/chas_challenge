@@ -77,6 +77,7 @@ export default function Sidebar() {
   ];
 
   const handleLogout = () => {
+    localStorage.removeItem("authToken");
     router.push("/login");
   };
 
@@ -91,7 +92,8 @@ export default function Sidebar() {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="w-64 p-0">
-            <div className="bg-background flex h-screen w-full flex-col">
+            <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+            <div className="bg-background h-screen w-full">
               <div className="flex h-16 items-center justify-between px-4">
                 <Logo />
               </div>
@@ -137,7 +139,7 @@ export default function Sidebar() {
     <div className="relative flex">
       <div
         className={cn(
-          "bg-background h-screen border-r transition-all duration-300",
+          "bg-background duration flex h-screen flex-col border-r transition-all",
           isSidebarOpen ? "w-64" : "w-24",
         )}
       >
