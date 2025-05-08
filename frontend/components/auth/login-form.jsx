@@ -26,6 +26,7 @@ export default function LoginForm() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, password }),
+        credentials: "include",
       });
 
       const data = await response.json();
@@ -36,14 +37,11 @@ export default function LoginForm() {
         throw new Error(data.message || "Login failed");
       }
 
-      // Store the token in localStorage
-      localStorage.setItem("authToken", data.token);
-
       // Set success message
       setStatusType("success");
       setStatusMessage("Login successful!");
 
-      // Add a small delay before redirecting
+      // Small delay before redirecting
       setTimeout(() => {
         router.push("/admin");
       }, 1500);

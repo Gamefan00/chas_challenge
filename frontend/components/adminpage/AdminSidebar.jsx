@@ -76,9 +76,17 @@ export default function Sidebar() {
     },
   ];
 
-  const handleLogout = () => {
-    localStorage.removeItem("authToken");
-    router.push("/login");
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+
+      router.push("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
   };
 
   // Mobile sidebar

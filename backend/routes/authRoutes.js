@@ -5,19 +5,6 @@ import query from "../utils/supabaseQuery.js";
 
 const router = express.Router();
 
-// testing
-router.get("/test-db", async (req, res) => {
-  try {
-    const result = await query("SELECT * FROM admin_users");
-    res.json({
-      count: result.length,
-      users: result.map((u) => ({ id: u.id, email: u.email })),
-    });
-  } catch (error) {
-    console.error("DB test error:", error);
-    res.status(500).json({ error: error.message });
-  }
-});
 // Login route
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
@@ -59,11 +46,19 @@ router.post("/login", async (req, res) => {
       { expiresIn: "4h" }
     );
 
-    // Return the token
-    console.log("Login successful, returning token");
+    // Set token as HttpOnly cookie
+    res.cookie("authToken", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // Set to true in production
+      sameSite: "strict",
+      maxAge: 4 * 60 * 60 * 1000, // 4 hours in milliseconds
+      path: "/",
+    });
+
+    // Return success response
+    console.log("Login successful, cookie set");
     return res.status(200).json({
       message: "Login successful",
-      token,
       user: {
         id: user.id,
         email: user.email,
@@ -75,6 +70,49 @@ router.post("/login", async (req, res) => {
       .status(500)
       .json({ message: "Server error during login", error: error.message });
   }
+});
+
+// Verify admin status middleware
+
+export const authenticateToken = (req, res, next) => {
+  const token = req.cookies.authToken;
+
+  if (!token) {
+    return res.status(401).json({ message: "Authentication required" });
+  }
+
+  jwt.verify(
+    token,
+    process.env.JWT_SECRET || "temporary-fallback-secret",
+    (err, user) => {
+      if (err) {
+        return res.status(403).json({ message: "Invalid or expired token" });
+      }
+      req.user = user;
+      next();
+    }
+  );
+};
+
+// Verify admin route
+router.get("/verify-admin", authenticateToken, async (req, res) => {
+  try {
+    res.status(200).json({
+      isAdmin: req.user.isAdmin,
+      message: req.user.isAdmin
+        ? "User has admin access"
+        : "User is not an admin",
+    });
+  } catch (error) {
+    console.log("Admin verification error:", error);
+    res.status(500).json({ message: "Server error during admin verification" });
+  }
+});
+
+// Logout route - clear the cookie
+router.post("/logout", (req, res) => {
+  res.clearCookie("authToken", { path: "/" });
+  res.status(200).json({ message: "Logged out successfully" });
 });
 
 export default router;
