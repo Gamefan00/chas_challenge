@@ -66,14 +66,10 @@ export default function Sidebar() {
     },
     {
       name: "Användare",
-      href: "/admin/users",
+      href: "/admin/users-settings",
       icon: UsersIcon,
     },
-    {
-      name: "Loggfiler",
-      href: "/admin/logs",
-      icon: FileTextIcon,
-    },
+  
   ];
 
   const handleLogout = () => {
@@ -91,7 +87,7 @@ export default function Sidebar() {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="w-64 p-0">
-            <div className="bg-background flex h-screen w-full flex-col">
+            <div className="bg-background flex w-full flex-col">
               <div className="flex h-16 items-center justify-between px-4">
                 <Logo />
               </div>
@@ -137,7 +133,7 @@ export default function Sidebar() {
     <div className="relative flex">
       <div
         className={cn(
-          "bg-background h-screen border-r transition-all duration-300",
+          "bg-background transition-all duration-300",
           isSidebarOpen ? "w-64" : "w-24",
         )}
       >

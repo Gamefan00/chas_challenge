@@ -66,13 +66,8 @@ export default function Sidebar() {
     },
     {
       name: "Användare",
-      href: "/admin/users",
+      href: "/admin/users-settings",
       icon: UsersIcon,
-    },
-    {
-      name: "Loggfiler",
-      href: "/admin/logs",
-      icon: FileTextIcon,
     },
   ];
 
@@ -137,7 +132,7 @@ export default function Sidebar() {
     <div className="relative flex">
       <div
         className={cn(
-          "bg-background h-screen border-r transition-all duration-300",
+          "bg-background min-h-screen border-r transition-all duration-300",
           isSidebarOpen ? "w-64" : "w-24",
         )}
       >

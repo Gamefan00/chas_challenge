@@ -51,13 +51,13 @@ export default function BehaviorSettings() {
         {/* Punkt 1 */}
         <div className="space-y-8">
           <div className="space-y-2">
-            <Label htmlFor="bot-name">Rubrikt, Steg-för-steg ansökningsguide?</Label>
+            <Label htmlFor="bot-name">Rubrik — Steg-för-steg ansökningsguide?</Label>
 
             <Input id="bot-name" value="Steg-för-steg ansökningsguide" />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="bot-name">Under rubrik, Steg-för-steg ansökningsguide?</Label>
+            <Label htmlFor="bot-name">Under rubrik — Steg-för-steg ansökningsguide?</Label>
 
             <Input
               id="bot-name"
@@ -69,13 +69,13 @@ export default function BehaviorSettings() {
         {/* Punkt 2 */}
         <div className="space-y-8">
           <div className="space-y-2">
-            <Label htmlFor="bot-name">Punkt 1 rubrikt, Bedömning av behov?</Label>
+            <Label htmlFor="bot-name">Punkt 1 rubrik — Bedömning av behov?</Label>
 
             <Input id="bot-name" value="Bedömning av behov" />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="welcome-message">Punkt 1 under rubrikt, Bedömning av behov?</Label>
+            <Label htmlFor="welcome-message">Punkt 1 under rubrik — Bedömning av behov?</Label>
             <Textarea
               id="welcome-message"
               value="Första steget är att få en bedömning av dina specifika behov. Detta görs ofta i samråd med en arbetsterapeut, läkare eller annan specialist som kan dokumentera vilka hjälpmedel som kan underlätta din arbetssituation."
@@ -85,13 +85,13 @@ export default function BehaviorSettings() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="bot-name">Punkt 2 rubrikt, Insamling av dokumentation?</Label>
+          <Label htmlFor="bot-name">Punkt 2 rubrik — Insamling av dokumentation?</Label>
 
           <Input id="bot-name" value="Insamling av dokumentation" />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="welcome-message">Punkt 2 under text, Insamling av dokumentation?</Label>
+          <Label htmlFor="welcome-message">Punkt 2 under text — Insamling av dokumentation?</Label>
           <Textarea
             id="welcome-message"
             value="Vår AI-assistent hjälper dig att fylla i ansökningsformulären korrekt och fullständigt, vilket minimerar risken för avslag på grund av formella brister."
@@ -100,14 +100,14 @@ export default function BehaviorSettings() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="bot-name">Punkt 3 rubrikt, Ifyllande av ansökningsformulär?</Label>
+          <Label htmlFor="bot-name">Punkt 3 rubrik — Ifyllande av ansökningsformulär?</Label>
 
           <Input id="bot-name" value="Bedömning av behov" />
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="welcome-message">
-            Punkt 3 under text, Ifyllande av ansökningsformulär?
+            Punkt 3 under text — Ifyllande av ansökningsformulär?
           </Label>
           <Textarea
             id="welcome-message"
@@ -117,13 +117,13 @@ export default function BehaviorSettings() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="bot-name">Punkt 4 rubrikt, Inlämning av ansökan?</Label>
+          <Label htmlFor="bot-name">Punkt 4 rubrik — Inlämning av ansökan?</Label>
 
           <Input id="bot-name" value="Bedömning av behov" />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="welcome-message">Punkt 4 under text, Inlämning av ansökan?</Label>
+          <Label htmlFor="welcome-message">Punkt 4 under text — Inlämning av ansökan?</Label>
           <Textarea
             id="welcome-message"
             value="Efter att alla dokument är samlade och formulär ifyllda, lämnas ansökan in till relevant myndighet eller organisation. Vi guidar dig till rätt instans."
@@ -132,17 +132,32 @@ export default function BehaviorSettings() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="bot-name">Punkt 1 rubrikt, Bedömning av behov ?</Label>
+          <Label htmlFor="bot-name">Punkt 5 rubrik — Uppföljning under handläggning?</Label>
 
-          <Input id="bot-name" value="Bedömning av behov" />
+          <Input id="bot-name" value="" />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="bot-name">Punkt 1 under rubrik, Bedömning av behov ?</Label>
+          <Label htmlFor="bot-name">Punkt 5 under rubrik — Uppföljning under handläggning?</Label>
 
           <Input
             id="bot-name"
-            value="Första steget är att få en bedömning av dina specifika behov. Detta görs ofta i samråd med en arbetsterapeut, läkare eller annan specialist som kan dokumentera vilka hjälpmedel som kan underlätta din arbetssituation."
+            value="Under handläggningstiden kan kompletteringar behövas. Vi hjälper dig att förstå vad som efterfrågas och hur du bäst bemöter detta."
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="bot-name">Punkt 6 rubrik — Beslut och eventuell överklagan?</Label>
+
+          <Input id="bot-name" value="Beslut och eventuell överklagan" />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="bot-name">Punkt 6 under rubrik — Beslut och eventuell överklagan?</Label>
+
+          <Input
+            id="bot-name"
+            value="När beslut är fattat hjälper vi dig att förstå beslutet. Om ansökan avslås hjälper vi dig att bedöma om en överklagan är lämplig och hur den i så fall ska utformas."
           />
         </div>
       </CardContent>
