@@ -71,8 +71,17 @@ export default function Sidebar() {
     },
   ];
 
-  const handleLogout = () => {
-    router.push("/login");
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+
+      router.push("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
   };
 
   // Mobile sidebar
@@ -86,7 +95,8 @@ export default function Sidebar() {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="w-64 p-0">
-            <div className="bg-background flex h-screen w-full flex-col">
+            <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+            <div className="bg-background h-screen w-full">
               <div className="flex h-16 items-center justify-between px-4">
                 <Logo />
               </div>
@@ -132,7 +142,7 @@ export default function Sidebar() {
     <div className="relative flex">
       <div
         className={cn(
-          "bg-background min-h-screen border-r transition-all duration-300",
+          "bg-background duration flex flex-col border-r transition-all",
           isSidebarOpen ? "w-64" : "w-24",
         )}
       >
