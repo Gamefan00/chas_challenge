@@ -73,7 +73,6 @@ router.post("/login", async (req, res) => {
 });
 
 // Verify admin status middleware
-
 export const authenticateToken = (req, res, next) => {
   const token = req.cookies.authToken;
 
@@ -98,10 +97,12 @@ export const authenticateToken = (req, res, next) => {
 router.get("/verify-admin", authenticateToken, async (req, res) => {
   try {
     res.status(200).json({
+      authenticated: true,
       isAdmin: req.user.isAdmin,
-      message: req.user.isAdmin
-        ? "User has admin access"
-        : "User is not an admin",
+      user: {
+        id: req.user.userId,
+        email: req.user.email,
+      },
     });
   } catch (error) {
     console.log("Admin verification error:", error);
