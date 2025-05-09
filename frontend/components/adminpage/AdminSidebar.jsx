@@ -147,7 +147,7 @@ export default function Sidebar() {
     <div className="relative flex">
       <div
         className={cn(
-          "bg-background duration flex h-screen flex-col border-r transition-all",
+          "bg-background duration flex flex-col border-r transition-all",
           isSidebarOpen ? "w-64" : "w-24",
         )}
       >
