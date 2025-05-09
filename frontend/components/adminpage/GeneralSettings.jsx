@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import AIModelConfig from "./AIModelConfig";
 
-export default function GeneralSettings() {
+export default function GeneralSettings({ welcomeMessage, assistent, history, session }) {
   const [settings, setSettings] = useState({
     botName: "Ansökshjälpen-AI",
     welcomeMessage:
@@ -82,7 +82,6 @@ export default function GeneralSettings() {
               onCheckedChange={(checked) => handleChange("saveHistory", checked)}
             />
           </div>
-
           <div className="space-y-2">
             <Label htmlFor="session-timeout">Sessionstid (dagar)</Label>
             <Input
