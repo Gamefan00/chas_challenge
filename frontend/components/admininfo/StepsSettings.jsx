@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export default function BehaviorSettings() {
+export default function StepsSettings() {
   const [settings, setSettings] = useState({
     tone: "friendly",
     knowledgeBase:

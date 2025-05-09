@@ -59,19 +59,19 @@ export default function ModelConfig() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="bot-name">punkt 2 — Vem kan ansöka?</Label>
+            <Label htmlFor="bot-name">Punkt 2 — Vem kan ansöka?</Label>
 
             <Input id="bot-name" value="Är anställd eller egenföretagare" />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="bot-name">punkt 3 — Vem kan ansöka?</Label>
+            <Label htmlFor="bot-name">Punkt 3 — Vem kan ansöka?</Label>
 
             <Input id="bot-name" value="Behöver hjälpmedel för att kunna utföra ditt arbete" />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="bot-name">punkt 4 — Vem kan ansöka?</Label>
+            <Label htmlFor="bot-name">Punkt 4 — Vem kan ansöka?</Label>
 
             <Input id="bot-name" value="Är mellan 18 och 67 år" />
           </div>

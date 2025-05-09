@@ -69,7 +69,6 @@ export default function Sidebar() {
       href: "/admin/users-settings",
       icon: UsersIcon,
     },
-  
   ];
 
   const handleLogout = () => {
@@ -132,10 +131,7 @@ export default function Sidebar() {
   return (
     <div className="relative flex">
       <div
-        className={cn(
-          "bg-background transition-all duration-300",
-          isSidebarOpen ? "w-64" : "w-24",
-        )}
+        className={cn("bg-background transition-all duration-300", isSidebarOpen ? "w-64" : "w-24")}
       >
         {isSidebarOpen ? (
           <div className="flex h-16 items-center justify-between px-4">

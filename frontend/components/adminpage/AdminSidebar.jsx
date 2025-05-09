@@ -96,7 +96,7 @@ export default function Sidebar() {
           </SheetTrigger>
           <SheetContent side="left" className="w-64 p-0">
             <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-            <div className="bg-background h-screen w-full">
+            <div className="bg-background flex h-screen w-full flex-col justify-between">
               <div className="flex h-16 items-center justify-between px-4">
                 <Logo />
               </div>
@@ -174,7 +174,7 @@ export default function Sidebar() {
           </div>
         )}
         <Separator />
-        <ScrollArea className="flex-1 py-2">
+        <ScrollArea className="flex-1">
           <nav className="grid gap-1 px-2 py-2">
             <TooltipProvider delayDuration={0}>
               {navItems.map((item) => {
@@ -205,8 +205,7 @@ export default function Sidebar() {
             </TooltipProvider>
           </nav>
         </ScrollArea>
-        <Separator />
-        <div className="p-4">
+        <div className="fixed bottom-0 p-4">
           <Tooltip delayDuration={0}>
             <TooltipTrigger asChild>
               <Button
