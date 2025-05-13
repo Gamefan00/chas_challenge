@@ -136,16 +136,24 @@ export default function SidebarNav({
   const selectedSteps = type === "interview" ? interviewSteps : steps;
 
   useEffect(() => {
-    const checkIfMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    checkIfMobile();
-    console.log("checkIfMobile", checkIfMobile);
+    const handleResize = () => {
+      const isNowMobile = window.innerWidth < 768;
+      setIsMobile(isNowMobile);
 
-    window.addEventListener("resize", checkIfMobile);
+      if (!isNowMobile) {
+        // If the sidebar is open and the screen is resized to desktop, close it
+        setIsSidebarOpen(false);
+      } else {
+        // If the sidebar is open and the screen is resized to mobile, close it
+        setIsSidebarOpen(true);
+      }
+    };
+    handleResize(); // Initial check
+
+    window.addEventListener("resize", handleResize);
 
     return () => {
-      window.removeEventListener("resize", checkIfMobile);
+      window.removeEventListener("resize", handleResize);
     };
   }, []);
 
@@ -250,6 +258,12 @@ export default function SidebarNav({
     };
   }, [isMobile, isSidebarOpen]);
 
+  const handleStepClick = (stepId) => {
+    if (isMobile) {
+      setIsSidebarOpen(true);
+    }
+    onNavigate(stepId);
+  };
   console.log("isMobile", isMobile);
   console.log("isSidebarOpen", isSidebarOpen);
 
@@ -297,7 +311,7 @@ export default function SidebarNav({
                       <SidebarMenuItem key={step.id}>
                         <SidebarMenuButton
                           onClick={() =>
-                            isAccessible && onNavigate(step.id) && setIsSidebarOpen(false)
+                            isAccessible && handleStepClick(step.id) && setIsSidebarOpen(false)
                           }
                           disabled={!isAccessible}
                           className={cn(
