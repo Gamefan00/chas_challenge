@@ -42,7 +42,7 @@ router.post("/login", async (req, res) => {
         email: user.email,
         isAdmin: true,
       },
-      process.env.JWT_SECRET || "temporary-fallback-secret",
+      process.env.JWT_SECRET,
       { expiresIn: "4h" }
     );
 
@@ -80,17 +80,13 @@ export const authenticateToken = (req, res, next) => {
     return res.status(401).json({ message: "Authentication required" });
   }
 
-  jwt.verify(
-    token,
-    process.env.JWT_SECRET || "temporary-fallback-secret",
-    (err, user) => {
-      if (err) {
-        return res.status(403).json({ message: "Invalid or expired token" });
-      }
-      req.user = user;
-      next();
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).json({ message: "Invalid or expired token" });
     }
-  );
+    req.user = user;
+    next();
+  });
 };
 
 // Verify admin route
