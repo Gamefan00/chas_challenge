@@ -323,7 +323,7 @@ export default function ChatBot() {
   }
 
   return (
-    <div className="bg-background relative flex h-[90vh] w-full">
+    <div className="bg-background flex h-[90vh] w-full">
       {/* Interactive Sidebar */}
       <Sidebar
         currentStep={currentStep}

@@ -130,7 +130,7 @@ export default function SidebarNav({
   type = "",
 }) {
   const [localCompletedSteps, setLocalCompletedSteps] = useState(completedSteps);
-  const [isSidebarOpen, setSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
 
   const selectedSteps = type === "interview" ? interviewSteps : steps;
@@ -140,6 +140,7 @@ export default function SidebarNav({
       setIsMobile(window.innerWidth < 768);
     };
     checkIfMobile();
+    console.log("checkIfMobile", checkIfMobile);
 
     window.addEventListener("resize", checkIfMobile);
 
@@ -148,8 +149,13 @@ export default function SidebarNav({
     };
   }, []);
 
+  // Desktop view
   useEffect(() => {
-    setSidebarOpen(!isMobile);
+    if (!isMobile) {
+      setIsSidebarOpen(true);
+    } else {
+      setIsSidebarOpen(false);
+    }
   }, [isMobile]);
 
   // Check localStorage on mount and when props change
@@ -233,7 +239,7 @@ export default function SidebarNav({
           toggleButton &&
           !toggleButton.contains(event.target)
         ) {
-          setSidebarOpen(false);
+          setIsSidebarOpen(false);
         }
       }
     };
@@ -244,29 +250,30 @@ export default function SidebarNav({
     };
   }, [isMobile, isSidebarOpen]);
 
+  console.log("isMobile", isMobile);
+  console.log("isSidebarOpen", isSidebarOpen);
+
   return (
     <div className="flex">
       {/* Toggle button outside sidebar - visible when sidebar is closed */}
-      {!isSidebarOpen && (
-        <div className="absolute z-20 mt-2 ml-2">
-          <SidebarTrigger onClick={() => setSidebarOpen(true)} className="toggle-button" />
-        </div>
-      )}
+
+      <div className={cn(`absolute z-20 mt-2 ml-2`, isSidebarOpen && "hidden")}>
+        <SidebarTrigger onClick={() => setIsSidebarOpen(true)} className="toggle-button" />
+      </div>
 
       {/* Sidebar with conditional rendering for width */}
       <div
         className={cn(
-          "sidebar-container duration-300",
+          "sidebar-container",
           isSidebarOpen ? "w-64" : "w-0 overflow-hidden",
           isMobile && isSidebarOpen ? "absolute top-0 left-0 z-40 h-full" : "",
         )}
       >
         <Sidebar className="relative w-64">
-          {isSidebarOpen && (
-            <div className="relative z-10 mt-2 ml-2">
-              <SidebarTrigger onClick={() => setSidebarOpen(false)} className="toggle-button" />
-            </div>
-          )}
+          <div className="relative z-10 mt-2 ml-2">
+            <SidebarTrigger onClick={() => setIsSidebarOpen(false)} className="toggle-button" />
+          </div>
+
           <SidebarContent>
             <SidebarGroup>
               <SidebarGroupContent>
@@ -289,7 +296,9 @@ export default function SidebarNav({
                     return (
                       <SidebarMenuItem key={step.id}>
                         <SidebarMenuButton
-                          onClick={() => isAccessible && onNavigate(step.id)}
+                          onClick={() =>
+                            isAccessible && onNavigate(step.id) && setIsSidebarOpen(false)
+                          }
                           disabled={!isAccessible}
                           className={cn(
                             "w-full justify-start",

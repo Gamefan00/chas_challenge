@@ -13,17 +13,6 @@ export default function BackToBottomBtn({ containerRef, threshold }) {
     const distanceFromBottom =
       container.scrollHeight - container.scrollTop - container.clientHeight;
     setIsVisible(distanceFromBottom > threshold);
-
-    console.log("Distance from bottom", distanceFromBottom);
-    console.log("Is visible", distanceFromBottom > threshold);
-
-    // if (!isAtBottom) {
-    //   setIsVisible(true);
-    //   console.log("isVisible true?", isVisible);
-    // } else {
-    //   setIsVisible(false);
-    //   console.log("isvisible false?", isVisible);
-    // }
   }, [containerRef, threshold]);
 
   useEffect(() => {
