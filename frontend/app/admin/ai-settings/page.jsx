@@ -1,5 +1,5 @@
 "use client";
-import Header from "@/components/adminpage/Header";
+import Header from "@/components/shared/Header";
 import Tabs from "@/components/shared/TabsComponent";
 import BehaviorSettings from "@/components/adminpage/BehaviorSettings";
 import QuestionsSettings from "@/components/adminpage/QuestionsSettings";
@@ -32,7 +32,7 @@ const aiSettings = () => {
 
   return (
     <div className="min-h-screen">
-      <main className="p-6">
+      <main className="mt-6 p-6">
         <Header title={"AI-Bot Inställningar"} />
         <nav>
           <Tabs defaultValue="general" tabs={tabs} />

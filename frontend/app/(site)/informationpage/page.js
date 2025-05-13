@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+import FAQ from "@/components/homepage/FAQ";
 
 const steps = [
   {
@@ -237,24 +238,11 @@ export default function InformationPage() {
         </Card>
 
         {/* FAQ Section */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Vanliga frågor</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Accordion type="single" collapsible className="w-full">
-              {faqs.map((faq, index) => (
-                <AccordionItem key={index} value={`item-${index}`}>
-                  <AccordionTrigger className="text-left">{faq.question}</AccordionTrigger>
-                  <AccordionContent className="text-foreground pt-2">{faq.answer}</AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </CardContent>
-        </Card>
+
+        <FAQ />
 
         {/* CTA Section */}
-        <Card className="">
+        <Card className="mt-8">
           <CardHeader>
             <CardTitle className="text-foreground text-center">Redo att komma igång?</CardTitle>
             <CardDescription className="text-foreground text-center">
@@ -264,7 +252,7 @@ export default function InformationPage() {
           </CardHeader>
           <CardFooter className="text-primary-foreground flex justify-center">
             <Button size="lg">
-              <Link href="applicationChat">Starta din ansökan nu</Link>
+              <Link href="/applicationChat">Starta din ansökan nu</Link>
             </Button>
           </CardFooter>
         </Card>

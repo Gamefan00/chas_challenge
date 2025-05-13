@@ -1,4 +1,4 @@
-import AdminSidebar from "@/components/adminpage/AdminSidebar";
+import AdminSidebar from "@/components/shared/AdminSidebar";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import AdminProtectedPage from "@/components/adminpage/AdminProtectedPage";
 export default function AdminLayout({ children }) {
