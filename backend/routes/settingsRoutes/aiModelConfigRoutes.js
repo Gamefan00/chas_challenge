@@ -3,13 +3,44 @@ import query from "../../utils/supabaseQuery.js";
 
 const router = express.Router();
 
+// Retrieve AI model settings
+router.get("/", async (req, res) => {
+  try {
+    const result = await query(
+      `SELECT key, value FROM admin_settings WHERE category = $1`,
+      ["AI-Model Configuration"]
+    );
+
+    if (!result || result.length === 0) {
+      return res.json({
+        modelConfig: {
+          model: "gpt-4.1-mini",
+          temperature: 1.0,
+          maxTokens: 2048,
+        },
+      });
+    }
+
+    // Convert array of {key, value} objects into a single modelConfig object
+    const modelConfig = {};
+    result.forEach((item) => {
+      try {
+        modelConfig[item.key] = JSON.parse(item.value);
+      } catch (e) {
+        modelConfig[item.key] = item.value;
+      }
+    });
+
+    res.json({ modelConfig });
+  } catch (error) {
+    console.error("Error fetching AI model settings:", error);
+    res.status(500).json({ error: "Failed to fetch settings" });
+  }
+});
+
 router.post("/", async (req, res) => {
   const { modelConfig } = req.body;
   const { model, temperature, maxTokens } = modelConfig || {};
-
-  // console.log("model:", model);
-  // console.log("temperature:", temperature);
-  // console.log("maxTokens:", maxTokens);
 
   try {
     const settings = [
