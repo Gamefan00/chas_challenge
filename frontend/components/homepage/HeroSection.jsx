@@ -1,13 +1,8 @@
 import React from "react";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import Link from "next/link";
 
 const HeroSection = () => {
   return (
@@ -48,7 +43,9 @@ const HeroSection = () => {
               animate={{ y: 0, opacity: 100 }}
               transition={{ duration: 0.9 }}
             >
-              <Button className="cursor-pointer">Kom igång nu!</Button>
+              <Button asChild>
+                <Link href={"/applicationChat"}>Kom igång nu</Link>
+              </Button>
             </motion.div>
           </CardFooter>
         </div>

@@ -89,6 +89,8 @@ const FAQSettings = () => {
 
 export default FAQSettings;
 
+// Template Code - delete this if not needed
+
 // import { useState } from "react";
 // import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 // import { Button } from "@/components/ui/button";
