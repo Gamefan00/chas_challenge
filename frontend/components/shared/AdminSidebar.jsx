@@ -12,6 +12,7 @@ import {
   LogOutIcon,
   PanelLeftIcon,
   PanelRightIcon,
+  Info,
   Plus,
 } from "lucide-react";
 import Logo from "../shared/Logo";
@@ -50,24 +51,19 @@ export default function Sidebar() {
 
   const navItems = [
     {
-      name: "Översikt",
-      href: "/admin",
-      icon: HomeIcon,
-    },
-    {
-      name: "AI-Bot Inställningar",
+      name: "AI-Bot",
       href: "/admin/ai-settings",
       icon: MessageSquareIcon,
     },
     {
-      name: "Systeminställningar",
-      href: "/admin/system-settings",
+      name: "Landningssida",
+      href: "/admin/landing-settings",
       icon: SettingsIcon,
     },
     {
-      name: "Användare",
-      href: "/admin/users-settings",
-      icon: UsersIcon,
+      name: "Resurssida",
+      href: "/admin/resource-settings",
+      icon: Info,
     },
   ];
 

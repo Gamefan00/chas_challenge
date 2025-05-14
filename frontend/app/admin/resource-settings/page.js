@@ -1,11 +1,11 @@
 "use client";
 import Header from "@/components/shared/Header";
 import Tabs from "@/components/shared/TabsComponent";
-import InfoStepsSettings from "@/components/admininfo/InfoStepsSettings";
+import InfoStepsSettings from "@/components/admin/ResourcePage/InfoStepsSettings";
 
-import NecessaryDocumentation from "@/components/admininfo/necessaryDocumentation";
-import FAQ from "@/components/admininfo/FAQSettings";
-import InfoGeneralSettings from "@/components/admininfo/InfoGeneralSettings";
+import NecessaryDocumentation from "@/components/admin/ResourcePage/necessaryDocumentation";
+import FAQ from "@/components/admin/ResourcePage/FAQSettings";
+import InfoGeneralSettings from "@/components/admin/ResourcePage/InfoGeneralSettings";
 
 const informationSettings = () => {
   const tabs = [
@@ -34,7 +34,7 @@ const informationSettings = () => {
   return (
     <div className="min-h-screen">
       <main className="mt-6 p-6">
-        <Header title={"Informations sida inställningar"} />
+        <Header title={"Resurs inställningar"} />
         <nav>
           <Tabs defaultValue="general" tabs={tabs} />
         </nav>

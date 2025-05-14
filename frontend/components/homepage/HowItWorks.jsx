@@ -98,7 +98,7 @@ const HowItWorks = () => {
           >
             <CardFooter>
               <Button asChild>
-                <Link href={"/chatbot1"}>Starta din ansökan</Link>
+                <Link href={"/applicationChat"}>Starta din ansökan</Link>
               </Button>
             </CardFooter>
           </motion.div>
