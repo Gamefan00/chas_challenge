@@ -1,40 +1,39 @@
 "use client";
-import Header from "@/components/adminpage/Header";
+import Header from "@/components/shared/Header";
 import Tabs from "@/components/shared/TabsComponent";
-import StepsSettings from "@/components/admininfo/StepsSettings";
+import InfoStepsSettings from "@/components/admininfo/InfoStepsSettings";
 
-
-import QuestionsSettings from "@/components/adminpage/QuestionsSettings";
-import ResponsesSettings from "@/components/adminpage/ResponsesSettings";
-import GeneralSettings from "@/components/adminpage/GeneralSettings";
+import NecessaryDocumentation from "@/components/admininfo/necessaryDocumentation";
+import FAQ from "@/components/admininfo/FAQSettings";
+import InfoGeneralSettings from "@/components/admininfo/InfoGeneralSettings";
 
 const informationSettings = () => {
   const tabs = [
     {
       value: "general",
-      label: "Allmänna inställningar",
-      content: <GeneralSettings />,
+      label: "Allmänna inställningar & Ansökningsprocess",
+      content: <InfoGeneralSettings />,
     },
     {
       value: "steps",
       label: "Steg-för-steg",
-      content: <StepsSettings />,
+      content: <InfoStepsSettings />,
     },
     {
       value: "questions",
-      label: "Frågor",
-      content: <QuestionsSettings />,
+      label: "Nödvändig dokumentation",
+      content: <NecessaryDocumentation />,
     },
     {
       value: "responses",
-      label: "Svar och feedback",
-      content: <ResponsesSettings />,
+      label: "Vanliga frågor",
+      content: <FAQ />,
     },
   ];
 
   return (
     <div className="min-h-screen">
-      <main className="p-6">
+      <main className="mt-6 p-6">
         <Header title={"Informations sida inställningar"} />
         <nav>
           <Tabs defaultValue="general" tabs={tabs} />
