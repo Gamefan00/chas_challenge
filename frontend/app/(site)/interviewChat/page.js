@@ -248,7 +248,6 @@ export default function ChatBot() {
     if (!currentChatHistory || currentChatHistory.length === 0) return;
 
     async function sendHistoryToBackend() {
-      console.log("currentChatHistory", currentChatHistory);
       const userId = localStorage.getItem("userId");
 
       try {

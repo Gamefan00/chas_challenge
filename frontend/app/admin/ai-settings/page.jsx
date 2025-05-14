@@ -4,14 +4,14 @@ import Tabs from "@/components/shared/TabsComponent";
 import BehaviorSettings from "@/components/adminpage/BehaviorSettings";
 import QuestionsSettings from "@/components/adminpage/QuestionsSettings";
 import ResponsesSettings from "@/components/adminpage/ResponsesSettings";
-import GeneralSettings from "@/components/adminpage/GeneralSettings";
+import ConfigSettings from "@/components/adminpage/ConfigSettings";
 
 const aiSettings = () => {
   const tabs = [
     {
-      value: "general",
-      label: "Allmänna inställningar",
-      content: <GeneralSettings />,
+      value: "configuration",
+      label: "Konfiguration",
+      content: <ConfigSettings />,
     },
     {
       value: "behavior",
@@ -35,7 +35,7 @@ const aiSettings = () => {
       <main className="mt-6 p-6">
         <Header title={"AI-Bot Inställningar"} />
         <nav>
-          <Tabs defaultValue="general" tabs={tabs} />
+          <Tabs defaultValue="configuration" tabs={tabs} />
         </nav>
       </main>
     </div>

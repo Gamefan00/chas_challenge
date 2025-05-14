@@ -1,4 +1,3 @@
-// app/api/auth/verify/route.js
 export async function GET(request) {
   try {
     const response = await fetch("http://localhost:4000/auth/verify-admin", {

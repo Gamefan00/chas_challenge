@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -11,10 +10,11 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Save, AlertCircle, CheckCircle2, Loader2, Settings, ListChecks } from "lucide-react";
+import { AlertCircle, Loader2, Settings, ListChecks } from "lucide-react";
+import SaveBtn from "@/components/adminpage/SaveBtn";
+import { StatusMessage } from "@/components/adminpage/StatusMessage";
 
 export default function BehaviorSettings() {
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [saveStatus, setSaveStatus] = useState(null);
   const [openSections, setOpenSections] = useState(["system-instructions"]);
@@ -55,9 +55,7 @@ export default function BehaviorSettings() {
   useEffect(() => {
     async function loadSettings() {
       try {
-        setLoading(true);
         setError(null);
-
         // Load Application Bot Settings
         const appSystemResponse = await fetch("/admin/settings/application_system_message", {
           credentials: "include",
@@ -299,23 +297,7 @@ export default function BehaviorSettings() {
             Anpassa AI-assistentens instruktioner, välkomstmeddelanden och steg.
           </CardDescription>
         </div>
-        <Button
-          onClick={handleSave}
-          disabled={saveStatus?.type === "loading"}
-          className="bg-primary text-primary-foreground"
-        >
-          {saveStatus?.type === "loading" ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Sparar...
-            </>
-          ) : (
-            <>
-              <Save className="mr-2 h-4 w-4" />
-              Spara ändringar
-            </>
-          )}
-        </Button>
+        <SaveBtn onClick={handleSave} status={saveStatus} />
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Status messages */}
@@ -326,24 +308,7 @@ export default function BehaviorSettings() {
           </div>
         )}
 
-        {saveStatus && (
-          <div
-            className={`flex items-center rounded-md p-3 ${
-              saveStatus.type === "error"
-                ? "border-destructive bg-destructive/10 text-destructive border"
-                : saveStatus.type === "success"
-                  ? "border-success bg-success/10 text-success border"
-                  : "border-primary bg-primary/10 text-primary border"
-            }`}
-          >
-            {saveStatus.type === "success" ? (
-              <CheckCircle2 className="mr-2 h-4 w-4" />
-            ) : (
-              <AlertCircle className="mr-2 h-4 w-4" />
-            )}
-            {saveStatus.message}
-          </div>
-        )}
+        <StatusMessage status={saveStatus} />
 
         {/* Bot Type Tabs */}
         <Tabs value={activeBot} onValueChange={setActiveBot} className="w-full">
@@ -448,8 +413,7 @@ export default function BehaviorSettings() {
                                 className="bg-background border-input text-foreground"
                               />
                               <p className="text-muted-foreground text-xs">
-                                En kort beskrivning av vad detta steg innebär (används internt och
-                                för admins).
+                                En kort beskrivning av vad detta steg innebär.
                               </p>
                             </div>
                           </div>
