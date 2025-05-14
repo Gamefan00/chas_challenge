@@ -140,12 +140,14 @@ export default function SidebarNav({
       const isNowMobile = window.innerWidth < 768;
       setIsMobile(isNowMobile);
 
-      if (!isNowMobile) {
-        // If the sidebar is open and the screen is resized to desktop, close it
-        setIsSidebarOpen(false);
-      } else {
-        // If the sidebar is open and the screen is resized to mobile, close it
+      if (!isNowMobile && isMobile) {
+        // If the sidebar is closed and the screen is resized to desktop, open it
         setIsSidebarOpen(true);
+      }
+
+      if (isNowMobile && !isMobile) {
+        // If the sidebar is open and the screen is resized to mobile, close it
+        setIsSidebarOpen(false);
       }
     };
     handleResize(); // Initial check
@@ -161,8 +163,6 @@ export default function SidebarNav({
   useEffect(() => {
     if (!isMobile) {
       setIsSidebarOpen(true);
-    } else {
-      setIsSidebarOpen(false);
     }
   }, [isMobile]);
 
