@@ -1,11 +1,10 @@
 "use client";
 import Header from "@/components/shared/Header";
 import Tabs from "@/components/shared/TabsComponent";
-import InfoStepsSettings from "@/components/admin/ResourcePage/InfoStepsSettings";
-
-import NecessaryDocumentation from "@/components/admin/ResourcePage/necessaryDocumentation";
-import FAQ from "@/components/admin/ResourcePage/FAQSettings";
-import InfoGeneralSettings from "@/components/admin/ResourcePage/InfoGeneralSettings";
+import InfoStepsSettings from "@/components/admin/ResourcePage/StepsSettings";
+import NecessaryDocSettings from "@/components/admin/ResourcePage/NecessaryDocSettings";
+import FAQSettings from "@/components/admin/ResourcePage/FAQSettings";
+import InfoGeneralSettings from "@/components/admin/ResourcePage/HeroSettings";
 
 const informationSettings = () => {
   const tabs = [
@@ -22,12 +21,12 @@ const informationSettings = () => {
     {
       value: "questions",
       label: "Nödvändig dokumentation",
-      content: <NecessaryDocumentation />,
+      content: <NecessaryDocSettings />,
     },
     {
       value: "responses",
       label: "Vanliga frågor",
-      content: <FAQ />,
+      content: <FAQSettings />,
     },
   ];
 

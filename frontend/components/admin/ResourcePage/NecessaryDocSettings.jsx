@@ -1,37 +1,53 @@
-import React, { useState } from "react";
-import { PenLine, Save, X } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState } from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { PenLine, Save, X } from "lucide-react";
 
-export default function HeroSettings() {
-  const initialHeroContent = [
+export default function NecessaryDocSettings() {
+  const documentationData = [
     {
-      title: "Förenkla din väg till arbetshjälpmedel",
+      title: "Läkarintyg/Medicinskt utlåtande?",
       description:
-        "Låt vår AI-assistent guida dig genom ansökningsprocessen och maximera dina chanser att få rätt stöd för dina behov.",
-      buttonText: "Kom igång nu",
-      link: "/applicationChat",
+        "Ett aktuellt intyg som beskriver din funktionsnedsättning och dess påverkan på arbetsförmågan.",
+    },
+    {
+      title: "Arbetsterapeututlåtande?",
+      description:
+        "Bedömning från arbetsterapeut om vilka hjälpmedel som kan underlätta din arbetssituation..",
+    },
+    {
+      title: "Arbetsgivarintyg",
+      description:
+        "Bekräftelse från arbetsgivare om anställning och beskrivning av arbetsuppgifter..",
+    },
+    {
+      title: "Offert för hjälpmedel",
+      description: "Prisförslag från leverantör av de hjälpmedel som ansökan gäller.",
+    },
+    {
+      title: "Personbevis",
+      description: "För att bekräfta din identitet och adress.",
     },
   ];
 
-  // State for Hero Content cards
-  const [heroContent, setHeroContent] = useState(initialHeroContent);
+  // State for document cards
+  const [documents, setDocuments] = useState(documentationData);
   const [editingIndex, setEditingIndex] = useState(null);
   const [currentEdit, setCurrentEdit] = useState({});
 
-  // Start editing a hero
+  // Start editing a document
   const handleEdit = (index) => {
     setEditingIndex(index);
-    setCurrentEdit({ ...heroContent[index] });
+    setCurrentEdit({ ...documents[index] });
   };
 
-  // Save edited hero
+  // Save  edited document
   const handleSave = () => {
-    const updatedHero = [...heroContent];
-    updatedHero[editingIndex] = currentEdit;
-    setHeroContent(updatedHero);
+    const updatedDocuments = [...documents];
+    updatedDocuments[editingIndex] = currentEdit;
+    setDocuments(updatedDocuments);
     setEditingIndex(null);
   };
 
@@ -46,13 +62,13 @@ export default function HeroSettings() {
   return (
     <Card className="w-full shadow-md">
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-xl font-bold">Redigera Hero text</CardTitle>
+        <CardTitle className="text-xl font-bold">Redigera Nödvändig dokumentation</CardTitle>
       </CardHeader>
 
       <CardContent className="pt-4">
-        {/* heros List */}
+        {/* Documents List */}
         <div className="space-y-4">
-          {heroContent.map((hero, index) => (
+          {documents.map((document, index) => (
             <Card
               key={index}
               className={`border ${editingIndex === index ? "border-blue-500" : "border-gray-200"}`}
@@ -77,15 +93,7 @@ export default function HeroSettings() {
                       rows={3}
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="mb-1 block text-sm font-medium">Knapp Text</label>
-                      <Input
-                        value={currentEdit.buttonText}
-                        onChange={(e) => handleEditChange("buttonText", e.target.value)}
-                      />
-                    </div>
-                  </div>
+
                   <div className="flex justify-end gap-2">
                     <Button variant="outline" onClick={() => setEditingIndex(null)}>
                       <X className="mr-2 h-4 w-4" /> Avbryt
@@ -100,8 +108,8 @@ export default function HeroSettings() {
                 <CardContent className="flex items-start justify-between p-4">
                   <div className="flex flex-col gap-4">
                     <div>
-                      <h3 className="font-medium">{hero.title}</h3>
-                      <p className="mt-1 text-sm text-gray-500">{hero.description}</p>
+                      <h3 className="font-medium">{document.title}</h3>
+                      <p className="mt-1 text-sm text-gray-500">{document.description}</p>
                     </div>
                   </div>
                   <div className="flex gap-2">

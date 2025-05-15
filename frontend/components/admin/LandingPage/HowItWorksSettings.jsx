@@ -5,17 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 export default function HowItWorksSettings() {
-  // Default feature cards data
-  const defaultFeatures = [
+  // steps for the "How It Works" section
+  const howItWorksSettings = [
     {
       title: "Beskriv din situation",
       description:
@@ -37,34 +30,22 @@ export default function HowItWorksSettings() {
     },
   ];
 
-  // State for feature cards
-  const [features, setFeatures] = useState(defaultFeatures);
+  // State for step cards
+  const [steps, setSteps] = useState(howItWorksSettings);
   const [editingIndex, setEditingIndex] = useState(null);
   const [currentEdit, setCurrentEdit] = useState({});
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [newFeature, setNewFeature] = useState({
-    title: "",
-    description: "",
-  });
 
-  // Available icons for selection
-  const availableIcons = [
-    { name: "FileText", component: <FileText className="h-4 w-4" /> },
-    { name: "MessageSquareText", component: <MessageSquareText className="h-4 w-4" /> },
-    { name: "PenLine", component: <PenLine className="h-4 w-4" /> },
-  ];
-
-  // Start editing a feature
+  // Start editing a step
   const handleEdit = (index) => {
     setEditingIndex(index);
-    setCurrentEdit({ ...features[index] });
+    setCurrentEdit({ ...steps[index] });
   };
 
-  // Save edited feature
+  // Save edited step
   const handleSave = () => {
-    const updatedFeatures = [...features];
-    updatedFeatures[editingIndex] = currentEdit;
-    setFeatures(updatedFeatures);
+    const updatedHowItWorks = [...steps];
+    updatedHowItWorks[editingIndex] = currentEdit;
+    setSteps(updatedHowItWorks);
     setEditingIndex(null);
   };
 
@@ -76,14 +57,6 @@ export default function HowItWorksSettings() {
     });
   };
 
-  // Handle change in add form
-  const handleAddChange = (field, value) => {
-    setNewFeature({
-      ...newFeature,
-      [field]: value,
-    });
-  };
-
   return (
     <Card className="w-full shadow-md">
       <CardHeader className="flex flex-row items-center justify-between">
@@ -91,63 +64,9 @@ export default function HowItWorksSettings() {
       </CardHeader>
 
       <CardContent className="pt-4">
-        {/* Add New Feature Form */}
-        {showAddForm && (
-          <Card className="mb-6 border-2 border-dashed border-gray-200 p-4">
-            <CardContent className="p-0">
-              <h3 className="mb-4 text-lg font-medium"></h3>
-              <div className="grid gap-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="mb-1 block text-sm font-medium">Icon</label>
-                  </div>
-                  <div>
-                    <label className="mb-1 block text-sm font-medium">Title</label>
-                    <Input
-                      value={newFeature.title}
-                      onChange={(e) => handleAddChange("title", e.target.value)}
-                      placeholder="Enter title"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="mb-1 block text-sm font-medium">Description</label>
-                  <Textarea
-                    value={newFeature.description}
-                    onChange={(e) => handleAddChange("description", e.target.value)}
-                    placeholder="Enter description"
-                    rows={3}
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="mb-1 block text-sm font-medium">Button Text</label>
-                    <Input
-                      value={newFeature.buttonText}
-                      onChange={(e) => handleAddChange("buttonText", e.target.value)}
-                      placeholder="Enter button text"
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1 block text-sm font-medium">Link</label>
-                    <Input
-                      value={newFeature.link}
-                      onChange={(e) => handleAddChange("link", e.target.value)}
-                      placeholder="Enter link path"
-                    />
-                  </div>
-                </div>
-                <Button onClick={handleAddFeature} className="mt-2">
-                  <PlusCircle className="mr-2 h-4 w-4" /> Add Feature
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Features List */}
+        {/* Steps List */}
         <div className="space-y-4">
-          {features.map((feature, index) => (
+          {steps.map((step, index) => (
             <Card
               key={index}
               className={`border ${editingIndex === index ? "border-blue-500" : "border-gray-200"}`}
@@ -157,7 +76,7 @@ export default function HowItWorksSettings() {
                 <CardContent className="grid gap-4 p-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="mb-1 block text-sm font-medium">Title</label>
+                      <label className="mb-1 block text-sm font-medium">Titel</label>
                       <Input
                         value={currentEdit.title}
                         onChange={(e) => handleEditChange("title", e.target.value)}
@@ -165,7 +84,7 @@ export default function HowItWorksSettings() {
                     </div>
                   </div>
                   <div>
-                    <label className="mb-1 block text-sm font-medium">Description</label>
+                    <label className="mb-1 block text-sm font-medium">Beskrivning</label>
                     <Textarea
                       value={currentEdit.description}
                       onChange={(e) => handleEditChange("description", e.target.value)}
@@ -187,8 +106,8 @@ export default function HowItWorksSettings() {
                 <CardContent className="flex items-start justify-between p-4">
                   <div className="flex flex-col gap-4">
                     <div>
-                      <h3 className="font-medium">{feature.title}</h3>
-                      <p className="mt-1 text-sm text-gray-500">{feature.description}</p>
+                      <h3 className="font-medium">{step.title}</h3>
+                      <p className="mt-1 text-sm text-gray-500">{step.description}</p>
                     </div>
                   </div>
                   <div className="flex gap-2">
