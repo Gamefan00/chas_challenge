@@ -1,9 +1,8 @@
-import { useState } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import React, { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { PenLine, Save, X } from "lucide-react";
+import { PenLine, X, Save, Plus, Trash } from "lucide-react";
 
 function CardComponent({ sectionArray, setSectionArray }) {
   const [editingIndex, setEditingIndex] = useState(null);
@@ -14,7 +13,7 @@ function CardComponent({ sectionArray, setSectionArray }) {
     const item = sectionArray[index];
     setCurrentEdit({
       ...item,
-      description: item.description.join("\n"), // Make editable
+      // Ingen konvertering behövs längre eftersom vi behåller array-strukturen
     });
   };
 
@@ -22,7 +21,6 @@ function CardComponent({ sectionArray, setSectionArray }) {
     const updated = [...sectionArray];
     updated[editingIndex] = {
       ...currentEdit,
-      description: currentEdit.description.split("\n"), // Back to array
     };
     setSectionArray(updated);
     setEditingIndex(null);
@@ -35,24 +33,45 @@ function CardComponent({ sectionArray, setSectionArray }) {
     }));
   };
 
+  const handleDescriptionChange = (index, value) => {
+    const newDescriptions = [...currentEdit.description];
+    newDescriptions[index] = value;
+    setCurrentEdit((prev) => ({
+      ...prev,
+      description: newDescriptions,
+    }));
+  };
+
+  const addDescriptionField = () => {
+    setCurrentEdit((prev) => ({
+      ...prev,
+      description: [...prev.description, ""],
+    }));
+  };
+
+  const removeDescriptionField = (index) => {
+    const newDescriptions = [...currentEdit.description];
+    newDescriptions.splice(index, 1);
+    setCurrentEdit((prev) => ({
+      ...prev,
+      description: newDescriptions,
+    }));
+  };
+
   return (
     <Card className="w-full shadow-md">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-xl font-bold">{sectionArray[0]?.title}</CardTitle>
-      </CardHeader>
-
       <CardContent className="pt-4">
         <div className="space-y-4">
           {sectionArray.map((item, index) => (
             <Card
               key={index}
-              className={`border ${editingIndex === index ? "border-blue-500" : "border-gray-200"}`}
+              className={`border ${editingIndex === index ? "border-primary" : "border-border"}`}
             >
               {editingIndex === index ? (
                 <CardContent className="grid gap-4 p-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="mb-1 block text-sm font-medium">Titel</label>
+                      <label>Titel</label>
                       <Input
                         value={currentEdit.title}
                         onChange={(e) => handleEditChange("title", e.target.value)}
@@ -60,12 +79,34 @@ function CardComponent({ sectionArray, setSectionArray }) {
                     </div>
                   </div>
                   <div>
-                    <label className="mb-1 block text-sm font-medium">Beskrivning</label>
-                    <Textarea
-                      value={currentEdit.description}
-                      onChange={(e) => handleEditChange("description", e.target.value)}
-                      rows={5}
-                    />
+                    <label>Beskrivningspunkter</label>
+                    <div className="space-y-2">
+                      {currentEdit.description.map((desc, i) => (
+                        <div key={i} className="flex items-center gap-2">
+                          <Input
+                            value={desc}
+                            onChange={(e) => handleDescriptionChange(i, e.target.value)}
+                            placeholder={`Punkt ${i + 1}`}
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => removeDescriptionField(i)}
+                            className="flex-shrink-0"
+                          >
+                            <Trash className="h-4 w-4 text-red-500" />
+                          </Button>
+                        </div>
+                      ))}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={addDescriptionField}
+                        className="mt-2"
+                      >
+                        <Plus className="mr-1 h-4 w-4" /> Lägg till punkt
+                      </Button>
+                    </div>
                   </div>
 
                   <div className="flex justify-end gap-2">
@@ -81,8 +122,8 @@ function CardComponent({ sectionArray, setSectionArray }) {
                 <CardContent className="flex items-start justify-between p-4">
                   <div className="flex flex-col gap-4">
                     <div>
-                      <h3 className="font-medium">{item.title}</h3>
-                      <ul className="mt-1 list-inside list-disc text-sm">
+                      <h3>{item.title}</h3>
+                      <ul className="mt-1 list-inside list-disc">
                         {item.description.map((desc, i) => (
                           <li key={i}>{desc}</li>
                         ))}

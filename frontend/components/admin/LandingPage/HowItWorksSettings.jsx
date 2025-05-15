@@ -10,20 +10,24 @@ export default function HowItWorksSettings() {
   // steps for the "How It Works" section
   const howItWorksSettings = [
     {
+      step: "1.",
       title: "Beskriv din situation",
       description:
         "Berätta om din funktionsnedsättning och dina behov på arbetsplatsen i en enkel konversation.",
     },
     {
+      step: "2.",
       title: "Få personlig vägledning",
       description:
         "Vår AI analyserar dina uppgifter och ger skräddarsydd hjälp för just dina behov.",
     },
     {
+      step: "3.",
       title: "Skapa din ansökan",
       description: "Få förslag på formuleringar som matchar Försäkringskassans krav och riktlinjer",
     },
     {
+      step: "4.",
       title: "Ladda ner & använd",
       description:
         "Spara dina dokument och förbered dig för nästa steg i processen med våra stöddokument.",
@@ -60,7 +64,7 @@ export default function HowItWorksSettings() {
   return (
     <Card className="w-full shadow-md">
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-xl font-bold">Redigera Hur det fungerar</CardTitle>
+        <CardTitle className="text-xl font-bold">Redigera hur det fungerar</CardTitle>
       </CardHeader>
 
       <CardContent className="pt-4">
@@ -69,14 +73,14 @@ export default function HowItWorksSettings() {
           {steps.map((step, index) => (
             <Card
               key={index}
-              className={`border ${editingIndex === index ? "border-blue-500" : "border-gray-200"}`}
+              className={`border ${editingIndex === index ? "border-primary" : "border-border"}`}
             >
               {editingIndex === index ? (
                 // Edit Form
                 <CardContent className="grid gap-4 p-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="mb-1 block text-sm font-medium">Titel</label>
+                      <label>Titel</label>
                       <Input
                         value={currentEdit.title}
                         onChange={(e) => handleEditChange("title", e.target.value)}
@@ -84,7 +88,7 @@ export default function HowItWorksSettings() {
                     </div>
                   </div>
                   <div>
-                    <label className="mb-1 block text-sm font-medium">Beskrivning</label>
+                    <label>Beskrivning</label>
                     <Textarea
                       value={currentEdit.description}
                       onChange={(e) => handleEditChange("description", e.target.value)}
@@ -106,8 +110,9 @@ export default function HowItWorksSettings() {
                 <CardContent className="flex items-start justify-between p-4">
                   <div className="flex flex-col gap-4">
                     <div>
-                      <h3 className="font-medium">{step.title}</h3>
-                      <p className="mt-1 text-sm text-gray-500">{step.description}</p>
+                      <h3>{step.step}</h3>
+                      <h3> {step.title}</h3>
+                      <p>{step.description}</p>
                     </div>
                   </div>
                   <div className="flex gap-2">

@@ -74,14 +74,14 @@ const FAQSettings = () => {
           {faqs.map((faq, index) => (
             <Card
               key={index}
-              className={`border ${editingIndex === index ? "border-blue-500" : "border-gray-200"}`}
+              className={`border ${editingIndex === index ? "border-primary" : "border-border"}`}
             >
               {editingIndex === index ? (
                 // Edit Form
                 <CardContent className="grid gap-4 p-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="mb-1 block text-sm font-medium">Titel</label>
+                      <label>Titel</label>
                       <Input
                         value={currentEdit.title}
                         onChange={(e) => handleEditChange("title", e.target.value)}
@@ -89,7 +89,7 @@ const FAQSettings = () => {
                     </div>
                   </div>
                   <div>
-                    <label className="mb-1 block text-sm font-medium">Beskrivning</label>
+                    <label>Beskrivning</label>
                     <Textarea
                       value={currentEdit.description}
                       onChange={(e) => handleEditChange("description", e.target.value)}
@@ -111,8 +111,8 @@ const FAQSettings = () => {
                 <CardContent className="flex items-start justify-between p-4">
                   <div className="flex flex-col gap-4">
                     <div>
-                      <h3 className="font-medium">{faq.title}</h3>
-                      <p className="mt-1 text-sm text-gray-500">{faq.description}</p>
+                      <h3>{faq.title}</h3>
+                      <p>{faq.description}</p>
                     </div>
                   </div>
                   <div className="flex gap-2">

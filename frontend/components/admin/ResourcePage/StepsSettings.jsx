@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { PenLine, X, Save } from "lucide-react";
 
 export default function StepsSettings() {
-  const [stepsSettings, setStepsSettings] = useState({
+  const stepsSettings = {
     main: [
       {
         mainTitle: "Steg-för-steg ansökningsguide",
@@ -52,7 +52,7 @@ export default function StepsSettings() {
           "När beslut är fattat hjälper vi dig att förstå beslutet. Om ansökan avslås hjälper vi dig att bedöma om en överklagan är lämplig och hur den i så fall ska utformas.",
       },
     ],
-  });
+  };
 
   // State for step cards
   const [steps, setSteps] = useState(stepsSettings.steps);
@@ -116,12 +116,12 @@ export default function StepsSettings() {
         {/* Edit Main Title and Description */}
 
         <div className="space-y-4">
-          <h3 className="mb-2 text-lg font-medium">Huvudtitel och beskrivning</h3>
+          <h3>Huvudtitel och beskrivning</h3>
 
           {titleDescription.map((item, index) => (
             <Card
               key={index}
-              className={`border ${editingMainIndex === index ? "border-blue-500" : "border-gray-200"}`}
+              className={`border ${editingMainIndex === index ? "border-primary" : "border-border"}`}
             >
               {editingMainIndex === index ? (
                 // Edit main title and description
@@ -180,7 +180,7 @@ export default function StepsSettings() {
           {steps.map((step, index) => (
             <Card
               key={index}
-              className={`border ${editingStepIndex === index ? "border-blue-500" : "border-gray-200"}`}
+              className={`border ${editingStepIndex === index ? "border-primary" : "border-border"}`}
             >
               {editingStepIndex === index ? (
                 // Edit Steps
