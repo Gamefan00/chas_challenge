@@ -2,12 +2,11 @@ import express from "express";
 import OpenAI from "openai";
 import dotenv from "dotenv";
 import query from "../utils/supabaseQuery.js";
-
 import {
-  stepConversations,
-  stepWelcomeMessages,
   systemMessage,
+  stepConversations,
   getStepDescription,
+  stepWelcomeMessages,
 } from "../utils/conversationManager.js";
 
 // Load environment variables
@@ -74,6 +73,16 @@ async function getAISettings() {
     };
   }
 }
+router.get("/welcome/:step", (req, res) => {
+  const { step } = req.params;
+
+  if (!stepWelcomeMessages[step]) {
+    return res.status(404).json({ error: "Step not found" });
+  }
+
+  // Send welcome message for the requested step
+  res.json({ message: stepWelcomeMessages[step] });
+});
 
 router.post("/", async (req, res) => {
   try {
@@ -82,7 +91,29 @@ router.post("/", async (req, res) => {
     // Get AI settings with fallback values
     const { model, temperature, maxTokens } = await getAISettings();
 
-    const stepHistory = stepConversations[currentStep] || [systemMessage];
+    // Get the step history from the imported stepConversations, with initial welcome message if needed
+    if (
+      !stepConversations[currentStep] ||
+      stepConversations[currentStep].length === 0
+    ) {
+      // Initialize conversation for this step if it doesn't exist
+      stepConversations[currentStep] = [
+        systemMessage,
+        {
+          role: "assistant",
+          content: [
+            {
+              type: "output_text",
+              text:
+                stepWelcomeMessages[currentStep] ||
+                "Välkommen! Vad kan jag hjälpa dig med?",
+            },
+          ],
+        },
+      ];
+    }
+
+    const stepHistory = stepConversations[currentStep];
 
     const stepContext = {
       role: "system",

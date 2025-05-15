@@ -92,6 +92,11 @@ export default function ChatBot() {
 
       // Mark hydration as complete
       setIsHydrated(true);
+
+      // Fetch welcome message for current step if no messages exist
+      if (chatHistories[currentStep].length === 0) {
+        fetchWelcomeMessage(currentStep);
+      }
     }
   }, []);
 
@@ -167,12 +172,18 @@ export default function ChatBot() {
     if (!isHydrated) return; // Skip loading if not hydrated yet
 
     async function loadStepHistories() {
+      const userId = localStorage.getItem("userId");
+      if (!userId) {
+        console.error("No userId found in localStorage");
+        return;
+      }
+
       const newHistories = { ...chatHistories };
 
       // Load history for each step from API
       for (const stepId of Object.keys(newHistories)) {
         try {
-          const response = await fetch(`${BASE_URL}/history/${stepId}`);
+          const response = await fetch(`${BASE_URL}/history/${stepId}?userId=${userId}`);
 
           if (response.ok) {
             const data = await response.json();
@@ -194,6 +205,27 @@ export default function ChatBot() {
     loadStepHistories();
   }, [BASE_URL, isHydrated]);
 
+  // Add this function to fetch welcome message
+  const fetchWelcomeMessage = async (stepId) => {
+    try {
+      const response = await fetch(`${BASE_URL}/chat/welcome/${stepId}`);
+
+      if (response.ok) {
+        const data = await response.json();
+
+        // Only add welcome message if the chat history is empty
+        if (chatHistories[stepId].length === 0) {
+          setChatHistories({
+            ...chatHistories,
+            [stepId]: [{ role: "assistant", text: data.message }],
+          });
+        }
+      }
+    } catch (error) {
+      console.error(`Failed to fetch welcome message for step ${stepId}:`, error);
+    }
+  };
+  
   // Navigate to a different step
   const navigateToStep = (stepId) => {
     setCurrentStep(stepId);

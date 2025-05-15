@@ -15,8 +15,10 @@ import SaveBtn from "@/components/adminpage/SaveBtn";
 import { StatusMessage } from "@/components/adminpage/StatusMessage";
 
 export default function BehaviorSettings() {
+  const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
   const [error, setError] = useState(null);
   const [saveStatus, setSaveStatus] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [openSections, setOpenSections] = useState(["system-instructions"]);
   const [activeBot, setActiveBot] = useState("application");
 
@@ -53,162 +55,75 @@ export default function BehaviorSettings() {
 
   // Load settings from database on component mount
   useEffect(() => {
-    async function loadSettings() {
+    async function fetchSettings() {
       try {
+        setLoading(true);
         setError(null);
-        // Load Application Bot Settings
-        const appSystemResponse = await fetch("/admin/settings/application_system_message", {
+
+        const response = await fetch(`${BASE_URL}/settingsRoutes/aiBehaviorConfigRoutes`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
           credentials: "include",
         });
 
-        if (appSystemResponse.ok) {
-          const data = await appSystemResponse.json();
-          setApplicationSystemMessage(data.value || "");
+        if (!response.ok) {
+          console.error(`API Error: ${response.status} - ${response.statusText}`);
+          throw new Error(`Det gick inte att ladda inställningarna (${response.status})`);
         }
 
-        const appStepsResponse = await fetch("/admin/settings/application_steps", {
-          credentials: "include",
-        });
+        const data = await response.json();
+        console.log("Received behavior settings:", data);
 
-        if (appStepsResponse.ok) {
-          const data = await appStepsResponse.json();
-          const steps = data.value || {};
+        if (data && data.behaviorConfig) {
+          // Set application system message
+          setApplicationSystemMessage(data.behaviorConfig.applicationSystemMessage || "");
 
-          // Initialize with data from database or empty values
-          const formattedSteps = {
-            "step-1": {
-              welcome: steps["step-1"]?.welcome_message || "",
-              description: steps["step-1"]?.description || "",
-            },
-            "step-2": {
-              welcome: steps["step-2"]?.welcome_message || "",
-              description: steps["step-2"]?.description || "",
-            },
-            "step-3": {
-              welcome: steps["step-3"]?.welcome_message || "",
-              description: steps["step-3"]?.description || "",
-            },
-            "step-4": {
-              welcome: steps["step-4"]?.welcome_message || "",
-              description: steps["step-4"]?.description || "",
-            },
-            "step-5": {
-              welcome: steps["step-5"]?.welcome_message || "",
-              description: steps["step-5"]?.description || "",
-            },
-            "step-6": {
-              welcome: steps["step-6"]?.welcome_message || "",
-              description: steps["step-6"]?.description || "",
-            },
-          };
+          // Set interview system message
+          setInterviewSystemMessage(data.behaviorConfig.interviewSystemMessage || "");
 
-          setApplicationStepMessages(formattedSteps);
-        }
-
-        // Load Interview Bot Settings
-        const interviewSystemResponse = await fetch("/admin/settings/interview_system_message", {
-          credentials: "include",
-        });
-
-        if (interviewSystemResponse.ok) {
-          const data = await interviewSystemResponse.json();
-          setInterviewSystemMessage(data.value || "");
-        }
-
-        const interviewStepsResponse = await fetch("/admin/settings/interview_steps", {
-          credentials: "include",
-        });
-
-        if (interviewStepsResponse.ok) {
-          const data = await interviewStepsResponse.json();
-          const steps = data.value || {};
-
-          // Create formatted steps from database or use defaults
-          const formattedSteps = {};
-
-          // Loop through steps 1-15
-          for (let i = 1; i <= 15; i++) {
-            const stepKey = `step-${i}`;
-            formattedSteps[stepKey] = {
-              label: steps[stepKey]?.label || "",
-              heading: steps[stepKey]?.heading || "",
-            };
+          // Set application step messages
+          if (data.behaviorConfig.applicationSteps) {
+            setApplicationStepMessages(data.behaviorConfig.applicationSteps);
           }
 
-          setInterviewStepMessages(formattedSteps);
+          // Set interview step messages
+          if (data.behaviorConfig.interviewSteps) {
+            setInterviewStepMessages(data.behaviorConfig.interviewSteps);
+          }
         }
       } catch (err) {
-        console.error("Error loading settings:", err);
-        setError("Det gick inte att ladda inställningarna");
+        console.error("Error loading behavior settings:", err);
+        setError(err.message || "Det gick inte att ladda inställningarna");
       } finally {
         setLoading(false);
       }
     }
 
-    loadSettings();
-  }, []);
+    fetchSettings();
+  }, [BASE_URL]);
 
   // Save all settings
   const handleSave = async () => {
     try {
       setSaveStatus({ type: "loading", message: "Sparar..." });
 
-      if (activeBot === "application") {
-        // Save application bot settings
-        await fetch("/admin/settings/application_system_message", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({
-            value: applicationSystemMessage,
-            category: "ai_config",
-            description: "Systeminstruktioner för ansökningsboten",
-          }),
-        });
+      // Prepare the behavior config object
+      const behaviorConfig = {
+        applicationSystemMessage,
+        interviewSystemMessage,
+        applicationSteps: applicationStepMessages,
+        interviewSteps: interviewStepMessages,
+      };
 
-        // Save application step messages
-        const formattedSteps = {};
-        Object.entries(applicationStepMessages).forEach(([step, data]) => {
-          formattedSteps[step] = {
-            welcome_message: data.welcome,
-            description: data.description,
-          };
-        });
+      const response = await fetch(`${BASE_URL}/settingsRoutes/aiBehaviorConfigRoutes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ behaviorConfig }),
+      });
 
-        await fetch("/admin/settings/application_steps", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({
-            value: formattedSteps,
-            category: "application_config",
-            description: "Steg i ansökningsprocessen med beskrivningar och välkomstmeddelanden",
-          }),
-        });
-      } else {
-        // Save interview bot settings
-        await fetch("/admin/settings/interview_system_message", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({
-            value: interviewSystemMessage,
-            category: "ai_config",
-            description: "Systeminstruktioner för intervjuboten",
-          }),
-        });
-
-        // Save interview step messages
-        await fetch("/admin/settings/interview_steps", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({
-            value: interviewStepMessages,
-            category: "interview_config",
-            description: "Frågor för intervjuprocessen",
-          }),
-        });
+      if (!response.ok) {
+        throw new Error(`Server responded with ${response.status}`);
       }
 
       setSaveStatus({ type: "success", message: "Inställningarna har sparats" });
@@ -217,8 +132,8 @@ export default function BehaviorSettings() {
       setTimeout(() => {
         setSaveStatus(null);
       }, 3000);
-    } catch (err) {
-      console.error("Error saving settings:", err);
+    } catch (error) {
+      console.error("Error saving settings:", error);
       setSaveStatus({ type: "error", message: "Det gick inte att spara inställningarna" });
     }
   };
@@ -255,7 +170,6 @@ export default function BehaviorSettings() {
     }));
   };
 
-  // Get a human-friendly name for application steps
   const getAppStepName = (step) => {
     switch (step) {
       case "step-1":
