@@ -9,39 +9,12 @@ import Markdown from "react-markdown";
 import TopTrackingbar from "@/components/chatpage/TopTrackingBar";
 import Sidebar from "@/components/chatpage/SidebarNav";
 import MessageLoading from "@/components/ui/message-loading";
-
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize from "rehype-sanitize";
 import remarkGfm from "remark-gfm";
 import BackToBottomBtn from "@/components/chatpage/BackToBottomBtn";
 
 // Define steps for reference in the component
-// const steps = [
-//   { id: "step-1", label: "Välj ärendetyp", heading: "Vem ansöker?" },
-//   { id: "step-2", label: "Funktionsnedsättning", heading: "Om din funktionsnedsättning" },
-//   { id: "step-3", label: "Grundläggande behov", heading: "Dina arbetsrelaterade behov" },
-//   { id: "step-4", label: "Andra behov", heading: "Övriga behov i arbetet" },
-//   { id: "step-5", label: "Nuvarande stöd", heading: "Stöd du redan får" },
-//   { id: "step-6", label: "Granska och skicka", heading: "Sammanfatta och ladda ner" },
-// ];
-
-// const steps = [
-//   { id: "step-1", label: "Start av intervju", heading: "Förberedelse av intervju" },
-//   { id: "step-2", label: "Funktionsnedsättning", heading: "Om din funktionsnedsättning" },
-//   { id: "step-3", label: "Grundläggande behov", heading: "Dina arbetsrelaterade behov" },
-//   { id: "step-4", label: "Andra behov", heading: "Övriga behov i arbetet" },
-//   { id: "step-5", label: "Nuvarande stöd", heading: "Stöd du redan får" },
-//   { id: "step-6", label: "Granska och skicka", heading: "Sammanfatta och ladda ner" },
-//   { id: "step-7", label: "Start av intervju", heading: "Förberedelse av intervju" },
-//   { id: "step-8", label: "Funktionsnedsättning", heading: "Om din funktionsnedsättning" },
-//   { id: "step-9", label: "Grundläggande behov", heading: "Dina arbetsrelaterade behov" },
-//   { id: "step-10", label: "Andra behov", heading: "Övriga behov i arbetet" },
-//   { id: "step-11", label: "Nuvarande stöd", heading: "Stöd du redan får" },
-//   { id: "step-12", label: "Granska och skicka", heading: "Sammanfatta och ladda ner" },
-//   { id: "step-13", label: "Andra behov", heading: "Övriga behov i arbetet" },
-//   { id: "step-14", label: "Nuvarande stöd", heading: "Stöd du redan får" },
-//   { id: "step-15", label: "Granska och skicka", heading: "Sammanfatta och ladda ner" },
-// ];
 const steps = [
   {
     id: "step-1",
@@ -180,11 +153,9 @@ export default function ChatBot() {
           const parsedSteps = JSON.parse(savedCompletedSteps);
           if (Array.isArray(parsedSteps)) {
             setCompletedSteps(parsedSteps);
-            console.log("Loaded completed steps:", parsedSteps); // Debug log
           }
         } catch (e) {
           console.error("Error parsing completedSteps from localStorage:", e);
-          // If parsing fails, reset localStorage
           localStorage.removeItem("completedSteps");
         }
       }
@@ -193,6 +164,15 @@ export default function ChatBot() {
       setIsHydrated(true);
     }
   }, []);
+
+  // Separate effect to handle welcome message after hydration is complete
+  useEffect(() => {
+    if (isHydrated) {
+      const currentStepToUse = localStorage.getItem("currentStep") || currentStep;
+      // Always fetch welcome message on first visit
+      fetchWelcomeMessage(currentStepToUse);
+    }
+  }, [isHydrated]); // Only depends on hydration state
 
   // Update localStorage when currentStep changes
   useEffect(() => {
@@ -251,11 +231,12 @@ export default function ChatBot() {
       const userId = localStorage.getItem("userId");
 
       try {
-        const response = await fetch(`${BASE_URL}/history`, {
+        const response = await fetch(`${BASE_URL}/history/interview`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             userId,
+            currentStep,
             currentChatHistory,
           }),
         });
@@ -275,36 +256,106 @@ export default function ChatBot() {
     if (!isHydrated) return; // Skip loading if not hydrated yet
 
     async function loadStepHistories() {
+      const userId = localStorage.getItem("userId");
+      if (!userId) {
+        console.error("No userId found in localStorage");
+        return;
+      }
+
       const newHistories = { ...chatHistories };
+      let needsWelcomeMessage = false;
+      let stepsNeedingWelcome = [];
 
       // Load history for each step from API
       for (const stepId of Object.keys(newHistories)) {
         try {
-          const response = await fetch(`${BASE_URL}/history/${stepId}`);
+          const response = await fetch(`${BASE_URL}/history/interview/${stepId}?userId=${userId}`);
 
           if (response.ok) {
             const data = await response.json();
-            if (Array.isArray(data)) {
+            if (Array.isArray(data) && data.length > 0) {
+              // Only replace history if we actually got data
               newHistories[stepId] = data.map((msg) => ({
                 role: msg.role,
                 text: msg.content,
               }));
+            } else if (stepId === currentStep && newHistories[stepId].length === 0) {
+              // If this is the current step and has no history, mark it for welcome message
+              needsWelcomeMessage = true;
+              stepsNeedingWelcome.push(stepId);
             }
           }
         } catch (error) {
           console.error(`Failed to load history for step ${stepId}:`, error);
+          if (stepId === currentStep) {
+            needsWelcomeMessage = true;
+            stepsNeedingWelcome.push(stepId);
+          }
         }
       }
 
+      // First set all histories
       setChatHistories(newHistories);
+
+      // Then, if needed, fetch welcome messages for empty steps
+      if (needsWelcomeMessage) {
+        for (const stepId of stepsNeedingWelcome) {
+          await fetchWelcomeMessage(stepId);
+        }
+      }
     }
 
     loadStepHistories();
-  }, [BASE_URL, isHydrated]);
+  }, [BASE_URL, isHydrated, currentStep]);
+
+  // fetch welcome message
+  const fetchWelcomeMessage = async (stepId) => {
+    try {
+      console.log(`Fetching welcome message for step ${stepId}`);
+      const response = await fetch(`${BASE_URL}/chat/interview/welcome/${stepId}`);
+
+      if (response.ok) {
+        const data = await response.json();
+
+        // Only add welcome message if there's no history for this step
+        setChatHistories((current) => {
+          const stepHistory = current[stepId] || [];
+
+          // Check if history is empty
+          if (stepHistory.length === 0) {
+            console.log(`Setting welcome message for step ${stepId}`);
+            return {
+              ...current,
+              [stepId]: [{ role: "assistant", text: data.message }],
+            };
+          }
+          return current;
+        });
+      }
+    } catch (error) {
+      console.error(`Failed to fetch welcome message for step ${stepId}:`, error);
+    }
+  };
+
+  // Modify your initial useEffect to always fetch welcome message on first load
+  useEffect(() => {
+    if (isHydrated) {
+      // Get the current step (from localStorage or default)
+      const currentStepToUse = localStorage.getItem("currentStep") || "step-1";
+      // Always fetch welcome message for current step on first visit
+      fetchWelcomeMessage(currentStepToUse);
+    }
+  }, [isHydrated]);
 
   // Navigate to a different step
   const navigateToStep = (stepId) => {
     setCurrentStep(stepId);
+
+    // Check if this step already has messages
+    if (chatHistories[stepId].length === 0) {
+      // If empty, fetch welcome message
+      fetchWelcomeMessage(stepId);
+    }
 
     // Immediately save to localStorage
     if (typeof window !== "undefined") {
@@ -392,7 +443,7 @@ export default function ChatBot() {
     setMessage(""); // Clear input right away for better UX
 
     try {
-      const response = await fetch(`${BASE_URL}/chat`, {
+      const response = await fetch(`${BASE_URL}/chat/interview`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -446,7 +497,7 @@ export default function ChatBot() {
   }
 
   return (
-    <div className="bg-background relative flex h-[90vh] w-full">
+    <div className="bg-background flex h-[90vh] w-full">
       {/* Interactive Sidebar */}
       <Sidebar
         currentStep={currentStep}
@@ -467,8 +518,8 @@ export default function ChatBot() {
         />
 
         {/* Chat Messages */}
-        <div ref={messageContainerRef} className="flex-1 overflow-auto">
-          <div className="mx-auto max-w-3xl">
+        <div ref={messageContainerRef} className="relative flex-1 overflow-auto">
+          <div className="relative mx-auto h-full max-w-3xl">
             {currentChatHistory.map((message, index) => (
               <div
                 key={index}
@@ -517,14 +568,13 @@ export default function ChatBot() {
                 {message.role === "assistant" && <CopyButton message={message.text} />}
               </div>
             ))}
+            {isLoading && (
+              <Card className="inline-block items-start rounded-xl px-3 py-1 pb-0">
+                <MessageLoading />
+              </Card>
+            )}
           </div>
-          {isLoading && (
-            <Card className="inline-block items-start rounded-xl px-3 py-1 pb-0">
-              <MessageLoading />
-            </Card>
-          )}
         </div>
-
         {/* Input Area */}
         <div className="bg-background p-4 pl-0">
           <div className="mx-auto flex max-w-3xl items-center gap-5">
@@ -545,6 +595,7 @@ export default function ChatBot() {
             </Button>
           </div>
         </div>
+        {/* Back to Bottom Button */}
         <div>
           <BackToBottomBtn containerRef={messageContainerRef} threshold={30} />
         </div>

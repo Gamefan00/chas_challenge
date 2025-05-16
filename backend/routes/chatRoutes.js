@@ -6,7 +6,7 @@ import {
   systemMessage,
   stepConversations,
   getStepDescription,
-  stepWelcomeMessages,
+  fetchApplicationSteps,
 } from "../utils/conversationManager.js";
 
 // Load environment variables
@@ -73,15 +73,28 @@ async function getAISettings() {
     };
   }
 }
-router.get("/welcome/:step", (req, res) => {
-  const { step } = req.params;
 
-  if (!stepWelcomeMessages[step]) {
-    return res.status(404).json({ error: "Step not found" });
+/////////////////////////////////////////////////
+// Application bot data fetching from database //
+/////////////////////////////////////////////////
+
+router.get("/welcome/:step", async (req, res) => {
+  try {
+    const { step } = req.params;
+
+    // Fetch application steps (it's a function, not an object)
+    const applicationSteps = await fetchApplicationSteps();
+
+    if (!applicationSteps[step]) {
+      return res.status(404).json({ error: "Step not found" });
+    }
+
+    // Send welcome message for the requested step
+    res.json({ message: applicationSteps[step] });
+  } catch (error) {
+    console.error("Error fetching welcome message:", error);
+    res.status(500).json({ error: "Failed to fetch welcome message" });
   }
-
-  // Send welcome message for the requested step
-  res.json({ message: stepWelcomeMessages[step] });
 });
 
 router.post("/", async (req, res) => {
@@ -90,6 +103,9 @@ router.post("/", async (req, res) => {
 
     // Get AI settings with fallback values
     const { model, temperature, maxTokens } = await getAISettings();
+
+    // Fetch application steps
+    const applicationSteps = await fetchApplicationSteps();
 
     // Get the step history from the imported stepConversations, with initial welcome message if needed
     if (
@@ -105,7 +121,138 @@ router.post("/", async (req, res) => {
             {
               type: "output_text",
               text:
-                stepWelcomeMessages[currentStep] ||
+                applicationSteps[currentStep] ||
+                "Välkommen! Vad kan jag hjälpa dig med?",
+            },
+          ],
+        },
+      ];
+    }
+
+    const stepHistory = stepConversations[currentStep];
+
+    const stepContext = {
+      role: "system",
+      content: [
+        {
+          type: "input_text",
+          text: `User is currently on step "${currentStep}": ${getStepDescription(
+            currentStep
+          )}`,
+        },
+      ],
+    };
+
+    const userMessage = {
+      role: "user",
+      content: [
+        {
+          type: "input_text",
+          text: message,
+        },
+      ],
+    };
+
+    const input = [stepContext, ...stepHistory, userMessage];
+
+    console.log(model);
+    const response = await openai.responses.create({
+      model: model,
+      input,
+      text: { format: { type: "text" } },
+      reasoning: {},
+      tools: [
+        {
+          type: "file_search",
+          vector_store_ids: ["vs_67ee4b3df0f481918a769c7ee3c61880"],
+        },
+      ],
+      temperature: temperature,
+      max_output_tokens: maxTokens,
+      top_p: 1,
+      store: true,
+    });
+
+    const assistantMessage = {
+      role: "assistant",
+      content: [
+        {
+          type: "output_text",
+          text: response.output_text,
+        },
+      ],
+    };
+
+    stepConversations[currentStep] = [
+      ...stepHistory,
+      userMessage,
+      assistantMessage,
+    ];
+
+    if (stepConversations[currentStep].length > 20) {
+      const welcomeMessage = stepConversations[currentStep][1];
+      stepConversations[currentStep] = [
+        systemMessage,
+        welcomeMessage,
+        ...stepConversations[currentStep].slice(-18),
+      ];
+    }
+
+    res.json({ message: response.output_text });
+  } catch (error) {
+    console.error("Chat error:", error);
+    res.status(500).json({ error: "Failed to process your request" });
+  }
+});
+
+///////////////////////////////////////////////
+// Interview bot data fetching from database //
+///////////////////////////////////////////////
+
+router.get("/interview/welcome/:step", async (req, res) => {
+  try {
+    const { step } = req.params;
+
+    // Fetch application steps - IMPORTANT: This is a function call
+    const applicationSteps = await fetchApplicationSteps();
+
+    if (!applicationSteps[step]) {
+      return res.status(404).json({ error: "Step not found" });
+    }
+
+    // Send welcome message for the requested step
+    res.json({ message: applicationSteps[step] });
+  } catch (error) {
+    console.error("Error fetching welcome message:", error);
+    res.status(500).json({ error: "Failed to fetch welcome message" });
+  }
+});
+
+router.post("/interview/", async (req, res) => {
+  try {
+    const { message, currentStep = "step-1" } = req.body;
+
+    // Get AI settings with fallback values
+    const { model, temperature, maxTokens } = await getAISettings();
+
+    // Fetch application steps - IMPORTANT: This is a function call
+    const applicationSteps = await fetchApplicationSteps();
+
+    // Get the step history from the imported stepConversations, with initial welcome message if needed
+    if (
+      !stepConversations[currentStep] ||
+      stepConversations[currentStep].length === 0
+    ) {
+      // Initialize conversation for this step if it doesn't exist
+      stepConversations[currentStep] = [
+        systemMessage,
+        {
+          role: "assistant",
+          content: [
+            {
+              type: "output_text",
+              text:
+                applicationSteps[currentStep] ||
                 "Välkommen! Vad kan jag hjälpa dig med?",
             },
           ],
