@@ -280,10 +280,10 @@ export default function SidebarNav({
         className={cn(
           "sidebar-container",
           isSidebarOpen ? "w-64" : "w-0 overflow-hidden",
-          isMobile && isSidebarOpen ? "absolute top-0 left-0 z-40 h-full" : "",
+          isMobile && isSidebarOpen ? "absolute top-0 left-0 z-40" : "",
         )}
       >
-        <Sidebar className="relative w-64">
+        <Sidebar className="relative w-64 transition-opacity duration-500">
           <div className="relative z-10 mt-2 ml-2">
             <SidebarTrigger onClick={() => setIsSidebarOpen(false)} className="toggle-button" />
           </div>
@@ -334,12 +334,10 @@ export default function SidebarNav({
                                   isActive ? "border-primary bg-primary" : "border-border",
                                 )}
                               >
-                                {isActive && (
-                                  <div className="bg-background h-full w-full rounded-full" />
-                                )}
+                                {isActive && <div className="bg-background w-full rounded-full" />}
                               </div>
                             )}
-                          </div>
+                          </div>{" "}
                           <span className={cn("text-sm", isActive && "font-medium")}>
                             {step.label}
                           </span>

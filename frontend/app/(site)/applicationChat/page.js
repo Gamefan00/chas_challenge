@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Send, Copy, ArrowDown } from "lucide-react";
+import { Loader2, Send, Copy } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -12,7 +12,6 @@ import MessageLoading from "@/components/ui/message-loading";
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize from "rehype-sanitize";
 import remarkGfm from "remark-gfm";
-import BackToBottomBtn from "@/components/chatpage/BackToBottomBtn";
 
 // Define steps for reference in the component
 const steps = [
@@ -24,7 +23,7 @@ const steps = [
   { id: "step-6", label: "Granska och skicka", heading: "Sammanfatta och ladda ner" },
 ];
 
-const steptsId = steps.map((step) => step.id);
+const stepsId = steps.map((step) => step.id);
 
 function CopyButton({ message }) {
   const [isCopied, setIsCopied] = useState(false);
@@ -204,6 +203,7 @@ export default function ChatBot() {
       localStorage.setItem("currentStep", stepId);
     }
   };
+
   // Listen for custom event from TopTrackingBar
   useEffect(() => {
     const handleStepCompleted = (event) => {
@@ -238,7 +238,7 @@ export default function ChatBot() {
           localStorage.setItem("completedSteps", JSON.stringify(updatedCompletedSteps));
         }
       }
-      // Only move to next step ig not on the last step
+      // Only move to next step if not on the last step
       if (currentIndex < stepOrder.length - 1) {
         // Move to next step
         const nextStep = stepOrder[currentIndex + 1];
@@ -316,14 +316,14 @@ export default function ChatBot() {
   // Show loading state until hydration is complete
   if (!isHydrated) {
     return (
-      <div className="bg-background flex h-[90vh] w-full items-center justify-center">
+      <div className="bg-background flex h-full w-full items-center justify-center">
         <Loader2 className="text-primary h-8 w-8 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="bg-background flex h-[90vh] w-full">
+    <div className="bg-background flex h-screen w-full overflow-hidden">
       {/* Interactive Sidebar */}
       <Sidebar
         currentStep={currentStep}
@@ -332,19 +332,22 @@ export default function ChatBot() {
       />
 
       {/* Main Content */}
-      <div className="mx-auto flex max-w-4xl flex-1 flex-col px-4">
-        <TopTrackingbar
-          heading={heading}
-          currentStep={currentStep}
-          navigateToStep={navigateToStep}
-          completedSteps={completedSteps}
-          completeCurrentStep={completeCurrentStep}
-          steps={steptsId}
-        />
+      <div className="flex flex-1 flex-col overflow-hidden">
+        {/* Top tracking bar (fixed at top) */}
+        <div className="bg-background sticky top-0 z-10">
+          <TopTrackingbar
+            heading={heading}
+            currentStep={currentStep}
+            navigateToStep={navigateToStep}
+            completedSteps={completedSteps}
+            completeCurrentStep={completeCurrentStep}
+            steps={stepsId}
+          />
+        </div>
 
-        {/* Chat Messages */}
-        <div ref={messageContainerRef} className="relative flex-1 overflow-auto">
-          <div className="relative mx-auto h-full max-w-3xl">
+        {/* Chat Messages - This is the only scrollable area */}
+        <div ref={messageContainerRef} className="flex-1 overflow-y-auto p-4">
+          <div className="mx-auto max-w-4xl pb-24">
             {currentChatHistory.map((message, index) => (
               <div
                 key={index}
@@ -400,15 +403,16 @@ export default function ChatBot() {
             )}
           </div>
         </div>
-        {/* Input Area */}
-        <div className="bg-background p-4 pl-0">
-          <div className="mx-auto flex max-w-3xl items-center gap-5">
+
+        {/* Input Area (fixed at bottom) */}
+        <div className="bg-background sticky bottom-0 border-t p-4">
+          <div className="mx-auto flex max-w-2xl items-center gap-5">
             <Textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Skriv ett meddelande..."
-              className="border-border bg-background min-h-12 resize-none rounded-xl p-3 shadow-sm"
+              className="border-border bg-background relative max-h-32 min-h-12 resize-none overflow-y-auto rounded-xl p-3 shadow-sm"
             />
             <Button
               onClick={handleSendMessage}
@@ -420,11 +424,11 @@ export default function ChatBot() {
             </Button>
           </div>
         </div>
-        {/* Back to Bottom Button */}
-        <div>
-          <BackToBottomBtn containerRef={messageContainerRef} threshold={30} />
-        </div>
       </div>
     </div>
   );
 }
+// Back to Bottom Button
+// <div>
+//   <BackToBottomBtn containerRef={messageContainerRef} threshold={30} />
+// </div>

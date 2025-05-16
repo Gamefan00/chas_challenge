@@ -19,7 +19,6 @@ export default function RootLayout({ children }) {
       <SidebarProvider>
         <SidebarInset>{children}</SidebarInset>
       </SidebarProvider>
-      <Footer />
     </>
     // </body>
     // </html>

@@ -8,7 +8,7 @@ const TopTrackingBar = ({
   navigateToStep,
   completedSteps,
   completeCurrentStep,
-  steps
+  steps,
 }) => {
   // const [steps, setSteps] = useState(["step-1", "step-2", "step-3", "step-4", "step-5", "step-6"]);
   const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
@@ -70,7 +70,7 @@ const TopTrackingBar = ({
           <Button
             onClick={handlePrevStep}
             className={`${
-              isFirstStep ? "bg-primary/20 cursor-not-allowed" : "bg-primary/60 hover:bg-primary/80"
+              isFirstStep ? "bg-primary/20 cursor-not-allowed" : "bg-primary hover:bg-primary/80"
             } text-primary-foreground`}
             disabled={isFirstStep}
           >
