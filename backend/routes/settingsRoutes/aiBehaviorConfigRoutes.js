@@ -146,7 +146,7 @@ router.post("/", async (req, res) => {
           }
         ),
         description:
-          "System messages and step configurations from conversationManager",
+          "System messages and step configurations from applicationConversationManager",
       },
     ];
 

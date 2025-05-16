@@ -1,7 +1,7 @@
 import query from "./supabaseQuery.js";
 
 // Define a default system message as fallback
-const defaultSystemMessage = {
+const defaultSystemMessageApplication = {
   role: "system",
   content: [
     {
@@ -10,7 +10,7 @@ const defaultSystemMessage = {
     },
   ],
 };
-export { defaultSystemMessage };
+export { defaultSystemMessageApplication };
 const defaultStepWelcomeMessagesApplication = {
   "step-1":
     "Välkommen till processen för att ansöka om arbetshjälpmedel! I detta första steg behöver vi bestämma vilken typ av ärende du har. \n\nÄr du en arbetstagare som behöver hjälpmedel för att kunna arbeta, eller representerar du en arbetsgivare som ansöker för en anställds räkning? Detta avgör vilken blankett som ska användas (FK 7545 eller FK 7546).",
@@ -78,12 +78,12 @@ export async function fetchApplicationSteps() {
   return defaultStepWelcomeMessagesApplication;
 }
 
-export let systemMessage = defaultSystemMessage;
+let systemMessage = defaultSystemMessageApplication;
 export let stepConversations = {};
 
 // Fetch system message from database
 
-export async function fetchSystemMessageFromDB() {
+export async function fetchApplicationSystemMessageFromDB() {
   try {
     // Get application system message from database
     const appSystemResult = await query(
@@ -113,9 +113,9 @@ export async function fetchSystemMessageFromDB() {
   }
 }
 
-export async function initializeConversations() {
+export async function initializeApplicationConversations() {
   // First fetch the system message
-  await fetchSystemMessageFromDB();
+  await fetchApplicationSystemMessageFromDB();
 
   // Then fetch application steps
   const applicationSteps = await fetchApplicationSteps();
@@ -179,7 +179,7 @@ export async function getApplicationStepsDescription(step) {
       // Check if the step exists and has a description property
       if (stepsData && stepsData[step] && stepsData[step].description) {
         console.log(
-          `Description for ${step} loaded from database:`,
+          `Application description for ${step} loaded from database:`,
           stepsData[step].description
         );
         return stepsData[step].description;
@@ -198,4 +198,4 @@ export async function getApplicationStepsDescription(step) {
 }
 
 // Initialize conversations on startup
-initializeConversations();
+initializeApplicationConversations();

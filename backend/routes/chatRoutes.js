@@ -3,11 +3,17 @@ import OpenAI from "openai";
 import dotenv from "dotenv";
 import query from "../utils/supabaseQuery.js";
 import {
-  systemMessage,
+  fetchApplicationSystemMessageFromDB,
   stepConversations,
   getApplicationStepsDescription,
   fetchApplicationSteps,
-} from "../utils/conversationManager.js";
+} from "../utils/applicationConversationManager.js";
+import {
+  fetchInterviewSystemMessageFromDB,
+  stepConversations as interviewStepConversations,
+  getInterviewStepsDescription,
+  fetchInterviewSteps,
+} from "../utils/interviewConversationManager.js";
 
 // Load environment variables
 dotenv.config();
@@ -82,7 +88,7 @@ router.get("/welcome/:step", async (req, res) => {
   try {
     const { step } = req.params;
 
-    // Fetch application steps (it's a function, not an object)
+    // Fetch application steps
     const applicationSteps = await fetchApplicationSteps();
 
     if (!applicationSteps[step]) {
@@ -99,6 +105,7 @@ router.get("/welcome/:step", async (req, res) => {
 
 router.post("/", async (req, res) => {
   try {
+    const systemMessage = await fetchApplicationSystemMessageFromDB();
     const { message, currentStep = "step-1" } = req.body;
 
     // Get AI settings with fallback values
@@ -212,9 +219,8 @@ router.post("/", async (req, res) => {
 router.get("/interview/welcome/:step", async (req, res) => {
   try {
     const { step } = req.params;
-
-    // Fetch application steps - IMPORTANT: This is a function call
-    const applicationSteps = await fetchApplicationSteps();
+    // Fetch application steps
+    const applicationSteps = await fetchInterviewSteps();
 
     if (!applicationSteps[step]) {
       return res.status(404).json({ error: "Step not found" });
@@ -230,21 +236,23 @@ router.get("/interview/welcome/:step", async (req, res) => {
 
 router.post("/interview/", async (req, res) => {
   try {
+    const systemMessage = await fetchInterviewSystemMessageFromDB();
+
     const { message, currentStep = "step-1" } = req.body;
 
     // Get AI settings with fallback values
     const { model, temperature, maxTokens } = await getAISettings();
 
     // Fetch application steps - IMPORTANT: This is a function call
-    const applicationSteps = await fetchApplicationSteps();
+    const applicationSteps = await fetchInterviewSteps();
 
     // Get the step history from the imported stepConversations, with initial welcome message if needed
     if (
-      !stepConversations[currentStep] ||
-      stepConversations[currentStep].length === 0
+      !interviewStepConversations[currentStep] ||
+      interviewStepConversations[currentStep].length === 0
     ) {
       // Initialize conversation for this step if it doesn't exist
-      stepConversations[currentStep] = [
+      interviewStepConversations[currentStep] = [
         systemMessage,
         {
           role: "assistant",
@@ -260,14 +268,14 @@ router.post("/interview/", async (req, res) => {
       ];
     }
 
-    const stepHistory = stepConversations[currentStep];
+    const stepHistory = interviewStepConversations[currentStep];
 
     const stepContext = {
       role: "system",
       content: [
         {
           type: "input_text",
-          text: `User is currently on step "${currentStep}": ${getApplicationStepsDescription(
+          text: `User is currently on step "${currentStep}": ${getInterviewStepsDescription(
             currentStep
           )}`,
         },
@@ -314,18 +322,18 @@ router.post("/interview/", async (req, res) => {
       ],
     };
 
-    stepConversations[currentStep] = [
+    interviewStepConversations[currentStep] = [
       ...stepHistory,
       userMessage,
       assistantMessage,
     ];
 
-    if (stepConversations[currentStep].length > 20) {
-      const welcomeMessage = stepConversations[currentStep][1];
-      stepConversations[currentStep] = [
+    if (interviewStepConversations[currentStep].length > 20) {
+      const welcomeMessage = interviewStepConversations[currentStep][1];
+      interviewStepConversations[currentStep] = [
         systemMessage,
         welcomeMessage,
-        ...stepConversations[currentStep].slice(-18),
+        ...interviewStepConversations[currentStep].slice(-18),
       ];
     }
 
