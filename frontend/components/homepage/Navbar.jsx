@@ -1,5 +1,5 @@
 "use client";
-import { Menu, Plus } from "lucide-react";
+import { Menu } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetClose, SheetContent, SheetFooter, SheetTrigger } from "../ui/sheet";
@@ -13,9 +13,11 @@ const linksData = [
   { title: "Kontakt", href: "/" },
 ];
 
-const Navbar = () => {
+const Navbar = ({ position }) => {
   return (
-    <nav className="relative z-50 flex h-16 items-center justify-between px-4 shadow-sm">
+    <nav
+      className={`bg-background ${position} top-0 z-50 flex h-16 items-center justify-between px-4 shadow-sm`}
+    >
       <Logo />
 
       {/* Desktop Navbar */}

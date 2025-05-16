@@ -12,6 +12,7 @@ import MessageLoading from "@/components/ui/message-loading";
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize from "rehype-sanitize";
 import remarkGfm from "remark-gfm";
+import Navbar from "@/components/homepage/Navbar";
 
 // Define steps for reference in the component
 const steps = [
@@ -323,18 +324,21 @@ export default function ChatBot() {
   }
 
   return (
-    <div className="bg-background flex h-screen w-full overflow-hidden">
-      {/* Interactive Sidebar */}
-      <Sidebar
-        currentStep={currentStep}
-        completedSteps={completedSteps}
-        onNavigate={navigateToStep}
-      />
+    <div>
+      <div className="bg-background flex h-screen w-full overflow-hidden">
+        {/* Interactive Sidebar */}
+        <Sidebar
+          currentStep={currentStep}
+          completedSteps={completedSteps}
+          onNavigate={navigateToStep}
+        />
 
-      {/* Main Content */}
-      <div className="flex flex-1 flex-col overflow-hidden">
-        {/* Top tracking bar (fixed at top) */}
-        <div className="bg-background sticky top-0 z-10">
+        {/* Main Content */}
+        <div
+          className="relative mx-auto h-screen flex max-w-4xl flex-1 flex-col overflow-y-auto"
+        >
+          {/* Top tracking bar (fixed at top) */}
+
           <TopTrackingbar
             heading={heading}
             currentStep={currentStep}
@@ -343,85 +347,85 @@ export default function ChatBot() {
             completeCurrentStep={completeCurrentStep}
             steps={stepsId}
           />
-        </div>
 
-        {/* Chat Messages - This is the only scrollable area */}
-        <div ref={messageContainerRef} className="flex-1 overflow-y-auto p-4">
-          <div className="mx-auto max-w-4xl pb-24">
-            {currentChatHistory.map((message, index) => (
-              <div
-                key={index}
-                className={`mb-4 ${
-                  message.role === "user"
-                    ? "flex flex-col items-end justify-end"
-                    : "flex flex-col items-start justify-start"
-                }`}
-              >
-                <Card
-                  className={`max-w-[80%] rounded-xl p-4 break-words ${
-                    message.role === "user" ? "user-msg bg-primary" : "bg-card"
+          {/* Chat Messages - This is the only scrollable area */}
+          <div ref={messageContainerRef} className="flex-1 overflow-y-auto p-4">
+            <div className="mx-auto max-w-4xl pb-24">
+              {currentChatHistory.map((message, index) => (
+                <div
+                  key={index}
+                  className={`mb-4 ${
+                    message.role === "user"
+                      ? "flex flex-col items-end justify-end"
+                      : "flex flex-col items-start justify-start"
                   }`}
                 >
-                  <div className="markdown-container">
-                    <Markdown
-                      remarkPlugins={[remarkGfm]}
-                      rehypePlugins={[rehypeRaw, rehypeSanitize]}
-                      components={{
-                        code(props) {
-                          const { children, className, ...rest } = props;
-                          return (
-                            <code
-                              className={`${className} text-primary bg-background rounded px-1.5 py-0.5`}
-                              {...rest}
-                            >
-                              {children}
-                            </code>
-                          );
-                        },
-                        pre(props) {
-                          return (
-                            <pre
-                              className="text-primary bg-primary overflow-x-auto rounded-md p-4 text-sm"
-                              {...props}
-                            />
-                          );
-                        },
-                      }}
-                    >
-                      {message.text || ""}
-                    </Markdown>
-                  </div>
+                  <Card
+                    className={`max-w-[80%] rounded-xl p-4 break-words ${
+                      message.role === "user" ? "user-msg bg-primary" : "bg-card"
+                    }`}
+                  >
+                    <div className="markdown-container">
+                      <Markdown
+                        remarkPlugins={[remarkGfm]}
+                        rehypePlugins={[rehypeRaw, rehypeSanitize]}
+                        components={{
+                          code(props) {
+                            const { children, className, ...rest } = props;
+                            return (
+                              <code
+                                className={`${className} text-primary bg-background rounded px-1.5 py-0.5`}
+                                {...rest}
+                              >
+                                {children}
+                              </code>
+                            );
+                          },
+                          pre(props) {
+                            return (
+                              <pre
+                                className="text-primary bg-primary overflow-x-auto rounded-md p-4 text-sm"
+                                {...props}
+                              />
+                            );
+                          },
+                        }}
+                      >
+                        {message.text || ""}
+                      </Markdown>
+                    </div>
+                  </Card>
+
+                  {message.role === "assistant" && <CopyButton message={message.text} />}
+                </div>
+              ))}
+              {isLoading && (
+                <Card className="inline-block items-start rounded-xl px-3 py-1 pb-0">
+                  <MessageLoading />
                 </Card>
-
-                {message.role === "assistant" && <CopyButton message={message.text} />}
-              </div>
-            ))}
-            {isLoading && (
-              <Card className="inline-block items-start rounded-xl px-3 py-1 pb-0">
-                <MessageLoading />
-              </Card>
-            )}
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* Input Area (fixed at bottom) */}
-        <div className="bg-background sticky bottom-0 border-t p-4">
-          <div className="mx-auto flex max-w-2xl items-center gap-5">
-            <Textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Skriv ett meddelande..."
-              className="border-border bg-background relative max-h-32 min-h-12 resize-none overflow-y-auto rounded-xl p-3 shadow-sm"
-            />
-            <Button
-              onClick={handleSendMessage}
-              disabled={isLoading || !message.trim()}
-              size="icon"
-              className="bg-primary h-10 w-10 rounded-full"
-            >
-              <Send className="h-5 w-5" />
-            </Button>
+          {/* Input Area (fixed at bottom) */}
+          <div className="bg-background sticky bottom-0 border-t p-4">
+            <div className="mx-auto flex max-w-2xl items-center gap-5">
+              <Textarea
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Skriv ett meddelande..."
+                className="border-border bg-background relative max-h-32 min-h-12 resize-none overflow-y-auto rounded-xl p-3 shadow-sm"
+              />
+              <Button
+                onClick={handleSendMessage}
+                disabled={isLoading || !message.trim()}
+                size="icon"
+                className="bg-primary h-10 w-10 rounded-full"
+              >
+                <Send className="h-5 w-5" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>

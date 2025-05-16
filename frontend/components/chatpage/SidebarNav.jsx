@@ -281,6 +281,7 @@ export default function SidebarNav({
           "sidebar-container",
           isSidebarOpen ? "w-64" : "w-0 overflow-hidden",
           isMobile && isSidebarOpen ? "absolute top-0 left-0 z-40" : "",
+          "sticky",
         )}
       >
         <Sidebar className="relative w-64 transition-opacity duration-500">

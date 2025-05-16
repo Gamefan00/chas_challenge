@@ -15,7 +15,7 @@ export default function RootLayout({ children }) {
     // <body className={`antialiased`}>
     <>
       <UserIdInitializer />
-      <Navbar />
+      <Navbar position={"sticky"} />
       <SidebarProvider>
         <SidebarInset>{children}</SidebarInset>
       </SidebarProvider>
