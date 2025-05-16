@@ -78,26 +78,6 @@ export async function fetchApplicationSteps() {
   return defaultStepWelcomeMessagesApplication;
 }
 
-export const stepWelcomeMessagesApplication = {
-  "step-1":
-    "Välkommen till processen för att ansöka om arbetshjälpmedel! I detta första steg behöver vi bestämma vilken typ av ärende du har. \n\nÄr du en arbetstagare som behöver hjälpmedel för att kunna arbeta, eller representerar du en arbetsgivare som ansöker för en anställds räkning? Detta avgör vilken blankett som ska användas (FK 7545 eller FK 7546).",
-
-  "step-2":
-    "Nu ska vi beskriva din funktionsnedsättning och hur den påverkar ditt arbete. \n\nBerätta om din funktionsnedsättning, diagnos (om du har en) och vilka begränsningar den medför i arbetslivet. Detaljerad information här hjälper Försäkringskassan att förstå dina behov bättre.",
-
-  "step-3":
-    "I detta steg ska vi identifiera dina grundläggande behov för att kunna utföra ditt arbete. \n\nVilka arbetsuppgifter har du svårt att utföra på grund av din funktionsnedsättning? Vilka specifika hinder möter du i arbetet? Konkreta exempel hjälper till att bygga din ansökan.",
-
-  "step-4":
-    "Nu ska vi undersöka andra behov som kan finnas för att du ska kunna utföra ditt arbete. \n\nDetta kan handla om behov som inte är direkt kopplade till din funktionsnedsättning men som ändå påverkar din arbetsförmåga. Det kan också innefatta sociala eller organisatoriska aspekter av arbetet.",
-
-  "step-5":
-    "I detta steg ska vi gå igenom vilket stöd du redan får idag. \n\nBerätta om du har några hjälpmedel eller anpassningar på din arbetsplats idag, eller om du får stöd från andra aktörer som kommun, region, eller Arbetsförmedlingen. Detta är viktigt för att undvika dubbla insatser.",
-
-  "step-6":
-    "Nu är det dags att granska och sammanfatta din ansökan. \n\nLåt oss gå igenom den information du har delat och se till att din ansökan är komplett innan den skickas in. Jag kan hjälpa dig att formulera texten för fritextfälten i blanketten.",
-};
-
 export let systemMessage = defaultSystemMessage;
 export let stepConversations = {};
 

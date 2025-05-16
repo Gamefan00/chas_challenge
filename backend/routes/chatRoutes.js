@@ -5,7 +5,7 @@ import query from "../utils/supabaseQuery.js";
 import {
   systemMessage,
   stepConversations,
-  getStepDescription,
+  getApplicationStepsDescription,
   fetchApplicationSteps,
 } from "../utils/conversationManager.js";
 
@@ -136,7 +136,7 @@ router.post("/", async (req, res) => {
       content: [
         {
           type: "input_text",
-          text: `User is currently on step "${currentStep}": ${getStepDescription(
+          text: `User is currently on step "${currentStep}": ${getApplicationStepsDescription(
             currentStep
           )}`,
         },
@@ -267,7 +267,7 @@ router.post("/interview/", async (req, res) => {
       content: [
         {
           type: "input_text",
-          text: `User is currently on step "${currentStep}": ${getStepDescription(
+          text: `User is currently on step "${currentStep}": ${getApplicationStepsDescription(
             currentStep
           )}`,
         },
