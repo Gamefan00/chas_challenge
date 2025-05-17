@@ -1,5 +1,7 @@
 import express from "express";
 import query from "../../utils/supabaseQuery.js";
+import { refreshApplicationConversationSettings } from "../../utils/applicationConversationManager.js";
+import { refreshInterviewConversationSettings } from "../../utils/interviewConversationManager.js";
 
 const router = express.Router();
 
@@ -159,6 +161,9 @@ router.post("/", async (req, res) => {
         [key, value, "AI-Behavior Configuration", description]
       );
     }
+    // Refresh the application and interview conversation settings
+    await refreshApplicationConversationSettings();
+    await refreshInterviewConversationSettings();
 
     res.json({ message: "AI behavior settings saved successfully" });
   } catch (error) {

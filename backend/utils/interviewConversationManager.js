@@ -169,6 +169,7 @@ export async function initializeInterviewConversations() {
 // Helper function to get step descriptions
 export async function getInterviewStepsDescription(step) {
   try {
+    // Always fetch fresh data from database
     const interviewStepsDescriptionResult = await query(
       "SELECT value FROM admin_settings WHERE key = $1",
       ["interviewSteps"]
@@ -178,11 +179,8 @@ export async function getInterviewStepsDescription(step) {
       interviewStepsDescriptionResult &&
       interviewStepsDescriptionResult.length > 0
     ) {
-      // Parse the JSON value from the database if it's not already parsed
-      const stepsData =
-        typeof interviewStepsDescriptionResult[0].value === "string"
-          ? JSON.parse(interviewStepsDescriptionResult[0].value)
-          : interviewStepsDescriptionResult[0].value;
+      // Always parse the JSON value to ensure we have the freshest data
+      const stepsData = interviewStepsDescriptionResult[0].value;
 
       // Check if the step exists and has a description property
       if (stepsData && stepsData[step] && stepsData[step].description) {
@@ -201,8 +199,37 @@ export async function getInterviewStepsDescription(step) {
   console.log(`Using default description for ${step}`);
   return (
     defaultStepDescriptionsInterview[step] ||
-    "Hjälp användaren med arbetshjälpmedel från Försäkringskassan."
+    "Hjälp användaren med intervjun om arbetshjälpmedel."
   );
+}
+
+export async function refreshInterviewConversationSettings() {
+  // Fetch fresh system message
+  await fetchInterviewSystemMessageFromDB();
+
+  // Refresh step conversations with new system message
+  for (const step in stepConversations) {
+    if (stepConversations[step] && stepConversations[step].length > 0) {
+      // Get fresh step description
+      const stepDescription = await getInterviewStepsDescription(step);
+
+      // Update the system message in the conversation
+      const updatedSystemMessage = {
+        role: "system",
+        content: [
+          ...systemMessage.content,
+          {
+            type: "input_text",
+            text: `Step instructions: ${stepDescription}`,
+          },
+        ],
+      };
+
+      // Replace the system message in the conversation
+      stepConversations[step][0] = updatedSystemMessage;
+    }
+  }
+  console.log("Interview conversation settings refreshed");
 }
 
 // Initialize conversations on startup

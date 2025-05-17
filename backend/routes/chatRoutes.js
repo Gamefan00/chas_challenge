@@ -88,14 +88,13 @@ router.get("/welcome/:step", async (req, res) => {
   try {
     const { step } = req.params;
 
-    // Fetch application steps
+    // Fetch fresh application steps on each request
     const applicationSteps = await fetchApplicationSteps();
 
     if (!applicationSteps[step]) {
       return res.status(404).json({ error: "Step not found" });
     }
 
-    // Send welcome message for the requested step
     res.json({ message: applicationSteps[step] });
   } catch (error) {
     console.error("Error fetching welcome message:", error);
@@ -105,7 +104,16 @@ router.get("/welcome/:step", async (req, res) => {
 
 router.post("/", async (req, res) => {
   try {
-    const systemMessage = await fetchApplicationSystemMessageFromDB();
+    // Always fetch fresh system message on each request and ensure it's not undefined
+    const freshSystemMessage = await fetchApplicationSystemMessageFromDB();
+    if (
+      !freshSystemMessage ||
+      !freshSystemMessage.content ||
+      freshSystemMessage.content.length === 0
+    ) {
+      throw new Error("Invalid system message format");
+    }
+
     const { message, currentStep = "step-1" } = req.body;
 
     // Get AI settings with fallback values
@@ -114,26 +122,46 @@ router.post("/", async (req, res) => {
     // Fetch application steps
     const applicationSteps = await fetchApplicationSteps();
 
-    // Get the step history from the imported stepConversations, with initial welcome message if needed
+    // Get the step description freshly for this request
+    const stepDescription = await getApplicationStepsDescription(currentStep);
+
+    // Build the step system message with fresh data
+    const stepSystemMessage = {
+      role: "system",
+      content: [
+        {
+          type: "input_text",
+          text: freshSystemMessage.content[0].text,
+        },
+        {
+          type: "input_text",
+          text: `Step instructions: ${stepDescription}`,
+        },
+      ],
+    };
+
+    // Initialize or update the conversation for this step
     if (
       !stepConversations[currentStep] ||
       stepConversations[currentStep].length === 0
     ) {
-      // Initialize conversation for this step if it doesn't exist
-      stepConversations[currentStep] = [
-        systemMessage,
-        {
-          role: "assistant",
-          content: [
-            {
-              type: "output_text",
-              text:
-                applicationSteps[currentStep] ||
-                "Välkommen! Vad kan jag hjälpa dig med?",
-            },
-          ],
-        },
-      ];
+      const welcomeMessage = {
+        role: "assistant",
+        content: [
+          {
+            type: "output_text",
+            text:
+              applicationSteps[currentStep] ||
+              defaultStepWelcomeMessagesApplication[currentStep] ||
+              "Välkommen! Vad kan jag hjälpa dig med?",
+          },
+        ],
+      };
+
+      stepConversations[currentStep] = [stepSystemMessage, welcomeMessage];
+    } else {
+      // Update the system message to reflect any changes in settings
+      stepConversations[currentStep][0] = stepSystemMessage;
     }
 
     const stepHistory = stepConversations[currentStep];
@@ -219,15 +247,15 @@ router.post("/", async (req, res) => {
 router.get("/interview/welcome/:step", async (req, res) => {
   try {
     const { step } = req.params;
-    // Fetch application steps
-    const applicationSteps = await fetchInterviewSteps();
 
-    if (!applicationSteps[step]) {
+    // Fetch fresh interview steps on each request
+    const interviewSteps = await fetchInterviewSteps();
+
+    if (!interviewSteps[step]) {
       return res.status(404).json({ error: "Step not found" });
     }
 
-    // Send welcome message for the requested step
-    res.json({ message: applicationSteps[step] });
+    res.json({ message: interviewSteps[step] });
   } catch (error) {
     console.error("Error fetching welcome message:", error);
     res.status(500).json({ error: "Failed to fetch welcome message" });

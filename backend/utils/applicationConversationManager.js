@@ -94,6 +94,7 @@ export async function fetchApplicationSystemMessageFromDB() {
     if (appSystemResult && appSystemResult.length > 0) {
       // Use the value directly without JSON.parse if it's already a string
       const systemMessageText = appSystemResult[0].value;
+
       if (systemMessageText) {
         systemMessage = {
           role: "system",
@@ -111,6 +112,8 @@ export async function fetchApplicationSystemMessageFromDB() {
     console.error("Error fetching system message from database:", error);
     console.log("Using default system message");
   }
+  // Always return the system message, whether it's the updated one or the default
+  return systemMessage;
 }
 
 export async function initializeApplicationConversations() {
@@ -161,6 +164,7 @@ export async function initializeApplicationConversations() {
 // Helper function to get step descriptions
 export async function getApplicationStepsDescription(step) {
   try {
+    // Always fetch fresh data from database
     const applicationStepsDescriptionResult = await query(
       "SELECT value FROM admin_settings WHERE key = $1",
       ["applicationSteps"]
@@ -170,11 +174,21 @@ export async function getApplicationStepsDescription(step) {
       applicationStepsDescriptionResult &&
       applicationStepsDescriptionResult.length > 0
     ) {
-      // Parse the JSON value from the database if it's not already parsed
-      const stepsData =
-        typeof applicationStepsDescriptionResult[0].value === "string"
-          ? JSON.parse(applicationStepsDescriptionResult[0].value)
-          : applicationStepsDescriptionResult[0].value;
+      // Handle the database value properly
+      let stepsData = applicationStepsDescriptionResult[0].value;
+
+      // If the value is a string and looks like JSON, try to parse it
+      if (
+        typeof stepsData === "string" &&
+        (stepsData.startsWith("{") || stepsData.startsWith("["))
+      ) {
+        try {
+          stepsData = JSON.parse(stepsData);
+        } catch (parseError) {
+          console.error("Error parsing JSON:", parseError);
+          // Continue with the string value if parsing fails
+        }
+      }
 
       // Check if the step exists and has a description property
       if (stepsData && stepsData[step] && stepsData[step].description) {
@@ -195,6 +209,36 @@ export async function getApplicationStepsDescription(step) {
     defaultStepDescriptionsApplication[step] ||
     "Hjälp användaren med arbetshjälpmedel från Försäkringskassan."
   );
+}
+
+export async function refreshApplicationConversationSettings() {
+  // Fetch fresh system message
+  await fetchApplicationSystemMessageFromDB();
+
+  // Refresh step conversations with new system message
+  for (const step in stepConversations) {
+    if (stepConversations[step] && stepConversations[step].length > 0) {
+      // Get fresh step description
+      const stepDescription = await getApplicationStepsDescription(step);
+
+      // Update the system message in the conversation
+      const updatedSystemMessage = {
+        role: "system",
+        content: [
+          ...systemMessage.content,
+          {
+            type: "input_text",
+            text: `Step instructions: ${stepDescription}`,
+          },
+        ],
+      };
+
+      // Replace the system message in the conversation
+      stepConversations[step][0] = updatedSystemMessage;
+    }
+  }
+
+  console.log("Application conversation settings refreshed");
 }
 
 // Initialize conversations on startup
