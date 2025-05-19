@@ -443,12 +443,14 @@ export default function ChatBot() {
     setMessage(""); // Clear input right away for better UX
 
     try {
+      const userId = localStorage.getItem("userId"); // Get userId from localStorage
       const response = await fetch(`${BASE_URL}/chat/interview`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message,
           currentStep,
+          userId,
         }),
       });
 

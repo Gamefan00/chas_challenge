@@ -114,7 +114,7 @@ router.post("/", async (req, res) => {
       throw new Error("Invalid system message format");
     }
 
-    const { message, currentStep = "step-1" } = req.body;
+    const { message, currentStep = "step-1", userId } = req.body;
 
     // Get AI settings with fallback values
     const { model, temperature, maxTokens } = await getAISettings();
@@ -166,6 +166,84 @@ router.post("/", async (req, res) => {
 
     const stepHistory = stepConversations[currentStep];
 
+    // Get full step history to send to bot as context
+    let previousStepsContext = [];
+    if (userId) {
+      try {
+        // Get all steps (except the current one)
+        const allSteps = [
+          "step-1",
+          "step-2",
+          "step-3",
+          "step-4",
+          "step-5",
+          "step-6",
+        ];
+        const otherSteps = allSteps.filter((stepId) => stepId !== currentStep);
+
+        // For each step, get its history from the database if it exists
+        for (const stepId of otherSteps) {
+          const historyResult = await query(
+            "SELECT history FROM chat_histories_application WHERE user_id = $1 AND step_id = $2",
+            [userId, stepId]
+          );
+
+          if (historyResult.length > 0 && historyResult[0].history) {
+            let stepHistory;
+
+            // Parse history if it's a string
+            if (typeof historyResult[0].history === "string") {
+              try {
+                stepHistory = JSON.parse(historyResult[0].history);
+              } catch (parseError) {
+                console.error(
+                  `Error parsing history for step ${stepId}:`,
+                  parseError
+                );
+                continue;
+              }
+            } else {
+              stepHistory = historyResult[0].history;
+            }
+
+            // Only add if there's actual conversation (more than just the welcome message)
+            if (stepHistory.length > 1) {
+              // Add a separator to clearly mark different steps
+              previousStepsContext.push({
+                role: "system",
+                content: [
+                  {
+                    type: "input_text",
+                    text: `--- History from ${stepId} ---`,
+                  },
+                ],
+              });
+
+              // Add the conversation history from this step
+              previousStepsContext.push(
+                ...stepHistory.map((msg) => ({
+                  role: msg.role,
+                  content: [
+                    {
+                      type: msg.role === "user" ? "input_text" : "output_text",
+                      text: msg.text,
+                    },
+                  ],
+                }))
+              );
+            }
+          }
+        }
+
+        console.log(
+          `Added context from ${previousStepsContext.length} messages from other steps`
+        );
+      } catch (error) {
+        console.error("Error getting step history:", error);
+        // Continue without previous context if there's an error
+      }
+    }
+
     const stepContext = {
       role: "system",
       content: [
@@ -188,7 +266,12 @@ router.post("/", async (req, res) => {
       ],
     };
 
-    const input = [stepContext, ...stepHistory, userMessage];
+    const input = [
+      stepContext,
+      ...previousStepsContext,
+      ...stepHistory,
+      userMessage,
+    ];
 
     console.log(model);
     const response = await openai.responses.create({
