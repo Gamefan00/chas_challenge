@@ -1,24 +1,21 @@
 "use client";
 
 import { Loader2, Send, Copy } from "lucide-react";
-import { Loader2, Send, Copy } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import Markdown from "react-markdown";
-import rehypeRaw from "rehype-raw";
-import rehypeSanitize from "rehype-sanitize";
-import remarkGfm from "remark-gfm";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import MessageLoading from "@/components/ui/message-loading";
+
 import TopTrackingbar from "@/components/chatpage/TopTrackingBar";
 import Sidebar from "@/components/chatpage/SidebarNav";
-import MessageLoading from "@/components/ui/message-loading";
+import BackToBottomBtn from "@/components/chatpage/BackToBottomBtn";
+
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize from "rehype-sanitize";
 import remarkGfm from "remark-gfm";
-import Navbar from "@/components/homepage/Navbar";
-import BackToBottomBtn from "@/components/chatpage/BackToBottomBtn";
 
 // Define steps for reference in the component
 const steps = [
@@ -141,7 +138,10 @@ export default function ChatBot() {
   // Auto-scroll when messages change
   useEffect(() => {
     if (messageContainerRef.current) {
-      messageContainerRef.current.scrollTop = messageContainerRef.current.scrollHeight;
+      // Use setTimeout to ensure DOM has updated
+      setTimeout(() => {
+        messageContainerRef.current.scrollTop = messageContainerRef.current.scrollHeight;
+      }, 10); // Small delay to ensure render completes
     }
   }, [chatHistories]);
 
@@ -336,6 +336,29 @@ export default function ChatBot() {
     }
   };
 
+  // Reset textarea size to default
+  const resetTextareaSize = () => {
+    // Find the textarea
+    const textarea = document.querySelector("textarea");
+    if (textarea) {
+      // Reset height to original size
+      textarea.style.height = "96px"; // min-h-24 equivalent
+
+      // Reset CSS variable
+      document.documentElement.style.setProperty("--textarea-extra-height", "0px");
+
+      // Reset message container's padding and ensure it can scroll properly
+      if (messageContainerRef.current) {
+        messageContainerRef.current.style.paddingBottom = "0";
+
+        // Force layout recalculation by triggering a scroll update
+        setTimeout(() => {
+          messageContainerRef.current.scrollTop = messageContainerRef.current.scrollHeight;
+        }, 0);
+      }
+    }
+  };
+
   // Send user message for current step
   async function handleSendMessage() {
     if (!message.trim()) return;
@@ -351,17 +374,18 @@ export default function ChatBot() {
     });
 
     setMessage(""); // Clear input right away for better UX
+    resetTextareaSize(); // Reset textarea size
 
     try {
       const userId = localStorage.getItem("userId"); // Get userId from localStorage
-      
+
       const response = await fetch(`${BASE_URL}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message,
           currentStep,
-          userId
+          userId,
         }),
       });
 
@@ -392,6 +416,47 @@ export default function ChatBot() {
     }
   }
 
+  const autoResizeTextarea = (e) => {
+    const textarea = e.target;
+
+    // Save scroll position and cursor position
+    const scrollTop = textarea.scrollTop;
+    const selectionStart = textarea.selectionStart;
+    const selectionEnd = textarea.selectionEnd;
+
+    // Reset height to calculate proper scrollHeight
+    textarea.style.height = "96px"; // Reset to min-h-24 equivalent
+
+    // Calculate new height with a maximum (320px = 8rem or 80px * 4)
+    const newHeight = Math.min(textarea.scrollHeight, 320);
+
+    // Set the new height
+    textarea.style.height = `${newHeight}px`;
+
+    // Restore scroll and cursor positions
+    textarea.scrollTop = scrollTop;
+    textarea.setSelectionRange(selectionStart, selectionEnd);
+
+    // Update container sizing based on textarea height
+    if (messageContainerRef.current) {
+      // Calculate extra padding needed
+      const extraPadding = newHeight - 96; // Height beyond default
+
+      // Apply changes only when needed
+      if (extraPadding > 0) {
+        // Update CSS variable for dynamic container sizing
+        document.documentElement.style.setProperty("--textarea-extra-height", `${extraPadding}px`);
+
+        // Force scroll update AFTER the layout has been recalculated
+        requestAnimationFrame(() => {
+          messageContainerRef.current.scrollTop = messageContainerRef.current.scrollHeight;
+        });
+      } else {
+        document.documentElement.style.setProperty("--textarea-extra-height", "0px");
+      }
+    }
+  };
+
   // Handle enter key press to send message
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -410,114 +475,213 @@ export default function ChatBot() {
   }
 
   return (
-    <div className="bg-background relative flex h-[90vh] w-full">
+    <div className="bg-background relative flex h-[90vh] overflow-hidden">
       {/* Interactive Sidebar */}
       <Sidebar
         currentStep={currentStep}
         completedSteps={completedSteps}
         onNavigate={navigateToStep}
       />
-
-      {/* Main Content */}
-      <div className="mx-auto flex min-h-0 max-w-4xl flex-1 flex-col">
-        {/* Top tracking bar (fixed at top) */}
-
-        <TopTrackingbar
-          heading={heading}
-          currentStep={currentStep}
-          navigateToStep={navigateToStep}
-          completedSteps={completedSteps}
-          completeCurrentStep={completeCurrentStep}
-          steps={stepsId}
-        />
-
-        {/* Chat Messages - This is the only scrollable area */}
-        <div ref={messageContainerRef} className="min-h-auto flex-1 overflow-y-auto p-4">
-          <div className="mx-auto max-w-4xl pb-10">
-            {currentChatHistory.map((message, index) => (
-              <div
-                key={index}
-                className={`mb-4 ${
-                  message.role === "user"
-                    ? "flex flex-col items-end justify-end"
-                    : "flex flex-col items-start justify-start"
-                }`}
-              >
-                <Card
-                  className={`max-w-[80%] rounded-xl p-4 break-words ${
-                    message.role === "user" ? "user-msg bg-primary" : "bg-card"
+      <div className="flex w-full flex-col">
+        {/* This is the only scrollable area  */}
+        <div
+          className="h-[85%] w-full overflow-y-auto"
+          ref={messageContainerRef}
+          style={{ height: "calc(85% - var(--textarea-extra-height, 0px))" }}
+        >
+          <TopTrackingbar
+            heading={heading}
+            currentStep={currentStep}
+            navigateToStep={navigateToStep}
+            completedSteps={completedSteps}
+            completeCurrentStep={completeCurrentStep}
+            steps={stepsId}
+          />
+          <div>
+            {/* Chat Messages */}
+            <div className="mx-auto max-w-3xl px-3">
+              {currentChatHistory.map((message, index) => (
+                <div
+                  key={index}
+                  className={`mb-4 ${
+                    message.role === "user"
+                      ? "flex flex-col items-end justify-end"
+                      : "flex flex-col items-start justify-start"
                   }`}
                 >
-                  <div className="markdown-container">
-                    <Markdown
-                      remarkPlugins={[remarkGfm]}
-                      rehypePlugins={[rehypeRaw, rehypeSanitize]}
-                      components={{
-                        code(props) {
-                          const { children, className, ...rest } = props;
-                          return (
-                            <code
-                              className={`${className} text-primary bg-background rounded px-1.5 py-0.5`}
-                              {...rest}
-                            >
-                              {children}
-                            </code>
-                          );
-                        },
-                        pre(props) {
-                          return (
-                            <pre
-                              className="text-primary bg-primary overflow-x-auto rounded-md p-4 text-sm"
-                              {...props}
-                            />
-                          );
-                        },
-                      }}
-                    >
-                      {message.text || ""}
-                    </Markdown>
-                  </div>
+                  <Card
+                    className={`max-w-[80%] rounded-xl p-4 break-words ${
+                      message.role === "user" ? "user-msg bg-primary" : "bg-card"
+                    }`}
+                  >
+                    <div className="markdown-container">
+                      <Markdown
+                        remarkPlugins={[remarkGfm]}
+                        rehypePlugins={[rehypeRaw, rehypeSanitize]}
+                        components={{
+                          code(props) {
+                            const { children, className, ...rest } = props;
+                            return (
+                              <code
+                                className={`${className} text-primary bg-background rounded px-1.5 py-0.5`}
+                                {...rest}
+                              >
+                                {children}
+                              </code>
+                            );
+                          },
+                          pre(props) {
+                            return (
+                              <pre
+                                className="text-primary bg-primary overflow-x-auto rounded-md p-4 text-sm"
+                                {...props}
+                              />
+                            );
+                          },
+                        }}
+                      >
+                        {message.text || ""}
+                      </Markdown>
+                    </div>
+                  </Card>
+                  {message.role === "assistant" && <CopyButton message={message.text} />}
+                </div>
+              ))}
+              {isLoading && (
+                <Card className="inline-block items-start rounded-xl px-3 py-1 pb-0">
+                  <MessageLoading />
                 </Card>
-
-                {message.role === "assistant" && <CopyButton message={message.text} />}
+              )}
+            </div>
+          </div>
+        </div>
+        <div className="h-[15%] w-full">
+          <div className="mx-auto max-w-7xl">
+            <div className="w-full">
+              <BackToBottomBtn containerRef={messageContainerRef} threshold={30} />
+              <div
+                style={{ maxWidth: "4xl", margin: "0 auto" }}
+                className="flex w-full max-w-4xl items-center px-4 pb-4"
+              >
+                <div className="justyfy-end relative flex flex-1 flex-col">
+                  <Textarea
+                    value={message}
+                    onChange={(e) => {
+                      setMessage(e.target.value);
+                      autoResizeTextarea(e);
+                    }}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Skriv ett meddelande..."
+                    className="border-border bg-background max-h-max min-h-24 w-full resize-none overflow-y-auto rounded-xl p-3 pr-16 shadow-sm"
+                  />
+                  <div className="absolute right-3 bottom-0 p-3">
+                    <Button
+                      onClick={handleSendMessage}
+                      disabled={isLoading || !message.trim()}
+                      size="icon"
+                      className="bg-primary h-10 w-10 rounded-full"
+                    >
+                      <Send className="h-5 w-5" />
+                    </Button>
+                  </div>
+                </div>
               </div>
-            ))}
-            {isLoading && (
-              <Card className="inline-block items-start rounded-xl px-3 py-1 pb-0">
-                <MessageLoading />
-              </Card>
-            )}
+            </div>
           </div>
-        </div>
-
-        {/* Input Area (fixed at bottom) */}
-        <div className="bg-background bottom-0 p-4">
-          <div className="mx-auto flex max-w-2xl items-center gap-5">
-            <Textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Skriv ett meddelande..."
-              className="border-border bg-background relative max-h-32 min-h-12 resize-none overflow-y-auto rounded-xl p-3 shadow-sm"
-            />
-            <Button
-              onClick={handleSendMessage}
-              disabled={isLoading || !message.trim()}
-              size="icon"
-              className="bg-primary h-10 w-10 rounded-full"
-            >
-              <Send className="h-5 w-5" />
-            </Button>
-          </div>
-        </div>
-        <div>
-          <BackToBottomBtn containerRef={messageContainerRef} threshold={30} />
         </div>
       </div>
     </div>
   );
 }
-// Back to Bottom Button
-// <div>
+
+// <div className="w-full">
 //   <BackToBottomBtn containerRef={messageContainerRef} threshold={30} />
+//   <div
+//     style={{ maxWidth: "4xl", margin: "0 auto" }}
+//     className="flex w-full max-w-4xl items-center gap-5 px-4 pb-4"
+//   >
+//     <Textarea
+//       value={message}
+//       onChange={(e) => {
+//         setMessage(e.target.value);
+//         autoResizeTextarea(e);
+//       }}
+//       onKeyDown={handleKeyDown}
+//       placeholder="Skriv ett meddelande..."
+//       className="border-border bg-background max-h-max min-h-24 flex-1 overflow-y-auto rounded-xl p-3 shadow-sm"
+//     />
+//     <Button
+//       onClick={handleSendMessage}
+//       disabled={isLoading || !message.trim()}
+//       size="icon"
+//       className="bg-primary h-10 w-10 rounded-full"
+//     >
+//       <Send className="h-5 w-5" />
+//     </Button>
+//   </div>
 // </div>
+// div className="flex">
+//         <div className="mx-auto flex min-h-0 flex-1 flex-col">
+//           <div className="relative mx-auto w-full max-w-4xl">
+//             {/* Top tracking bar (fixed at top) */}
+
+//             {/* Chat Messages - This is the only scrollable area */}
+//             <div ref={messageContainerRef} className="flex-1 p-4">
+//               <div className="mx-auto max-w-4xl">
+//                 {currentChatHistory.map((message, index) => (
+//                   <div
+//                     key={index}
+//                     className={`mb-4 ${
+//                       message.role === "user"
+//                         ? "flex flex-col items-end justify-end"
+//                         : "flex flex-col items-start justify-start"
+//                     }`}
+//                   >
+//                     <Card
+//                       className={`max-w-[80%] rounded-xl p-4 break-words ${
+//                         message.role === "user" ? "user-msg bg-primary" : "bg-card"
+//                       }`}
+//                     >
+//                       <div className="markdown-container">
+//                         <Markdown
+//                           remarkPlugins={[remarkGfm]}
+//                           rehypePlugins={[rehypeRaw, rehypeSanitize]}
+//                           components={{
+//                             code(props) {
+//                               const { children, className, ...rest } = props;
+//                               return (
+//                                 <code
+//                                   className={`${className} text-primary bg-background rounded px-1.5 py-0.5`}
+//                                   {...rest}
+//                                 >
+//                                   {children}
+//                                 </code>
+//                               );
+//                             },
+//                             pre(props) {
+//                               return (
+//                                 <pre
+//                                   className="text-primary bg-primary overflow-x-auto rounded-md p-4 text-sm"
+//                                   {...props}
+//                                 />
+//                               );
+//                             },
+//                           }}
+//                         >
+//                           {message.text || ""}
+//                         </Markdown>
+//                       </div>
+//                     </Card>
+//                     {message.role === "assistant" && <CopyButton message={message.text} />}
+//                   </div>
+//                 ))}
+//                 {isLoading && (
+//                   <Card className="inline-block items-start rounded-xl px-3 py-1 pb-0">
+//                     <MessageLoading />
+//                   </Card>
+//                 )}
+//               </div>
+//             </div>
+//           </div>
+//         </div>
+//       </div>

@@ -292,13 +292,12 @@ export default function SidebarNav({
       {/* Sidebar with conditional rendering for width */}
       <div
         className={cn(
-          "sidebar-container flex-1 overflow-hidden",
+          "sidebar-container sticky top-0 h-[90vh] flex-1 overflow-hidden",
           isSidebarOpen ? "w-64" : "w-0 overflow-hidden",
           isMobile && isSidebarOpen ? "absolute top-0 left-0 z-40" : "",
-          "sticky",
         )}
       >
-        <Sidebar className="relative w-64 transition-opacity duration-500">
+        <Sidebar className="relative flex w-64 flex-col transition-opacity duration-500">
           <div className="relative z-10 mt-2 ml-2">
             <SidebarTrigger onClick={() => setIsSidebarOpen(false)} className="toggle-button" />
           </div>
@@ -363,16 +362,17 @@ export default function SidebarNav({
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
+
             <AlertDialog>
-              <AlertDialogTrigger>
+              <AlertDialogTrigger asChild>
                 <Button>Återställ chat</Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>Är du helt säker?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Denna åtgärd kan inte ångras. Detta kommer att permanent radera ditt konto och
-                    ta bort dina data från våra servrar.
+                    Denna åtgärd kan inte ångras. Detta kommer att permanent radera din
+                    chatthistorik från våra servrar.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

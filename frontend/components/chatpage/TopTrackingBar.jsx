@@ -63,32 +63,34 @@ const TopTrackingBar = ({
   const progressPercent = (currentStepIndex / maxSteps) * 100;
 
   return (
-    <div className="mx-4 my-10 flex flex-col space-y-5">
-      <div className="mx-2 flex items-center justify-between">
-        <h3>{heading}</h3>
-        <div className="flex max-w-3xl justify-start space-x-2">
-          <Button
-            onClick={handlePrevStep}
-            className={`${
-              isFirstStep ? "bg-primary/20 cursor-not-allowed" : "bg-primary hover:bg-primary/80"
-            } text-primary-foreground`}
-            disabled={isFirstStep}
-          >
-            Föregående
-          </Button>
-          <Button
-            onClick={handleNextStep}
-            className={`${
-              isLastStep ? "bg-primary/20 cursor-not-allowed" : "bg-primary hover:bg-primary/80"
-            } text-primary-foreground`}
-            disabled={isLastStep}
-          >
-            Nästa
-          </Button>
+    <div className="bg-background sticky top-0 z-10 w-full pt-4 pb-5">
+      <div className="mx-auto max-w-4xl px-4 pt-5 lg:pt-0">
+        <div className="mb-2 flex flex-col space-y-2 md:flex-row md:items-center md:justify-between md:space-y-5">
+          <h3>{heading}</h3>
+          <div className="flex max-w-3xl justify-start space-x-2">
+            <Button
+              onClick={handlePrevStep}
+              className={`${
+                isFirstStep ? "bg-primary/20 cursor-not-allowed" : "bg-primary hover:bg-primary/80"
+              } text-primary-foreground`}
+              disabled={isFirstStep}
+            >
+              Föregående
+            </Button>
+            <Button
+              onClick={handleNextStep}
+              className={`${
+                isLastStep ? "bg-primary/20 cursor-not-allowed" : "bg-primary hover:bg-primary/80"
+              } text-primary-foreground`}
+              disabled={isLastStep}
+            >
+              Nästa
+            </Button>
+          </div>
         </div>
-      </div>
 
-      <Progress value={progressPercent} className="w-[100%]" />
+        <Progress value={progressPercent} className="w-[100%]" />
+      </div>
     </div>
   );
 };

@@ -7,17 +7,17 @@ import Footer from "@/components/homepage/Footer";
 
 const page = () => {
   return (
-    <div>
-      <div className="bg-background flex h-dvh w-full flex-col px-4 py-12 md:pb-20">
-        <div className="mx-auto flex max-w-7xl flex-col items-center gap-12 md:gap-20">
+    <>
+      <div className="bg-background flex h-dvh w-full flex-col py-12">
+        <div className="mx-auto flex max-w-7xl flex-col items-center gap-12 px-4 md:mb-20 md:gap-20">
           <HeroSection />
           <FeatureCard />
           <HowItWorks />
           <FAQ />
         </div>
+        <Footer />
       </div>
-      <Footer />
-    </div>
+    </>
   );
 };
 
