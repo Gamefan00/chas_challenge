@@ -5,10 +5,12 @@ import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import chatRoutes from "./routes/chatRoutes.js";
 import historyRoutes from "./routes/historyRoutes.js";
-import clearRoutes from "./routes/clearRoutes.js";
+// import clearRoutes from "./routes/clearRoutes.js";
 import getUserIdRoutes from "./routes/getUserIdRoute.js";
 import authRoutes from "./routes/authRoutes.js";
-import { initializeConversations } from "./utils/conversationManager.js";
+import aiModelConfigRoutes from "./routes/settingsRoutes/aiModelConfigRoutes.js";
+import aiBehaviorConfigRoutes from "./routes/settingsRoutes/aiBehaviorConfigRoutes.js";
+import { initializeConversationSettings } from "./utils/initializeConversationSettings.js";
 import query from "./utils/supabaseQuery.js";
 
 // Load environment variables
@@ -28,14 +30,16 @@ app.use(
 );
 
 // Initialize conversations
-initializeConversations();
+initializeConversationSettings();
 
 // Routes
 app.use("/chat", chatRoutes);
 app.use("/history", historyRoutes);
-app.use("/clear", clearRoutes);
+// app.use("/clear", clearRoutes);
 app.use("/getUserId", getUserIdRoutes);
 app.use("/auth", authRoutes);
+app.use("/settingsRoutes/aiModelConfig", aiModelConfigRoutes);
+app.use("/settingsRoutes/aiBehaviorConfigRoutes", aiBehaviorConfigRoutes);
 
 // Start server
 const server = app.listen(PORT, () => {
@@ -102,5 +106,4 @@ process.on("SIGINT", gracefulShutdown);
 // Prevent unhandled promise rejections from crashing the server
 process.on("unhandledRejection", (reason, promise) => {
   console.error("Unhandled Rejection at:", promise, "reason:", reason);
-  // Application specific logging, throwing an error, or other logic here
 });

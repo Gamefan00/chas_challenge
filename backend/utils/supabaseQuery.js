@@ -15,9 +15,11 @@ const createPool = () => {
     connectionTimeoutMillis: 10000,
   });
 
+  // THROWS ERRORS, BUT CLOGS UP THE CONSOLE.IMPORTANT, FIX LATER!
+  //
   // Add error handler to prevent app crashes
   pool.on("error", (err) => {
-    console.error("Unexpected database error:", err);
+    // console.error("Unexpected database error:", err);
     // Don't crash the app, just log the error
   });
 

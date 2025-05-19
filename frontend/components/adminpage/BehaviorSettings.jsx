@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -11,12 +10,15 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Save, AlertCircle, CheckCircle2, Loader2, Settings, ListChecks } from "lucide-react";
+import { AlertCircle, Loader2, Settings, ListChecks } from "lucide-react";
+import SaveBtn from "@/components/adminpage/SaveBtn";
+import { StatusMessage } from "@/components/adminpage/StatusMessage";
 
 export default function BehaviorSettings() {
-  const [loading, setLoading] = useState(true);
+  const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
   const [error, setError] = useState(null);
   const [saveStatus, setSaveStatus] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [openSections, setOpenSections] = useState(["system-instructions"]);
   const [activeBot, setActiveBot] = useState("application");
 
@@ -34,183 +36,94 @@ export default function BehaviorSettings() {
   // Interview bot settings
   const [interviewSystemMessage, setInterviewSystemMessage] = useState("");
   const [interviewStepMessages, setInterviewStepMessages] = useState({
-    "step-1": { heading: "", label: "" },
-    "step-2": { heading: "", label: "" },
-    "step-3": { heading: "", label: "" },
-    "step-4": { heading: "", label: "" },
-    "step-5": { heading: "", label: "" },
-    "step-6": { heading: "", label: "" },
-    "step-7": { heading: "", label: "" },
-    "step-8": { heading: "", label: "" },
-    "step-9": { heading: "", label: "" },
-    "step-10": { heading: "", label: "" },
-    "step-11": { heading: "", label: "" },
-    "step-12": { heading: "", label: "" },
-    "step-13": { heading: "", label: "" },
-    "step-14": { heading: "", label: "" },
-    "step-15": { heading: "", label: "" },
+    "step-1": { welcome: "", description: "" },
+    "step-2": { welcome: "", description: "" },
+    "step-3": { welcome: "", description: "" },
+    "step-4": { welcome: "", description: "" },
+    "step-5": { welcome: "", description: "" },
+    "step-6": { welcome: "", description: "" },
+    "step-7": { welcome: "", description: "" },
+    "step-8": { welcome: "", description: "" },
+    "step-9": { welcome: "", description: "" },
+    "step-10": { welcome: "", description: "" },
+    "step-11": { welcome: "", description: "" },
+    "step-12": { welcome: "", description: "" },
+    "step-13": { welcome: "", description: "" },
+    "step-14": { welcome: "", description: "" },
+    "step-15": { welcome: "", description: "" },
   });
 
   // Load settings from database on component mount
   useEffect(() => {
-    async function loadSettings() {
+    async function fetchSettings() {
       try {
         setLoading(true);
         setError(null);
 
-        // Load Application Bot Settings
-        const appSystemResponse = await fetch("/admin/settings/application_system_message", {
+        const response = await fetch(`${BASE_URL}/settingsRoutes/aiBehaviorConfigRoutes`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
           credentials: "include",
         });
 
-        if (appSystemResponse.ok) {
-          const data = await appSystemResponse.json();
-          setApplicationSystemMessage(data.value || "");
+        if (!response.ok) {
+          console.error(`API Error: ${response.status} - ${response.statusText}`);
+          throw new Error(`Det gick inte att ladda inställningarna (${response.status})`);
         }
 
-        const appStepsResponse = await fetch("/admin/settings/application_steps", {
-          credentials: "include",
-        });
+        const data = await response.json();
+        console.log("Received behavior settings:", data);
 
-        if (appStepsResponse.ok) {
-          const data = await appStepsResponse.json();
-          const steps = data.value || {};
+        if (data && data.behaviorConfig) {
+          // Set application system message
+          setApplicationSystemMessage(data.behaviorConfig.applicationSystemMessage || "");
 
-          // Initialize with data from database or empty values
-          const formattedSteps = {
-            "step-1": {
-              welcome: steps["step-1"]?.welcome_message || "",
-              description: steps["step-1"]?.description || "",
-            },
-            "step-2": {
-              welcome: steps["step-2"]?.welcome_message || "",
-              description: steps["step-2"]?.description || "",
-            },
-            "step-3": {
-              welcome: steps["step-3"]?.welcome_message || "",
-              description: steps["step-3"]?.description || "",
-            },
-            "step-4": {
-              welcome: steps["step-4"]?.welcome_message || "",
-              description: steps["step-4"]?.description || "",
-            },
-            "step-5": {
-              welcome: steps["step-5"]?.welcome_message || "",
-              description: steps["step-5"]?.description || "",
-            },
-            "step-6": {
-              welcome: steps["step-6"]?.welcome_message || "",
-              description: steps["step-6"]?.description || "",
-            },
-          };
+          // Set interview system message
+          setInterviewSystemMessage(data.behaviorConfig.interviewSystemMessage || "");
 
-          setApplicationStepMessages(formattedSteps);
-        }
-
-        // Load Interview Bot Settings
-        const interviewSystemResponse = await fetch("/admin/settings/interview_system_message", {
-          credentials: "include",
-        });
-
-        if (interviewSystemResponse.ok) {
-          const data = await interviewSystemResponse.json();
-          setInterviewSystemMessage(data.value || "");
-        }
-
-        const interviewStepsResponse = await fetch("/admin/settings/interview_steps", {
-          credentials: "include",
-        });
-
-        if (interviewStepsResponse.ok) {
-          const data = await interviewStepsResponse.json();
-          const steps = data.value || {};
-
-          // Create formatted steps from database or use defaults
-          const formattedSteps = {};
-
-          // Loop through steps 1-15
-          for (let i = 1; i <= 15; i++) {
-            const stepKey = `step-${i}`;
-            formattedSteps[stepKey] = {
-              label: steps[stepKey]?.label || "",
-              heading: steps[stepKey]?.heading || "",
-            };
+          // Set application step messages
+          if (data.behaviorConfig.applicationSteps) {
+            setApplicationStepMessages(data.behaviorConfig.applicationSteps);
           }
 
-          setInterviewStepMessages(formattedSteps);
+          // Set interview step messages
+          if (data.behaviorConfig.interviewSteps) {
+            setInterviewStepMessages(data.behaviorConfig.interviewSteps);
+          }
         }
       } catch (err) {
-        console.error("Error loading settings:", err);
-        setError("Det gick inte att ladda inställningarna");
+        console.error("Error loading behavior settings:", err);
+        setError(err.message || "Det gick inte att ladda inställningarna");
       } finally {
         setLoading(false);
       }
     }
 
-    loadSettings();
-  }, []);
+    fetchSettings();
+  }, [BASE_URL]);
 
   // Save all settings
   const handleSave = async () => {
     try {
       setSaveStatus({ type: "loading", message: "Sparar..." });
 
-      if (activeBot === "application") {
-        // Save application bot settings
-        await fetch("/admin/settings/application_system_message", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({
-            value: applicationSystemMessage,
-            category: "ai_config",
-            description: "Systeminstruktioner för ansökningsboten",
-          }),
-        });
+      // Prepare the behavior config object
+      const behaviorConfig = {
+        applicationSystemMessage,
+        interviewSystemMessage,
+        applicationSteps: applicationStepMessages,
+        interviewSteps: interviewStepMessages,
+      };
 
-        // Save application step messages
-        const formattedSteps = {};
-        Object.entries(applicationStepMessages).forEach(([step, data]) => {
-          formattedSteps[step] = {
-            welcome_message: data.welcome,
-            description: data.description,
-          };
-        });
+      const response = await fetch(`${BASE_URL}/settingsRoutes/aiBehaviorConfigRoutes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ behaviorConfig }),
+      });
 
-        await fetch("/admin/settings/application_steps", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({
-            value: formattedSteps,
-            category: "application_config",
-            description: "Steg i ansökningsprocessen med beskrivningar och välkomstmeddelanden",
-          }),
-        });
-      } else {
-        // Save interview bot settings
-        await fetch("/admin/settings/interview_system_message", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({
-            value: interviewSystemMessage,
-            category: "ai_config",
-            description: "Systeminstruktioner för intervjuboten",
-          }),
-        });
-
-        // Save interview step messages
-        await fetch("/admin/settings/interview_steps", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({
-            value: interviewStepMessages,
-            category: "interview_config",
-            description: "Frågor för intervjuprocessen",
-          }),
-        });
+      if (!response.ok) {
+        throw new Error(`Server responded with ${response.status}`);
       }
 
       setSaveStatus({ type: "success", message: "Inställningarna har sparats" });
@@ -219,8 +132,8 @@ export default function BehaviorSettings() {
       setTimeout(() => {
         setSaveStatus(null);
       }, 3000);
-    } catch (err) {
-      console.error("Error saving settings:", err);
+    } catch (error) {
+      console.error("Error saving settings:", error);
       setSaveStatus({ type: "error", message: "Det gick inte att spara inställningarna" });
     }
   };
@@ -241,24 +154,23 @@ export default function BehaviorSettings() {
     }));
   };
 
-  // Handle changes to interview step headings
-  const handleInterviewHeadingChange = (step, value) => {
+  // Handle changes to interview step welcomes
+  const handleInterviewWelcomeChange = (step, value) => {
     setInterviewStepMessages((prev) => ({
       ...prev,
-      [step]: { ...prev[step], heading: value },
+      [step]: { ...prev[step], welcome: value },
     }));
   };
 
-  // Handle changes to interview step labels
-  const handleInterviewLabelChange = (step, value) => {
+  // Handle changes to interview description welcomes
+  const handleInterviewDescriptionChange = (step, value) => {
     setInterviewStepMessages((prev) => ({
       ...prev,
-      [step]: { ...prev[step], label: value },
+      [step]: { ...prev[step], description: value },
     }));
   };
 
-  // Get a human-friendly name for application steps
-  const getAppStepName = (step) => {
+  const getApplicationStepName = (step) => {
     switch (step) {
       case "step-1":
         return "Steg 1: Välj ärendetyp";
@@ -272,6 +184,42 @@ export default function BehaviorSettings() {
         return "Steg 5: Nuvarande stöd";
       case "step-6":
         return "Steg 6: Granska och skicka";
+      default:
+        return step;
+    }
+  };
+  const getInterviewStepName = (step) => {
+    switch (step) {
+      case "step-1":
+        return "Steg 1: Förberedelse av intervju";
+      case "step-2":
+        return "Steg 2: Placeholder";
+      case "step-3":
+        return "Steg 3: Placeholder";
+      case "step-4":
+        return "Steg 4: Placeholder";
+      case "step-5":
+        return "Steg 5: Placeholder";
+      case "step-6":
+        return "Steg 6: Placeholder";
+      case "step-7":
+        return "Steg 7: Dina dagliga arbetsuppgifter";
+      case "step-8":
+        return "Steg 8: Din fysiska arbetsplats";
+      case "step-9":
+        return "Steg 9: Din arbetsmiljö";
+      case "step-10":
+        return "Steg 10: Tidigare prövade anpassningar";
+      case "step-11":
+        return "Steg 11: Hjälpmedel du tror kan hjälpa";
+      case "step-12":
+        return "Steg 12: Sociala aspekter av arbetet";
+      case "step-13":
+        return "Steg 13: Påverkan på kollegor och teamarbete";
+      case "step-14":
+        return "Steg 14: Din arbetsgivares inställning";
+      case "step-15":
+        return "Steg 15: Sammanfattning av intervjun";
       default:
         return step;
     }
@@ -299,23 +247,7 @@ export default function BehaviorSettings() {
             Anpassa AI-assistentens instruktioner, välkomstmeddelanden och steg.
           </CardDescription>
         </div>
-        <Button
-          onClick={handleSave}
-          disabled={saveStatus?.type === "loading"}
-          className="bg-primary text-primary-foreground"
-        >
-          {saveStatus?.type === "loading" ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Sparar...
-            </>
-          ) : (
-            <>
-              <Save className="mr-2 h-4 w-4" />
-              Spara ändringar
-            </>
-          )}
-        </Button>
+        <SaveBtn onClick={handleSave} status={saveStatus} />
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Status messages */}
@@ -326,24 +258,7 @@ export default function BehaviorSettings() {
           </div>
         )}
 
-        {saveStatus && (
-          <div
-            className={`flex items-center rounded-md p-3 ${
-              saveStatus.type === "error"
-                ? "border-destructive bg-destructive/10 text-destructive border"
-                : saveStatus.type === "success"
-                  ? "border-success bg-success/10 text-success border"
-                  : "border-primary bg-primary/10 text-primary border"
-            }`}
-          >
-            {saveStatus.type === "success" ? (
-              <CheckCircle2 className="mr-2 h-4 w-4" />
-            ) : (
-              <AlertCircle className="mr-2 h-4 w-4" />
-            )}
-            {saveStatus.message}
-          </div>
-        )}
+        <StatusMessage status={saveStatus} />
 
         {/* Bot Type Tabs */}
         <Tabs value={activeBot} onValueChange={setActiveBot} className="w-full">
@@ -416,7 +331,7 @@ export default function BehaviorSettings() {
                         className="border-border border-t border-b-0"
                       >
                         <AccordionTrigger className="hover:bg-accent hover:text-accent-foreground px-6 py-3">
-                          {getAppStepName(step)}
+                          {getApplicationStepName(step)}
                         </AccordionTrigger>
                         <AccordionContent className="px-6 pt-2 pb-4">
                           <div className="space-y-4">
@@ -438,7 +353,7 @@ export default function BehaviorSettings() {
 
                             <div className="space-y-2">
                               <Label htmlFor={`${step}-description`} className="text-foreground">
-                                Beskrivning
+                                AI-instruktion för detta steg
                               </Label>
                               <Textarea
                                 id={`${step}-description`}
@@ -448,8 +363,8 @@ export default function BehaviorSettings() {
                                 className="bg-background border-input text-foreground"
                               />
                               <p className="text-muted-foreground text-xs">
-                                En kort beskrivning av vad detta steg innebär (används internt och
-                                för admins).
+                                Ange hur AI:n ska bete sig i detta steg och vad den ska guida
+                                användaren genom.
                               </p>
                             </div>
                           </div>
@@ -471,27 +386,27 @@ export default function BehaviorSettings() {
               className="w-full"
             >
               {/* System Instructions */}
-              <AccordionItem value="interview-system-instructions" className="border-border">
+              <AccordionItem value="app-system-instructions" className="border-border">
                 <AccordionTrigger className="hover:bg-accent hover:text-accent-foreground rounded-md px-4 py-4">
                   <div className="flex items-center gap-2">
                     <Settings className="h-5 w-5" />
-                    <span>System Instruktioner - Intervjubot</span>
+                    <span>System Instruktioner - Intervjusbot</span>
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="px-4 pt-2 pb-4">
                   <div className="space-y-2">
-                    <Label htmlFor="interview-system-message" className="text-foreground">
+                    <Label htmlFor="app-system-message" className="text-foreground">
                       System Instruktioner
                     </Label>
                     <Textarea
-                      id="interview-system-message"
+                      id="app-system-message"
                       value={interviewSystemMessage}
                       onChange={(e) => setInterviewSystemMessage(e.target.value)}
                       rows={10}
                       className="bg-background border-input text-foreground font-mono text-sm"
                     />
                     <p className="text-muted-foreground text-xs">
-                      Dessa instruktioner styr hur intervjuboten beter sig och vilken information
+                      Dessa instruktioner styr hur intervjusboten beter sig och vilken information
                       den har tillgång till.
                     </p>
                   </div>
@@ -503,7 +418,7 @@ export default function BehaviorSettings() {
                 <AccordionTrigger className="hover:bg-accent hover:text-accent-foreground rounded-md px-4 py-4">
                   <div className="flex items-center gap-2">
                     <ListChecks className="h-5 w-5" />
-                    <span>Intervjufrågor</span>
+                    <span>Intervjussteg</span>
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="px-0 pb-2">
@@ -516,39 +431,42 @@ export default function BehaviorSettings() {
                         className="border-border border-t border-b-0"
                       >
                         <AccordionTrigger className="hover:bg-accent hover:text-accent-foreground px-6 py-3">
-                          {`Steg ${step.split("-")[1]}: ${data.label || "Namnlös fråga"}`}
+                          {getInterviewStepName(step)}
                         </AccordionTrigger>
                         <AccordionContent className="px-6 pt-2 pb-4">
                           <div className="space-y-4">
                             <div className="space-y-2">
-                              <Label htmlFor={`${step}-label`} className="text-foreground">
-                                Etikett (visas i sidofältet)
+                              <Label htmlFor={`${step}-welcome`} className="text-foreground">
+                                Välkomstmeddelande
                               </Label>
                               <Textarea
-                                id={`${step}-label`}
-                                value={data.label}
-                                onChange={(e) => handleInterviewLabelChange(step, e.target.value)}
-                                rows={2}
+                                id={`${step}-welcome`}
+                                value={data.welcome}
+                                onChange={(e) => handleInterviewWelcomeChange(step, e.target.value)}
+                                rows={6}
                                 className="bg-background border-input text-foreground"
                               />
                               <p className="text-muted-foreground text-xs">
-                                Kort text som visas i sidomenyn för detta steg.
+                                Detta meddelande visas för användaren när de börjar detta steg.
                               </p>
                             </div>
 
                             <div className="space-y-2">
-                              <Label htmlFor={`${step}-heading`} className="text-foreground">
-                                Fråga (visas som rubrik)
+                              <Label htmlFor={`${step}-description`} className="text-foreground">
+                                AI-instruktion för detta steg
                               </Label>
                               <Textarea
-                                id={`${step}-heading`}
-                                value={data.heading}
-                                onChange={(e) => handleInterviewHeadingChange(step, e.target.value)}
+                                id={`${step}-description`}
+                                value={data.description}
+                                onChange={(e) =>
+                                  handleInterviewDescriptionChange(step, e.target.value)
+                                }
                                 rows={3}
                                 className="bg-background border-input text-foreground"
                               />
                               <p className="text-muted-foreground text-xs">
-                                Den faktiska frågan som ställs till användaren.
+                                Ange hur AI:n ska bete sig i detta steg och vad den ska guida
+                                användaren genom.
                               </p>
                             </div>
                           </div>
