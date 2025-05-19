@@ -13,6 +13,8 @@ import TopTrackingbar from "@/components/chatpage/TopTrackingBar";
 import Sidebar from "@/components/chatpage/SidebarNav";
 import BackToBottomBtn from "@/components/chatpage/BackToBottomBtn";
 
+import { useResizableTextarea } from "@/hooks/useResizableTextarea";
+
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize from "rehype-sanitize";
 import remarkGfm from "remark-gfm";
@@ -134,6 +136,8 @@ export default function ChatBot() {
 
   // Reference to message container for scrolling
   const messageContainerRef = useRef(null);
+
+  const { autoResizeTextarea, resetTextareaSize } = useResizableTextarea(messageContainerRef);
 
   // Auto-scroll when messages change
   useEffect(() => {
@@ -336,29 +340,6 @@ export default function ChatBot() {
     }
   };
 
-  // Reset textarea size to default
-  const resetTextareaSize = () => {
-    // Find the textarea
-    const textarea = document.querySelector("textarea");
-    if (textarea) {
-      // Reset height to original size
-      textarea.style.height = "96px"; // min-h-24 equivalent
-
-      // Reset CSS variable
-      document.documentElement.style.setProperty("--textarea-extra-height", "0px");
-
-      // Reset message container's padding and ensure it can scroll properly
-      if (messageContainerRef.current) {
-        messageContainerRef.current.style.paddingBottom = "0";
-
-        // Force layout recalculation by triggering a scroll update
-        setTimeout(() => {
-          messageContainerRef.current.scrollTop = messageContainerRef.current.scrollHeight;
-        }, 0);
-      }
-    }
-  };
-
   // Send user message for current step
   async function handleSendMessage() {
     if (!message.trim()) return;
@@ -415,47 +396,6 @@ export default function ChatBot() {
       setIsLoading(false);
     }
   }
-
-  const autoResizeTextarea = (e) => {
-    const textarea = e.target;
-
-    // Save scroll position and cursor position
-    const scrollTop = textarea.scrollTop;
-    const selectionStart = textarea.selectionStart;
-    const selectionEnd = textarea.selectionEnd;
-
-    // Reset height to calculate proper scrollHeight
-    textarea.style.height = "96px"; // Reset to min-h-24 equivalent
-
-    // Calculate new height with a maximum (320px = 8rem or 80px * 4)
-    const newHeight = Math.min(textarea.scrollHeight, 320);
-
-    // Set the new height
-    textarea.style.height = `${newHeight}px`;
-
-    // Restore scroll and cursor positions
-    textarea.scrollTop = scrollTop;
-    textarea.setSelectionRange(selectionStart, selectionEnd);
-
-    // Update container sizing based on textarea height
-    if (messageContainerRef.current) {
-      // Calculate extra padding needed
-      const extraPadding = newHeight - 96; // Height beyond default
-
-      // Apply changes only when needed
-      if (extraPadding > 0) {
-        // Update CSS variable for dynamic container sizing
-        document.documentElement.style.setProperty("--textarea-extra-height", `${extraPadding}px`);
-
-        // Force scroll update AFTER the layout has been recalculated
-        requestAnimationFrame(() => {
-          messageContainerRef.current.scrollTop = messageContainerRef.current.scrollHeight;
-        });
-      } else {
-        document.documentElement.style.setProperty("--textarea-extra-height", "0px");
-      }
-    }
-  };
 
   // Handle enter key press to send message
   const handleKeyDown = (e) => {
