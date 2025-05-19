@@ -170,8 +170,8 @@ router.post("/", async (req, res) => {
     let previousStepsContext = [];
     if (userId) {
       try {
-        // Get all steps (except the current one)
-        const allSteps = [
+        // Get context from application steps
+        const allApplicationSteps = [
           "step-1",
           "step-2",
           "step-3",
@@ -179,32 +179,19 @@ router.post("/", async (req, res) => {
           "step-5",
           "step-6",
         ];
-        const otherSteps = allSteps.filter((stepId) => stepId !== currentStep);
+        const otherApplicationSteps = allApplicationSteps.filter(
+          (stepId) => stepId !== currentStep
+        );
 
         // For each step, get its history from the database if it exists
-        for (const stepId of otherSteps) {
+        for (const stepId of otherApplicationSteps) {
           const historyResult = await query(
             "SELECT history FROM chat_histories_application WHERE user_id = $1 AND step_id = $2",
             [userId, stepId]
           );
 
           if (historyResult.length > 0 && historyResult[0].history) {
-            let stepHistory;
-
-            // Parse history if it's a string
-            if (typeof historyResult[0].history === "string") {
-              try {
-                stepHistory = JSON.parse(historyResult[0].history);
-              } catch (parseError) {
-                console.error(
-                  `Error parsing history for step ${stepId}:`,
-                  parseError
-                );
-                continue;
-              }
-            } else {
-              stepHistory = historyResult[0].history;
-            }
+            let stepHistory = historyResult[0].history;
 
             // Only add if there's actual conversation (more than just the welcome message)
             if (stepHistory.length > 1) {
@@ -214,7 +201,7 @@ router.post("/", async (req, res) => {
                 content: [
                   {
                     type: "input_text",
-                    text: `--- History from ${stepId} ---`,
+                    text: `--- History from application ${stepId} ---`,
                   },
                 ],
               });
@@ -233,6 +220,75 @@ router.post("/", async (req, res) => {
               );
             }
           }
+        }
+
+        // Get context from interview steps
+        const allInterviewSteps = [
+          "step-1",
+          "step-2",
+          "step-3",
+          "step-4",
+          "step-5",
+          "step-6",
+          "step-7",
+          "step-8",
+          "step-9",
+          "step-10",
+          "step-11",
+          "step-12",
+          "step-13",
+          "step-14",
+          "step-15",
+        ];
+
+        for (const stepId of allInterviewSteps) {
+          const historyResult = await query(
+            "SELECT history FROM chat_histories_interview WHERE user_id = $1 AND step_id = $2",
+            [userId, stepId]
+          );
+
+          if (historyResult.length > 0 && historyResult[0].history) {
+            let stepHistory = historyResult[0].history;
+
+            // Only add if there's actual conversation (more than just the welcome message)
+            if (stepHistory.length > 1) {
+              // Add a separator to clearly mark interview context
+              previousStepsContext.push({
+                role: "system",
+                content: [
+                  {
+                    type: "input_text",
+                    text: `--- History from interview ${stepId} ---`,
+                  },
+                ],
+              });
+
+              // Add the interview conversation history from this step
+              previousStepsContext.push(
+                ...stepHistory.map((msg) => ({
+                  role: msg.role,
+                  content: [
+                    {
+                      type: msg.role === "user" ? "input_text" : "output_text",
+                      text: msg.text,
+                    },
+                  ],
+                }))
+              );
+            }
+          }
+        }
+
+        // Prevent token limit issues by truncating context if it gets too large
+        const MAX_CONTEXT_MESSAGES = 100; // Adjust based on your token limits
+        if (previousStepsContext.length > MAX_CONTEXT_MESSAGES) {
+          console.log(
+            `Truncating context from ${previousStepsContext.length} to ${MAX_CONTEXT_MESSAGES} messages`
+          );
+          // Keep only the most recent messages
+          previousStepsContext = previousStepsContext.slice(
+            -MAX_CONTEXT_MESSAGES
+          );
         }
 
         console.log(
@@ -265,6 +321,8 @@ router.post("/", async (req, res) => {
         },
       ],
     };
+
+    console.log("previousStepsContext", previousStepsContext);
 
     const input = [
       stepContext,
@@ -310,7 +368,7 @@ router.post("/", async (req, res) => {
     if (stepConversations[currentStep].length > 20) {
       const welcomeMessage = stepConversations[currentStep][1];
       stepConversations[currentStep] = [
-        systemMessage,
+        stepSystemMessage,
         welcomeMessage,
         ...stepConversations[currentStep].slice(-18),
       ];
@@ -349,7 +407,7 @@ router.post("/interview/", async (req, res) => {
   try {
     const systemMessage = await fetchInterviewSystemMessageFromDB();
 
-    const { message, currentStep = "step-1" } = req.body;
+    const { message, currentStep = "step-1", userId } = req.body;
 
     // Get AI settings with fallback values
     const { model, temperature, maxTokens } = await getAISettings();
@@ -381,6 +439,161 @@ router.post("/interview/", async (req, res) => {
 
     const stepHistory = interviewStepConversations[currentStep];
 
+    // Get full step history to send to bot as context
+    let previousStepsContext = [];
+    if (userId) {
+      try {
+        console.log("Building context for interview bot with userId:", userId);
+
+        // Get context from interview steps
+        const allInterviewSteps = [
+          "step-1",
+          "step-2",
+          "step-3",
+          "step-4",
+          "step-5",
+          "step-6",
+          "step-7",
+          "step-8",
+          "step-9",
+          "step-10",
+          "step-11",
+          "step-12",
+          "step-13",
+          "step-14",
+          "step-15",
+        ];
+        const otherInterviewSteps = allInterviewSteps.filter(
+          (stepId) => stepId !== currentStep
+        );
+
+        // For each step, get its history from the database if it exists
+        for (const stepId of otherInterviewSteps) {
+          const historyResult = await query(
+            "SELECT history FROM chat_histories_interview WHERE user_id = $1 AND step_id = $2",
+            [userId, stepId]
+          );
+
+          if (historyResult.length > 0 && historyResult[0].history) {
+            let stepHistory = historyResult[0].history;
+
+            // Only add if there's actual conversation (more than just the welcome message)
+            if (stepHistory.length > 1) {
+              // Add a separator to clearly mark different steps
+              previousStepsContext.push({
+                role: "system",
+                content: [
+                  {
+                    type: "input_text",
+                    text: `--- History from interview ${stepId} ---`,
+                  },
+                ],
+              });
+
+              // Add the conversation history from this step
+              previousStepsContext.push(
+                ...stepHistory.map((msg) => ({
+                  role: msg.role,
+                  content: [
+                    {
+                      type: msg.role === "user" ? "input_text" : "output_text",
+                      text: msg.text,
+                    },
+                  ],
+                }))
+              );
+            }
+          }
+        }
+
+        // Get context from application steps
+        const allApplicationSteps = [
+          "step-1",
+          "step-2",
+          "step-3",
+          "step-4",
+          "step-5",
+          "step-6",
+        ];
+
+        for (const stepId of allApplicationSteps) {
+          const historyResult = await query(
+            "SELECT history FROM chat_histories_application WHERE user_id = $1 AND step_id = $2",
+            [userId, stepId]
+          );
+
+          if (historyResult.length > 0 && historyResult[0].history) {
+            let stepHistory;
+
+            // Parse history if it's a string
+            if (typeof historyResult[0].history === "string") {
+              try {
+                stepHistory = JSON.parse(historyResult[0].history);
+              } catch (parseError) {
+                console.error(
+                  `Error parsing history for application step ${stepId}:`,
+                  parseError
+                );
+                continue;
+              }
+            } else {
+              stepHistory = historyResult[0].history;
+            }
+
+            // Only add if there's actual conversation (more than just the welcome message)
+            if (stepHistory.length > 1) {
+              // Add a separator to clearly mark application context
+              previousStepsContext.push({
+                role: "system",
+                content: [
+                  {
+                    type: "input_text",
+                    text: `--- History from application ${stepId} ---`,
+                  },
+                ],
+              });
+
+              // Add the application conversation history from this step
+              previousStepsContext.push(
+                ...stepHistory.map((msg) => ({
+                  role: msg.role,
+                  content: [
+                    {
+                      type: msg.role === "user" ? "input_text" : "output_text",
+                      text: msg.text,
+                    },
+                  ],
+                }))
+              );
+            }
+          }
+        }
+
+        // Prevent token limit issues by truncating context if it gets too large
+        const MAX_CONTEXT_MESSAGES = 100; // Adjust based on your token limits
+        if (previousStepsContext.length > MAX_CONTEXT_MESSAGES) {
+          console.log(
+            `Truncating context from ${previousStepsContext.length} to ${MAX_CONTEXT_MESSAGES} messages`
+          );
+          // Keep only the most recent messages
+          previousStepsContext = previousStepsContext.slice(
+            -MAX_CONTEXT_MESSAGES
+          );
+        }
+
+        console.log(
+          `Added context from ${previousStepsContext.length} messages from other steps for interview bot`
+        );
+      } catch (error) {
+        console.error("Error getting step history for interview bot:", error);
+        // Continue without previous context if there's an error
+      }
+    } else {
+      console.log("No userId provided for interview bot context");
+    }
+
+    console.log("previousStepsContext for interview bot", previousStepsContext);
+
     const stepContext = {
       role: "system",
       content: [
@@ -403,7 +616,13 @@ router.post("/interview/", async (req, res) => {
       ],
     };
 
-    const input = [stepContext, ...stepHistory, userMessage];
+    // Update input to include previousStepsContext
+    const input = [
+      stepContext,
+      ...previousStepsContext,
+      ...stepHistory,
+      userMessage,
+    ];
 
     console.log(model);
     const response = await openai.responses.create({
@@ -423,6 +642,7 @@ router.post("/interview/", async (req, res) => {
       store: true,
     });
 
+    // Rest of your code remains the same
     const assistantMessage = {
       role: "assistant",
       content: [
