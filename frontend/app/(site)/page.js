@@ -7,8 +7,8 @@ import Footer from "@/components/homepage/Footer";
 
 const page = () => {
   return (
-    <>
-      <div className="bg-background flex min-h-screen w-full flex-col px-4 py-12 md:pb-20">
+    <div>
+      <div className="bg-background flex h-dvh w-full flex-col px-4 py-12 md:pb-20">
         <div className="mx-auto flex max-w-7xl flex-col items-center gap-12 md:gap-20">
           <HeroSection />
           <FeatureCard />
@@ -17,7 +17,7 @@ const page = () => {
         </div>
       </div>
       <Footer />
-    </>
+    </div>
   );
 };
 

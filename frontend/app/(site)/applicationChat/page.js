@@ -348,7 +348,7 @@ export default function ChatBot() {
 
         {/* Chat Messages - This is the only scrollable area */}
         <div ref={messageContainerRef} className="min-h-auto flex-1 overflow-y-auto p-4">
-          <div className="mx-auto max-w-4xl pb-24">
+          <div className="mx-auto max-w-4xl pb-10">
             {currentChatHistory.map((message, index) => (
               <div
                 key={index}

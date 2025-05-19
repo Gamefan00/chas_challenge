@@ -13,6 +13,17 @@ import {
   SidebarMenuItem,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 
 // Define the application steps
@@ -271,7 +282,7 @@ export default function SidebarNav({
   console.log("isSidebarOpen", isSidebarOpen);
 
   return (
-    <div className="flex flex-col md:h-svh">
+    <div className="flex h-full flex-col">
       {/* Toggle button outside sidebar - visible when sidebar is closed */}
 
       <div className={cn(`absolute z-20 mt-2 ml-2`, isSidebarOpen && "hidden")}>
@@ -281,7 +292,7 @@ export default function SidebarNav({
       {/* Sidebar with conditional rendering for width */}
       <div
         className={cn(
-          "sidebar-container",
+          "sidebar-container flex-1 overflow-hidden",
           isSidebarOpen ? "w-64" : "w-0 overflow-hidden",
           isMobile && isSidebarOpen ? "absolute top-0 left-0 z-40" : "",
           "sticky",
@@ -352,10 +363,27 @@ export default function SidebarNav({
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
+            <AlertDialog>
+              <AlertDialogTrigger>
+                <Button>Återställ chat</Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Är du helt säker?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Denna åtgärd kan inte ångras. Detta kommer att permanent radera ditt konto och
+                    ta bort dina data från våra servrar.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Avbryt</AlertDialogCancel>
+                  <AlertDialogAction>Fortsätt</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </SidebarContent>
         </Sidebar>
       </div>
-      <Button className="btn bg-red-500">Rensa</Button>
     </div>
   );
 }
