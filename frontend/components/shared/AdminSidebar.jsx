@@ -4,11 +4,8 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import {
-  HomeIcon,
   MessageSquareIcon,
   SettingsIcon,
-  UsersIcon,
-  FileTextIcon,
   LogOutIcon,
   PanelLeftIcon,
   PanelRightIcon,
@@ -52,7 +49,7 @@ export default function Sidebar() {
   const navItems = [
     {
       name: "AI-Bot",
-      href: "/admin/ai-settings",
+      href: "/admin",
       icon: MessageSquareIcon,
     },
     {

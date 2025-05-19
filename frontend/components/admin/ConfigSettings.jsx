@@ -11,8 +11,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { AlertCircle, Loader2 } from "lucide-react";
-import SaveBtn from "@/components/adminpage/SaveBtn";
-import { StatusMessage } from "@/components/adminpage/StatusMessage";
+import SaveBtn from "@/components/admin/SaveBtn";
+import { StatusMessage } from "@/components/admin/StatusMessage";
 
 export default function AIBotSettings() {
   const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";

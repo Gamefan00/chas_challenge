@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -11,8 +10,8 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { AlertCircle, Loader2, Settings, ListChecks } from "lucide-react";
-import SaveBtn from "@/components/adminpage/SaveBtn";
-import { StatusMessage } from "@/components/adminpage/StatusMessage";
+import SaveBtn from "@/components/admin/SaveBtn";
+import { StatusMessage } from "@/components/admin/StatusMessage";
 
 export default function BehaviorSettings() {
   const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
@@ -238,6 +237,9 @@ export default function BehaviorSettings() {
     );
   }
 
+  const textareaClasses =
+    "bg-background border-input text-foreground font-mono text-sm border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30  flex field-sizing-content min-h-16 w-full rounded-md border bg-transparent px-3 py-2 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm";
+
   return (
     <Card className="bg-card text-card-foreground w-full">
       <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
@@ -298,12 +300,12 @@ export default function BehaviorSettings() {
                     <Label htmlFor="app-system-message" className="text-foreground">
                       System Instruktioner
                     </Label>
-                    <Textarea
+                    <textarea
                       id="app-system-message"
                       value={applicationSystemMessage}
                       onChange={(e) => setApplicationSystemMessage(e.target.value)}
                       rows={10}
-                      className="bg-background border-input text-foreground font-mono text-sm"
+                      className={textareaClasses}
                     />
                     <p className="text-muted-foreground text-xs">
                       Dessa instruktioner styr hur ansökningsboten beter sig och vilken information
@@ -339,12 +341,12 @@ export default function BehaviorSettings() {
                               <Label htmlFor={`${step}-welcome`} className="text-foreground">
                                 Välkomstmeddelande
                               </Label>
-                              <Textarea
+                              <textarea
                                 id={`${step}-welcome`}
                                 value={data.welcome}
                                 onChange={(e) => handleAppWelcomeChange(step, e.target.value)}
                                 rows={6}
-                                className="bg-background border-input text-foreground"
+                                className={textareaClasses}
                               />
                               <p className="text-muted-foreground text-xs">
                                 Detta meddelande visas för användaren när de börjar detta steg.
@@ -355,12 +357,12 @@ export default function BehaviorSettings() {
                               <Label htmlFor={`${step}-description`} className="text-foreground">
                                 AI-instruktion för detta steg
                               </Label>
-                              <Textarea
+                              <textarea
                                 id={`${step}-description`}
                                 value={data.description}
                                 onChange={(e) => handleAppDescriptionChange(step, e.target.value)}
                                 rows={3}
-                                className="bg-background border-input text-foreground"
+                                className={textareaClasses}
                               />
                               <p className="text-muted-foreground text-xs">
                                 Ange hur AI:n ska bete sig i detta steg och vad den ska guida
@@ -398,12 +400,12 @@ export default function BehaviorSettings() {
                     <Label htmlFor="app-system-message" className="text-foreground">
                       System Instruktioner
                     </Label>
-                    <Textarea
+                    <textarea
                       id="app-system-message"
                       value={interviewSystemMessage}
                       onChange={(e) => setInterviewSystemMessage(e.target.value)}
                       rows={10}
-                      className="bg-background border-input text-foreground font-mono text-sm"
+                      className={textareaClasses}
                     />
                     <p className="text-muted-foreground text-xs">
                       Dessa instruktioner styr hur intervjusboten beter sig och vilken information
@@ -439,12 +441,12 @@ export default function BehaviorSettings() {
                               <Label htmlFor={`${step}-welcome`} className="text-foreground">
                                 Välkomstmeddelande
                               </Label>
-                              <Textarea
+                              <textarea
                                 id={`${step}-welcome`}
                                 value={data.welcome}
                                 onChange={(e) => handleInterviewWelcomeChange(step, e.target.value)}
                                 rows={6}
-                                className="bg-background border-input text-foreground"
+                                className={textareaClasses}
                               />
                               <p className="text-muted-foreground text-xs">
                                 Detta meddelande visas för användaren när de börjar detta steg.
@@ -455,14 +457,14 @@ export default function BehaviorSettings() {
                               <Label htmlFor={`${step}-description`} className="text-foreground">
                                 AI-instruktion för detta steg
                               </Label>
-                              <Textarea
+                              <textarea
                                 id={`${step}-description`}
                                 value={data.description}
                                 onChange={(e) =>
                                   handleInterviewDescriptionChange(step, e.target.value)
                                 }
                                 rows={3}
-                                className="bg-background border-input text-foreground"
+                                className={textareaClasses}
                               />
                               <p className="text-muted-foreground text-xs">
                                 Ange hur AI:n ska bete sig i detta steg och vad den ska guida

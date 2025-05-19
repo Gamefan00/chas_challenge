@@ -282,7 +282,7 @@ export default function SidebarNav({
   console.log("isSidebarOpen", isSidebarOpen);
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex flex-col">
       {/* Toggle button outside sidebar - visible when sidebar is closed */}
 
       <div className={cn(`absolute z-20 mt-2 ml-2`, isSidebarOpen && "hidden")}>
@@ -302,85 +302,91 @@ export default function SidebarNav({
             <SidebarTrigger onClick={() => setIsSidebarOpen(false)} className="toggle-button" />
           </div>
 
-          <SidebarContent>
+          <SidebarContent className="flex h-full flex-col justify-between border-2">
             <SidebarGroup>
               <SidebarGroupContent>
-                <SidebarMenu>
-                  {selectedSteps.map((step) => {
-                    // Determine if this step is completed or active
-                    const isCompleted = localCompletedSteps.includes(step.id);
-                    const isActive = currentStep === step.id;
+                <div className="border-2 border-red-500">
+                  <SidebarMenu>
+                    {selectedSteps.map((step) => {
+                      // Determine if this step is completed or active
+                      const isCompleted = localCompletedSteps.includes(step.id);
+                      const isActive = currentStep === step.id;
 
-                    // Calculate if this step is accessible
-                    const previousStepIndex = selectedSteps.findIndex((s) => s.id === step.id) - 1;
-                    const previousStepId =
-                      previousStepIndex >= 0 ? selectedSteps[previousStepIndex].id : null;
-                    const isPreviousCompleted =
-                      !previousStepId || localCompletedSteps.includes(previousStepId);
-                    const isAccessible = isActive || isCompleted || isPreviousCompleted;
+                      // Calculate if this step is accessible
+                      const previousStepIndex =
+                        selectedSteps.findIndex((s) => s.id === step.id) - 1;
+                      const previousStepId =
+                        previousStepIndex >= 0 ? selectedSteps[previousStepIndex].id : null;
+                      const isPreviousCompleted =
+                        !previousStepId || localCompletedSteps.includes(previousStepId);
+                      const isAccessible = isActive || isCompleted || isPreviousCompleted;
 
-                    const forceShowCompleted = step.id === "step-6" && isActive;
+                      const forceShowCompleted = step.id === "step-6" && isActive;
 
-                    return (
-                      <SidebarMenuItem key={step.id}>
-                        <SidebarMenuButton
-                          onClick={() =>
-                            isAccessible && handleStepClick(step.id) && setIsSidebarOpen(false)
-                          }
-                          disabled={!isAccessible}
-                          className={cn(
-                            "w-full justify-start",
-                            isActive && "bg-primary/10 text-primary",
-                            isCompleted ? "text-green-600" : "text-accent-foreground",
-                            !isAccessible && "cursor-not-allowed opacity-50",
-                          )}
-                        >
-                          <div className="mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center">
-                            {isCompleted || forceShowCompleted ? (
-                              // Green circle with white checkmark
-                              <div className="flex h-5 w-5 items-center justify-center rounded-full bg-green-500">
-                                <Check className="h-3 w-3 text-white" strokeWidth={3} />
-                              </div>
-                            ) : (
-                              <div
-                                className={cn(
-                                  "h-5 w-5 rounded-full border-2",
-                                  isActive ? "border-primary bg-primary" : "border-border",
-                                )}
-                              >
-                                {isActive && <div className="bg-background w-full rounded-full" />}
-                              </div>
+                      return (
+                        <SidebarMenuItem key={step.id}>
+                          <SidebarMenuButton
+                            onClick={() =>
+                              isAccessible && handleStepClick(step.id) && setIsSidebarOpen(false)
+                            }
+                            disabled={!isAccessible}
+                            className={cn(
+                              "w-full justify-start",
+                              isActive && "bg-primary/10 text-primary",
+                              isCompleted ? "text-green-600" : "text-accent-foreground",
+                              !isAccessible && "cursor-not-allowed opacity-50",
                             )}
-                          </div>{" "}
-                          <span className={cn("text-sm", isActive && "font-medium")}>
-                            {step.label}
-                          </span>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    );
-                  })}
-                </SidebarMenu>
+                          >
+                            <div className="mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center">
+                              {isCompleted || forceShowCompleted ? (
+                                // Green circle with white checkmark
+                                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-green-500">
+                                  <Check className="h-3 w-3 text-white" strokeWidth={3} />
+                                </div>
+                              ) : (
+                                <div
+                                  className={cn(
+                                    "h-5 w-5 rounded-full border-2",
+                                    isActive ? "border-primary bg-primary" : "border-border",
+                                  )}
+                                >
+                                  {isActive && (
+                                    <div className="bg-background w-full rounded-full" />
+                                  )}
+                                </div>
+                              )}
+                            </div>{" "}
+                            <span className={cn("text-sm", isActive && "font-medium")}>
+                              {step.label}
+                            </span>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      );
+                    })}
+                  </SidebarMenu>
+                </div>
               </SidebarGroupContent>
             </SidebarGroup>
-
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button>Återställ chat</Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Är du helt säker?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Denna åtgärd kan inte ångras. Detta kommer att permanent radera din
-                    chatthistorik från våra servrar.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Avbryt</AlertDialogCancel>
-                  <AlertDialogAction>Fortsätt</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            <div className="border-2 border-red-500">
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button>Återställ chat</Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Är du helt säker?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Denna åtgärd kan inte ångras. Detta kommer att permanent radera din
+                      chatthistorik från våra servrar.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Avbryt</AlertDialogCancel>
+                    <AlertDialogAction>Fortsätt</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
           </SidebarContent>
         </Sidebar>
       </div>
