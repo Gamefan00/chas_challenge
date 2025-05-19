@@ -13,6 +13,7 @@ import {
   SidebarMenuItem,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
 
 // Define the application steps
 const steps = [
@@ -140,7 +141,7 @@ export default function SidebarNav({
       const isNowMobile = window.innerWidth < 768;
       setIsMobile(isNowMobile);
 
-      if (!isNowMobile && isMobile) {
+      if (!isNowMobile && !isMobile) {
         // If the sidebar is closed and the screen is resized to desktop, open it
         setIsSidebarOpen(true);
       }
@@ -163,6 +164,8 @@ export default function SidebarNav({
   useEffect(() => {
     if (!isMobile) {
       setIsSidebarOpen(true);
+    } else {
+      setIsSidebarOpen(false);
     }
   }, [isMobile]);
 
@@ -268,7 +271,7 @@ export default function SidebarNav({
   console.log("isSidebarOpen", isSidebarOpen);
 
   return (
-    <div className="flex">
+    <div className="flex flex-col md:h-svh">
       {/* Toggle button outside sidebar - visible when sidebar is closed */}
 
       <div className={cn(`absolute z-20 mt-2 ml-2`, isSidebarOpen && "hidden")}>
@@ -352,6 +355,7 @@ export default function SidebarNav({
           </SidebarContent>
         </Sidebar>
       </div>
+      <Button className="btn bg-red-500">Rensa</Button>
     </div>
   );
 }

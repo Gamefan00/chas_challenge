@@ -534,7 +534,7 @@ export default function ChatBot() {
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Skriv ett meddelande..."
-              className="border-border bg-background min-h-12 resize-none rounded-xl p-3 shadow-sm"
+              className="border-border bg-background max-h-32 min-h-12 resize-none rounded-xl p-3 shadow-sm"
             />
             <Button
               onClick={handleSendMessage}

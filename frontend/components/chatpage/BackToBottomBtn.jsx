@@ -37,7 +37,7 @@ export default function BackToBottomBtn({ containerRef, threshold }) {
   return (
     <div className="flex justify-center">
       {isVisible && (
-        <Button className="absolute bottom-35 z-10 rounded-full" onClick={handleClick}>
+        <Button className="absolute bottom-20 z-10 rounded-full" onClick={handleClick}>
           <ArrowDown className="h-5 w-5" />
         </Button>
       )}
