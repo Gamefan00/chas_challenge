@@ -14,7 +14,7 @@ import SaveBtn from "@/components/admin/SaveBtn";
 import { StatusMessage } from "@/components/admin/StatusMessage";
 
 export default function BehaviorSettings() {
-  const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+  const BASE_URL = process.env.API_URL || "http://localhost:4000";
   const [error, setError] = useState(null);
   const [saveStatus, setSaveStatus] = useState(null);
   const [loading, setLoading] = useState(true);

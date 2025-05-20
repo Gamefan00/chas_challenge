@@ -16,7 +16,7 @@ const CookieSettingsPage = () => {
 
   useEffect(() => {
     // Load current cookie settings
-    const currentConsent = getCookie("cookie-consent") === "accepted";
+    const currentConsent = getCookie("cookiesAccepted") === "true";
     setCookieConsent(currentConsent);
   }, []);
 
@@ -26,7 +26,7 @@ const CookieSettingsPage = () => {
   };
 
   const saveSettings = () => {
-    setCookie("cookie-consent", cookieConsent ? "accepted" : "rejected");
+    setCookie("cookiesAccepted", cookieConsent ? "true" : "false");
 
     // If user rejected cookies, clear session
     if (!cookieConsent) {

@@ -18,7 +18,7 @@ const CookieConsent = () => {
 
   useEffect(() => {
     // Check if user has already set cookie preference
-    const cookieConsent = localStorage.getItem("cookie-consent");
+    const cookieConsent = localStorage.getItem("cookiesAccepted");
     if (!cookieConsent) {
       // If no preference is set, show the banner
       setShowConsent(true);
@@ -26,12 +26,12 @@ const CookieConsent = () => {
   }, []);
 
   const acceptCookies = () => {
-    localStorage.setItem("cookie-consent", "accepted");
+    localStorage.setItem("cookiesAccepted", "true");
     setShowConsent(false);
   };
 
   const rejectCookies = () => {
-    localStorage.setItem("cookie-consent", "rejected");
+    localStorage.setItem("cookiesAccepted", "false");
     setShowConsent(false);
   };
 

@@ -1,8 +1,10 @@
 export async function POST(request) {
+  const BASE_URL = process.env.API_URL || "http://localhost:4000";
+
   try {
     const body = await request.json();
 
-    const response = await fetch("http://localhost:4000/auth/login", {
+    const response = await fetch(`${BASE_URL}/auth/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

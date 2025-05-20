@@ -1,6 +1,8 @@
 export async function GET(request) {
+  const BASE_URL = process.env.API_URL || "http://localhost:4000";
+
   try {
-    const response = await fetch("http://localhost:4000/auth/verify-admin", {
+    const response = await fetch(`${BASE_URL}/auth/verify-admin`, {
       method: "GET",
       credentials: "include",
       headers: {

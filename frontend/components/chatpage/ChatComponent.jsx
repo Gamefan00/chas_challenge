@@ -2,6 +2,8 @@
 
 import { Loader2, Send, Copy } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
+import Link from "next/link";
+
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -46,12 +48,17 @@ function CopyButton({ message }) {
 
 export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint, type }) {
   // Use environment variable or default to localhost
-  const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+  const BASE_URL = process.env.API_URL || "http://localhost:4000";
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
   const [currentStep, setCurrentStep] = useState("step-1");
   const [completedSteps, setCompletedSteps] = useState([]);
+  const [cookieConsent, setCookieConsent] = useState(undefined);
+
+  useEffect(() => {
+    setCookieConsent(localStorage.getItem("cookiesAccepted") === "true");
+  }, []);
 
   // Create chat histories object dynamically from steps
   const initialChatHistories = {};
@@ -132,6 +139,8 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
 
     async function sendHistoryToBackend() {
       const userId = localStorage.getItem("userId");
+
+      if (!cookieConsent) return;
 
       try {
         const response = await fetch(`${BASE_URL}${historyEndpoint}`, {
@@ -443,7 +452,7 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
                 style={{ maxWidth: "4xl", margin: "0 auto" }}
                 className="flex w-full max-w-4xl items-center px-4 pb-4"
               >
-                <div className="justyfy-end relative flex flex-1 flex-col">
+                <div className="relative flex flex-1 flex-col">
                   <Textarea
                     value={message}
                     onChange={(e) => {
@@ -454,7 +463,17 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
                     placeholder="Skriv ett meddelande..."
                     className="border-border bg-background max-h-max min-h-24 w-full resize-none overflow-y-auto rounded-xl p-3 pr-16 shadow-sm"
                   />
-                  <div className="absolute right-3 bottom-0 p-3">
+                  {!cookieConsent && (
+                    <div className="text-foreground/50 absolute bottom-2 flex w-full justify-center">
+                      <small>
+                        För att få den bästa upplevelsen på vår webbplats, vänligen{" "}
+                        <Link href="/cookies" className="hover:text-primary underline">
+                          acceptera cookies
+                        </Link>
+                      </small>
+                    </div>
+                  )}
+                  <div className="absolute top-1 right-1">
                     <Button
                       onClick={handleSendMessage}
                       disabled={isLoading || !message.trim()}

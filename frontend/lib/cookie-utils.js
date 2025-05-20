@@ -1,5 +1,5 @@
 // utility functions for managing cookies and session
-const COOKIE_CONSENT_KEY = "cookie-consent";
+const COOKIE_CONSENT_KEY = "cookiesAccepted";
 const SESSION_TOKEN_KEY = "session-token";
 
 // Set a cookie with the given name and value
@@ -42,13 +42,12 @@ export const deleteCookie = (name) => {
 // Check if user has accepted cookies
 
 export const hasAcceptedCookies = () => {
-  return getCookie(COOKIE_CONSENT_KEY) === "accepted";
+  return getCookie(COOKIE_CONSENT_KEY) === "true";
 };
 
 // Set cookie consent
-
 export const setCookieConsent = (accepted) => {
-  setCookie(COOKIE_CONSENT_KEY, accepted ? "accepted" : "rejected");
+  setCookie(COOKIE_CONSENT_KEY, accepted ? "true" : "false");
 };
 
 // Save session token (only if cookies are accepted)
