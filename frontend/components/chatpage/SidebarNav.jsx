@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 
-import { Check } from "lucide-react";
+import { Check, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Sidebar,
@@ -302,7 +302,7 @@ export default function SidebarNav({
             <SidebarTrigger onClick={() => setIsSidebarOpen(false)} className="toggle-button" />
           </div>
 
-          <SidebarContent className="flex h-full flex-col justify-between border-2">
+          <SidebarContent className="flex h-full flex-col justify-between">
             <SidebarGroup>
               <SidebarGroupContent>
                 <div className="">
@@ -370,7 +370,16 @@ export default function SidebarNav({
             <div className="">
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button>Återställ chat</Button>
+                  <div className="p-4">
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start hover:bg-gray-100 hover:shadow-md"
+                    >
+                      {" "}
+                      <Trash2 className="mr-2 h-5 w-5" />
+                      <span> Återställ chatt</span>
+                    </Button>
+                  </div>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>

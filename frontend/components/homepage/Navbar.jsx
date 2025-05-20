@@ -8,9 +8,9 @@ import Logo from "../shared/Logo";
 // Data for the links in the Navbar. Add, remove or change links here
 const linksData = [
   { title: "Hem", href: "/" },
-  { title: "Om tjänsten", href: "/" },
-  { title: "Vanliga frågor", href: "/" },
-  { title: "Kontakt", href: "/" },
+  { title: "Om tjänsten", href: "/information" },
+  { title: "Vanliga frågor", href: "/#vanligaFrågor" },
+  { title: "Kontakt", href: "/#footer" },
 ];
 
 const Navbar = ({ position }) => {
@@ -24,7 +24,7 @@ const Navbar = ({ position }) => {
       <ul className="hidden items-center gap-6 md:flex">
         {linksData.map((link, index) => (
           <li key={index}>
-            <Link className="hover:underline" href={link.href}>
+            <Link className="font-medium hover:underline" href={link.href}>
               {link.title}
             </Link>
           </li>
