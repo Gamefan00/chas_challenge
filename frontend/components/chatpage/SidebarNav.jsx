@@ -305,7 +305,7 @@ export default function SidebarNav({
           <SidebarContent className="flex h-full flex-col justify-between border-2">
             <SidebarGroup>
               <SidebarGroupContent>
-                <div className="border-2 border-red-500">
+                <div className="">
                   <SidebarMenu>
                     {selectedSteps.map((step) => {
                       // Determine if this step is completed or active
@@ -355,7 +355,7 @@ export default function SidebarNav({
                                   )}
                                 </div>
                               )}
-                            </div>{" "}
+                            </div>
                             <span className={cn("text-sm", isActive && "font-medium")}>
                               {step.label}
                             </span>
@@ -367,7 +367,7 @@ export default function SidebarNav({
                 </div>
               </SidebarGroupContent>
             </SidebarGroup>
-            <div className="border-2 border-red-500">
+            <div className="">
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button>Återställ chat</Button>

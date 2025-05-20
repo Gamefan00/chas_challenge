@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import Footer from "@/components/homepage/Footer";
+// import Footer from "@/components/shared/Footer";
 // Import Shadcn UI components
 import {
   Card,
@@ -285,8 +285,6 @@ export default function InformationPage() {
           </Card>
         </motion.section>
 
-        {/* FAQ Accordion */}
-
         {/* CTA Section */}
         <Card className="mt-8">
           <CardHeader>
@@ -303,8 +301,6 @@ export default function InformationPage() {
           </CardFooter>
         </Card>
       </main>
-
-      <Footer />
     </div>
   );
 }

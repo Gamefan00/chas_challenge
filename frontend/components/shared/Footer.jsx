@@ -2,8 +2,17 @@
 
 import { motion } from "framer-motion";
 import { Linkedin, Facebook, Mail, Phone } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const Footer = () => {
+  const pathname = usePathname();
+
+  // Don't show footer on chatbot pages
+  if (pathname.includes("/applicationChat") || pathname.includes("/interviewChat")) {
+    return null;
+  }
+
   const sectionVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0 },
@@ -33,18 +42,21 @@ const Footer = () => {
             <h2 className="text-lg font-semibold">Ansökshjälpen</h2>
             <div className="bg-primary h-[2px] w-[45px]" />
             <div className="flex flex-col gap-3 opacity-90">
-              <a href="" className="hover:text-primary transition-colors">
+              <Link href="/om-oss" className="hover:text-primary transition-colors">
                 Om oss
-              </a>
-              <a href="" className="hover:text-primary transition-colors">
+              </Link>
+              <Link href="/tillganglighet" className="hover:text-primary transition-colors">
                 Tillgänglighetsredogörelse
-              </a>
-              <a href="" className="hover:text-primary transition-colors">
+              </Link>
+              <Link href="/anvandarvillkor" className="hover:text-primary transition-colors">
                 Användervillkor
-              </a>
-              <a href="" className="hover:text-primary transition-colors">
-                Integritespolicy
-              </a>
+              </Link>
+              <Link href="/integrity" className="hover:text-primary transition-colors">
+                Integritetspolicy
+              </Link>
+              <Link href="/cookies" className="hover:text-primary transition-colors">
+                Cookie-inställningar
+              </Link>
             </div>
           </motion.div>
 
@@ -53,18 +65,23 @@ const Footer = () => {
             <h2 className="text-lg font-semibold">Resurser</h2>
             <div className="bg-primary h-[2px] w-[45px]" />
             <div className="flex flex-col gap-3 opacity-90">
-              <a href="" className="hover:text-primary transition-colors">
+              <Link href="/lagar-regler" className="hover:text-primary transition-colors">
                 Lagar & regler
-              </a>
-              <a href="" className="hover:text-primary transition-colors">
+              </Link>
+              <a
+                href="https://www.forsakringskassan.se"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-primary transition-colors"
+              >
                 Försäkringskassan
               </a>
-              <a href="" className="hover:text-primary transition-colors">
+              <Link href="/organisationer" className="hover:text-primary transition-colors">
                 Funktionsrättsorganisationer
-              </a>
-              <a href="" className="hover:text-primary transition-colors">
+              </Link>
+              <Link href="/hjalpmedel" className="hover:text-primary transition-colors">
                 Vanliga hjälpmedel
-              </a>
+              </Link>
             </div>
           </motion.div>
 
@@ -74,11 +91,11 @@ const Footer = () => {
             <div className="bg-primary h-[2px] w-[45px]" />
             <div className="flex flex-col gap-3 opacity-90">
               <a
-                href="mailto:info@ansokningshalpen.se"
+                href="mailto:info@ansokshalpen.se"
                 className="hover:text-primary flex items-center gap-2 transition-colors"
               >
                 <Mail size={16} />
-                <span>info@ansokningshalpen.se</span>
+                <span>info@ansokshalpen.se</span>
               </a>
               <a
                 href="tel:+46701234567"
@@ -87,12 +104,12 @@ const Footer = () => {
                 <Phone size={16} />
                 <span>070-123 45 67</span>
               </a>
-              <a href="" className="hover:text-primary transition-colors">
+              <Link href="/kontakt" className="hover:text-primary transition-colors">
                 Kontaktformulär
-              </a>
-              <a href="" className="hover:text-primary transition-colors">
+              </Link>
+              <Link href="/feedback" className="hover:text-primary transition-colors">
                 Feedback
-              </a>
+              </Link>
             </div>
           </motion.div>
 
@@ -103,14 +120,20 @@ const Footer = () => {
             <div className="flex flex-col gap-3 opacity-90">
               <div className="mt-2 flex gap-4">
                 <a
-                  href=""
+                  href="https://linkedin.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="bg-opacity-20 bg-primary rounded-full p-2 transition-colors hover:opacity-90"
+                  aria-label="LinkedIn"
                 >
                   <Linkedin size={20} />
                 </a>
                 <a
-                  href=""
+                  href="https://facebook.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="bg-opacity-20 bg-primary rounded-full p-2 transition-colors hover:opacity-90"
+                  aria-label="Facebook"
                 >
                   <Facebook size={20} />
                 </a>

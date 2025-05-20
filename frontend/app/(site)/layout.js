@@ -1,8 +1,9 @@
 import "../globals.css";
-import Footer from "../../components/homepage/Footer";
+import Footer from "../../components/shared/Footer";
 import Navbar from "../../components/homepage/Navbar";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import UserIdInitializer from "@/components/UserIdInitializer";
+import CookieConsent from "@/components/shared/CookieConsent";
 
 export const metadata = {
   title: "Create Next App",
@@ -11,16 +12,14 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    // <html lang="en">
-    // <body className={`antialiased`}>
     <>
       <UserIdInitializer />
       <Navbar position={"sticky"} />
       <SidebarProvider>
         <SidebarInset>{children}</SidebarInset>
       </SidebarProvider>
+      <CookieConsent />
+      <Footer />
     </>
-    // </body>
-    // </html>
   );
 }
