@@ -28,7 +28,7 @@ const Footer = () => {
   };
 
   return (
-    <footer className="bg-footer text-primary-foreground w-full px-4 py-8">
+    <footer id="footer" className="bg-footer text-primary-foreground w-full px-4 py-8">
       <motion.div
         className="mx-auto w-full max-w-7xl"
         variants={containerVariants}
@@ -42,19 +42,33 @@ const Footer = () => {
             <h2 className="text-lg font-semibold">Ansökshjälpen</h2>
             <div className="bg-primary h-[2px] w-[45px]" />
             <div className="flex flex-col gap-3 opacity-90">
-              <Link href="/om-oss" className="hover:text-primary transition-colors">
+              <Link
+                href="https://www.lidol.se/om-oss/"
+                className="hover:text-primary transition-colors"
+                target="_blank"
+              >
                 Om oss
               </Link>
-              <Link href="/tillganglighet" className="hover:text-primary transition-colors">
-                Tillgänglighetsredogörelse
-              </Link>
-              <Link href="/anvandarvillkor" className="hover:text-primary transition-colors">
+
+              <Link
+                href="/anvandarvillkor"
+                className="hover:text-primary transition-colors"
+                target="_blank"
+              >
                 Användervillkor
               </Link>
-              <Link href="/integrity" className="hover:text-primary transition-colors">
+              <Link
+                href="/integrity"
+                className="hover:text-primary transition-colors"
+                target="_blank"
+              >
                 Integritetspolicy
               </Link>
-              <Link href="/cookies" className="hover:text-primary transition-colors">
+              <Link
+                href="/cookies"
+                className="hover:text-primary transition-colors"
+                target="_blank"
+              >
                 Cookie-inställningar
               </Link>
             </div>
@@ -65,9 +79,6 @@ const Footer = () => {
             <h2 className="text-lg font-semibold">Resurser</h2>
             <div className="bg-primary h-[2px] w-[45px]" />
             <div className="flex flex-col gap-3 opacity-90">
-              <Link href="/lagar-regler" className="hover:text-primary transition-colors">
-                Lagar & regler
-              </Link>
               <a
                 href="https://www.forsakringskassan.se"
                 target="_blank"
@@ -76,10 +87,18 @@ const Footer = () => {
               >
                 Försäkringskassan
               </a>
-              <Link href="/organisationer" className="hover:text-primary transition-colors">
+              <Link
+                href="https://funktionsratt.se/"
+                className="hover:text-primary transition-colors"
+                target="_blank"
+              >
                 Funktionsrättsorganisationer
               </Link>
-              <Link href="/hjalpmedel" className="hover:text-primary transition-colors">
+              <Link
+                href="https://www.lidol.se/hjalpmedel/vardagshjalpmedel-region/"
+                className="hover:text-primary transition-colors"
+                target="_blank"
+              >
                 Vanliga hjälpmedel
               </Link>
             </div>
@@ -95,7 +114,7 @@ const Footer = () => {
                 className="hover:text-primary flex items-center gap-2 transition-colors"
               >
                 <Mail size={16} />
-                <span>info@ansokshalpen.se</span>
+                <span>info@LIDOL.se</span>
               </a>
               <a
                 href="tel:+46701234567"
@@ -104,12 +123,6 @@ const Footer = () => {
                 <Phone size={16} />
                 <span>070-123 45 67</span>
               </a>
-              <Link href="/kontakt" className="hover:text-primary transition-colors">
-                Kontaktformulär
-              </Link>
-              <Link href="/feedback" className="hover:text-primary transition-colors">
-                Feedback
-              </Link>
             </div>
           </motion.div>
 
@@ -120,7 +133,7 @@ const Footer = () => {
             <div className="flex flex-col gap-3 opacity-90">
               <div className="mt-2 flex gap-4">
                 <a
-                  href="https://linkedin.com"
+                  href="https://www.linkedin.com/company/lidol/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="bg-opacity-20 bg-primary rounded-full p-2 transition-colors hover:opacity-90"
@@ -129,7 +142,7 @@ const Footer = () => {
                   <Linkedin size={20} />
                 </a>
                 <a
-                  href="https://facebook.com"
+                  href="https://www.facebook.com/lidol.se/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="bg-opacity-20 bg-primary rounded-full p-2 transition-colors hover:opacity-90"

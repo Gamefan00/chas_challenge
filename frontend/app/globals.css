@@ -351,3 +351,7 @@ body {
 body::-webkit-scrollbar {
   display: none; /* Chrome, Safari */
 }
+
+* {
+  scroll-behavior: smooth;
+}
