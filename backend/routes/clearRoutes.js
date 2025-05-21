@@ -1,5 +1,5 @@
 import express from "express";
-import query from "../utils/supabaseQuery";
+import query from "../utils/supabaseQuery.js";
 
 const router = express.Router();
 // Delete application chat history
