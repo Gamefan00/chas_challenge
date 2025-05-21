@@ -46,7 +46,7 @@ export default function AIBotSettings() {
         }
 
         const data = await response.json();
-        console.log("Received settings data:", data);
+        // console.log("Received settings data:", data);
 
         if (data && data.modelConfig) {
           setModelConfig({
@@ -94,9 +94,9 @@ export default function AIBotSettings() {
 
   // Save all settings to backend
   const handleSave = async () => {
-    console.log("Saving combined settings:", {
-      modelConfig,
-    });
+    // console.log("Saving combined settings:", {
+    //   modelConfig,
+    // });
 
     try {
       setSaveStatus({ type: "loading", message: "Sparar..." });

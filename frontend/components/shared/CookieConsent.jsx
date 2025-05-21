@@ -12,9 +12,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const CookieConsent = () => {
   const [showConsent, setShowConsent] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     // Check if user has already set cookie preference
@@ -28,6 +30,8 @@ const CookieConsent = () => {
   const acceptCookies = () => {
     localStorage.setItem("cookiesAccepted", "true");
     setShowConsent(false);
+
+    router.back();
   };
 
   const rejectCookies = () => {

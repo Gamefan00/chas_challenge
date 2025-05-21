@@ -278,8 +278,8 @@ export default function SidebarNav({
     }
     onNavigate(stepId);
   };
-  console.log("isMobile", isMobile);
-  console.log("isSidebarOpen", isSidebarOpen);
+  // console.log("isMobile", isMobile);
+  // console.log("isSidebarOpen", isSidebarOpen);
 
   return (
     <div className="flex flex-col">

@@ -13,7 +13,7 @@ export async function GET(request) {
     const data = await response.json();
 
     if (!response.ok) {
-      console.log("Verification failed with status:", response.status);
+      // console.log("Verification failed with status:", response.status);
       return new Response(JSON.stringify({ authenticated: false }), {
         status: 401,
         headers: { "Content-Type": "application/json" },

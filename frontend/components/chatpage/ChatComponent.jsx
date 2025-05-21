@@ -213,7 +213,7 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
   // Fetch welcome message
   const fetchWelcomeMessage = async (stepId) => {
     try {
-      console.log(`Fetching welcome message for step ${stepId}`);
+      // console.log(`Fetching welcome message for step ${stepId}`);
       const response = await fetch(`${BASE_URL}${welcomeEndpoint}/${stepId}`);
 
       if (response.ok) {
@@ -222,7 +222,7 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
         setChatHistories((current) => {
           const stepHistory = current[stepId] || [];
           if (stepHistory.length === 0) {
-            console.log(`Setting welcome message for step ${stepId}`);
+            // console.log(`Setting welcome message for step ${stepId}`);
             return {
               ...current,
               [stepId]: [{ role: "assistant", text: data.message }],
@@ -466,7 +466,7 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
                   {!cookieConsent && (
                     <div className="text-foreground/50 absolute bottom-2 flex w-full justify-center">
                       <small>
-                        För att få den bästa upplevelsen på vår webbplats, vänligen{" "}
+                        För bästa chattupplevelse och för att spara din chatt­historik,{" "}
                         <Link href="/cookies" className="hover:text-primary underline">
                           acceptera cookies
                         </Link>

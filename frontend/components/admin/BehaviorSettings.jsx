@@ -71,7 +71,7 @@ export default function BehaviorSettings() {
         }
 
         const data = await response.json();
-        console.log("Received behavior settings:", data);
+        // console.log("Received behavior settings:", data);
 
         if (data && data.behaviorConfig) {
           // Set application system message

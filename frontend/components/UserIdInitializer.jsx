@@ -10,7 +10,7 @@ export default function UserIdInitializer() {
       // Get UserId from localstorage
       const storedUserId = localStorage.getItem("userId");
 
-      if (storedUserId) console.log("UserId found:", storedUserId);
+      // if (storedUserId) console.log("UserId found:", storedUserId);
 
       // If no userId is in localstorage -> Get new UserId from backend
       if (!storedUserId) {
@@ -26,7 +26,7 @@ export default function UserIdInitializer() {
           const data = await response.json();
 
           localStorage.setItem("userId", data.userId);
-          console.log("New UserId gotten from backend:", data.userId);
+          // console.log("New UserId gotten from backend:", data.userId);
         } catch (error) {
           console.error("Error fetching userId:", error);
         }
