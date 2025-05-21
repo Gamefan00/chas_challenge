@@ -48,7 +48,7 @@ function CopyButton({ message }) {
 
 export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint, type }) {
   // Use environment variable or default to localhost
-  const BASE_URL = process.env.API_URL || "http://localhost:4000";
+  const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
