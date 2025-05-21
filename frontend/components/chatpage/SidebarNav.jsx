@@ -36,7 +36,6 @@ const steps = [
   { id: "step-6", label: "Granska och skicka" },
 ];
 
-
 const interviewSteps = [
   {
     id: "step-1",
@@ -216,6 +215,63 @@ export default function SidebarNav({
   // console.log("isMobile", isMobile);
   // console.log("isSidebarOpen", isSidebarOpen);
 
+  // RESET BTN function- ORIGINAL
+  const handleResetChat = async () => {
+    try {
+      // Get userId from localStorage or your auth system
+      const userId = localStorage.getItem("userId");
+
+      const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+
+      if (!userId) {
+        console.error("No userId found");
+        return;
+      }
+
+      // Updated to use /api/history/reset endpoint with POST method
+
+      const endpoint = `${BASE_URL}/clear/application/${userId}`;
+      console.log("endpoint", endpoint);
+      // const endpoint =
+      //   type === "interview"
+      //     ? `${BASE_URL}/clear/interview/${userId}`
+      //     : `${BASE_URL}/clear/application/${userId}`;
+
+      // console.log("Clearing history with endpoint:", endpoint);
+
+      const response = await fetch(endpoint, {
+        method: "DELETE",
+      });
+
+      console.log("response", response);
+
+      if (!response.ok) {
+        throw new Error("Failed to reset chat history");
+      }
+
+      // Clear completed steps from localStorage
+      localStorage.removeItem("completedSteps");
+      setLocalCompletedSteps([]);
+
+      // Optionally navigate back to first step
+      onNavigate("step-1");
+
+      // Close sidebar on mobile after reset
+      if (isMobile) {
+        setIsSidebarOpen(false);
+      }
+
+      // Optional: Show success notification
+      alert("Chatthistoriken har återställts");
+
+      // Reload the page to refresh the UI state
+      window.location.reload();
+    } catch (error) {
+      console.error("Error resetting chat history:", error);
+      alert("Ett fel uppstod vid återställning av chatthistoriken");
+    }
+  };
+
   return (
     <div className="flex flex-col">
       {/* Toggle button outside sidebar - visible when sidebar is closed */}
@@ -305,11 +361,8 @@ export default function SidebarNav({
             <div className="">
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <div className="p-4">
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start hover:bg-gray-100 hover:shadow-md"
-                    >
+                  <div className="m-4">
+                    <Button variant="ghost" className="w-full justify-start hover:shadow-md">
                       {" "}
                       <Trash2 className="mr-2 h-5 w-5" />
                       <span> Återställ chatt</span>
@@ -326,7 +379,7 @@ export default function SidebarNav({
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Avbryt</AlertDialogCancel>
-                    <AlertDialogAction>Fortsätt</AlertDialogAction>
+                    <AlertDialogAction onClick={handleResetChat}>Fortsätt</AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>

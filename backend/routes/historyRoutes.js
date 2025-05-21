@@ -5,11 +5,11 @@ const router = express.Router();
 
 // Chat history for application bot
 router.post("/", async (req, res) => {
-  const { userId, currentStep, currentChatHistory } = req.body;
+  const {userId, currentStep, currentChatHistory} = req.body;
 
   try {
     if (!userId || !currentStep) {
-      return res.status(400).json({ error: "Missing userId or currentStep" });
+      return res.status(400).json({error: "Missing userId or currentStep"});
     }
 
     // Make sure currentChatHistory is properly serialized
@@ -21,7 +21,7 @@ router.post("/", async (req, res) => {
         chatHistoryToStore = currentChatHistory;
       } catch (parseError) {
         console.error("Invalid JSON in currentChatHistory:", parseError);
-        return res.status(400).json({ error: "Invalid chat history format" });
+        return res.status(400).json({error: "Invalid chat history format"});
       }
     } else {
       // It's an object, stringify it
@@ -42,17 +42,17 @@ router.post("/", async (req, res) => {
     });
   } catch (error) {
     console.error("Error saving chat history:", error);
-    res.status(500).json({ error: "Failed to save chat history" });
+    res.status(500).json({error: "Failed to save chat history"});
   }
 });
 
 router.get("/:stepId", async (req, res) => {
   try {
-    const { stepId } = req.params;
+    const {stepId} = req.params;
     const userId = req.query.userId; // Pass userId as query parameter from frontend
 
     if (!userId) {
-      return res.status(400).json({ error: "Missing userId" });
+      return res.status(400).json({error: "Missing userId"});
     }
 
     // Get chat history from database
@@ -107,23 +107,7 @@ router.get("/:stepId", async (req, res) => {
     }
   } catch (error) {
     console.error(`Error fetching history for step:`, error);
-    res.status(500).json({ error: "Failed to retrieve chat history" });
-  }
-});
-
-router.delete("/:userId", async (req, res) => {
-  try {
-    const { userId } = req.params;
-
-    // Delete all history for this user
-    await query("DELETE FROM chat_histories_application WHERE user_id = $1", [
-      userId,
-    ]);
-
-    res.json({ message: "History cleared successfully" });
-  } catch (error) {
-    console.error("Error clearing history:", error);
-    res.status(500).json({ error: "Failed to clear history" });
+    res.status(500).json({error: "Failed to retrieve chat history"});
   }
 });
 
@@ -132,11 +116,11 @@ router.delete("/:userId", async (req, res) => {
 ////////////////////////////////////
 
 router.post("/interview", async (req, res) => {
-  const { userId, currentStep, currentChatHistory } = req.body;
+  const {userId, currentStep, currentChatHistory} = req.body;
 
   try {
     if (!userId || !currentStep) {
-      return res.status(400).json({ error: "Missing userId or currentStep" });
+      return res.status(400).json({error: "Missing userId or currentStep"});
     }
 
     // Make sure currentChatHistory is properly serialized
@@ -148,7 +132,7 @@ router.post("/interview", async (req, res) => {
         chatHistoryToStore = currentChatHistory;
       } catch (parseError) {
         console.error("Invalid JSON in currentChatHistory:", parseError);
-        return res.status(400).json({ error: "Invalid chat history format" });
+        return res.status(400).json({error: "Invalid chat history format"});
       }
     } else {
       // It's an object, stringify it
@@ -169,17 +153,17 @@ router.post("/interview", async (req, res) => {
     });
   } catch (error) {
     console.error("Error saving chat history:", error);
-    res.status(500).json({ error: "Failed to save chat history" });
+    res.status(500).json({error: "Failed to save chat history"});
   }
 });
 
 router.get("/interview/:stepId", async (req, res) => {
   try {
-    const { stepId } = req.params;
+    const {stepId} = req.params;
     const userId = req.query.userId; // Pass userId as query parameter from frontend
 
     if (!userId) {
-      return res.status(400).json({ error: "Missing userId" });
+      return res.status(400).json({error: "Missing userId"});
     }
 
     // Get chat history from database
@@ -234,26 +218,65 @@ router.get("/interview/:stepId", async (req, res) => {
     }
   } catch (error) {
     console.error(`Error fetching history for step:`, error);
-    res.status(500).json({ error: "Failed to retrieve chat history" });
+    res.status(500).json({error: "Failed to retrieve chat history"});
   }
 });
 
-router.delete("/interview/:userId", async (req, res) => {
-  try {
-    const { userId } = req.params;
+export default router;
 
-    // Delete all history for this user
-    await query("DELETE FROM chat_histories_interview WHERE user_id = $1", [
-      userId,
-    ]);
+///
 
-    res.json({ message: "History cleared successfully" });
-  } catch (error) {
-    console.error("Error clearing history:", error);
-    res.status(500).json({ error: "Failed to clear history" });
-  }
-});
+// // Delete interview chat history
+// router.delete("/interview/:userId", async (req, res) => {
+//   try {
+//     const {userId} = req.params;
+//     console.log("Deleting interview history  userId:", userId);
 
+//     // Delete all history for this user
+//     await query("DELETE FROM chat_histories_interview WHERE user_id = $1", [
+//       userId,
+//     ]);
+
+//     res.json({message: "Interview chat history cleared successfully"});
+//   } catch (error) {
+//     console.error("Error clearing interview history:", error);
+//     res.status(500).json({error: "Failed to clear interview history"});
+//   }
+// });
+
+// // Clear chat history for interview bot
+// router.delete("/:userId", async (req, res) => {
+//   try {
+//     const {userId} = req.params;
+
+//     // Delete all history for this user
+//     await query("DELETE FROM chat_histories_interview WHERE user_id = $1", [
+//       userId,
+//     ]);
+
+//     res.json({message: "History cleared successfully"});
+//   } catch (error) {
+//     console.error("Error clearing history:", error);
+//     res.status(500).json({error: "Failed to clear history"});
+//   }
+// });
+
+// Clear chat history for application bot
+// router.delete("/:userId", async (req, res) => {
+//   try {
+//     const {userId} = req.params;
+
+//     // Delete all history for this user
+//     await query("DELETE FROM chat_histories_application WHERE user_id = $1", [
+//       userId,
+//     ]);
+
+//     res.json({message: "History cleared successfully"});
+//   } catch (error) {
+//     console.error("Error clearing history:", error);
+//     res.status(500).json({error: "Failed to clear history"});
+//   }
+// });
 // router.post('/chatHistory', (req, res) => {
 //   try {
 //     // Post whole chat history to backend
@@ -281,4 +304,3 @@ router.delete("/interview/:userId", async (req, res) => {
 
 //   res.json(formattedHistory);
 // });
-export default router;
