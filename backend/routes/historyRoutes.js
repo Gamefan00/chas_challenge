@@ -157,7 +157,7 @@ router.post("/interview", async (req, res) => {
 
     // Update or insert the chat history for this specific step
     await query(
-      `INSERT INTO chat_histories_interview (user_id, step_id, history) 
+      `INSERT INTO chat_histories_interview_test (user_id, step_id, history) 
        VALUES ($1, $2, $3) 
        ON CONFLICT (user_id, step_id) 
        DO UPDATE SET history = $3`,
@@ -184,7 +184,7 @@ router.get("/interview/:stepId", async (req, res) => {
 
     // Get chat history from database
     const historyResult = await query(
-      "SELECT history FROM chat_histories_interview WHERE user_id = $1 AND step_id = $2",
+      "SELECT history FROM chat_histories_interview_test WHERE user_id = $1 AND step_id = $2",
       [userId, stepId]
     );
 
@@ -243,9 +243,10 @@ router.delete("/interview/:userId", async (req, res) => {
     const { userId } = req.params;
 
     // Delete all history for this user
-    await query("DELETE FROM chat_histories_interview WHERE user_id = $1", [
-      userId,
-    ]);
+    await query(
+      "DELETE FROM chat_histories_interview_test WHERE user_id = $1",
+      [userId]
+    );
 
     res.json({ message: "History cleared successfully" });
   } catch (error) {
@@ -254,31 +255,4 @@ router.delete("/interview/:userId", async (req, res) => {
   }
 });
 
-// router.post('/chatHistory', (req, res) => {
-//   try {
-//     // Post whole chat history to backend
-
-//     const { userId, chatHistory } = req.body;
-
-//     console.log(userId, chatHistory);
-
-//     // Send whole chat history to database together with UUID
-//   } catch (error) {
-//     console.log(error);
-//   }
-// });
-
-// router.get("/:stepId", (req, res) => {
-//   const { stepId } = req.params;
-//   const history = stepConversations[stepId] || [systemMessage];
-
-//   const formattedHistory = history
-//     .filter((msg) => msg.role !== "system")
-//     .map((msg) => ({
-//       role: msg.role,
-//       content: msg.content[0].text,
-//     }));
-
-//   res.json(formattedHistory);
-// });
 export default router;

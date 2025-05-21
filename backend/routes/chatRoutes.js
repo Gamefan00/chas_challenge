@@ -234,7 +234,7 @@ router.post("/", async (req, res) => {
 
         for (const stepId of allInterviewSteps) {
           const historyResult = await query(
-            "SELECT history FROM chat_histories_interview WHERE user_id = $1 AND step_id = $2",
+            "SELECT history FROM chat_histories_interview_test WHERE user_id = $1 AND step_id = $2",
             [userId, stepId]
           );
 
@@ -452,7 +452,7 @@ router.post("/interview/", async (req, res) => {
         // For each step, get its history from the database if it exists
         for (const stepId of otherInterviewSteps) {
           const historyResult = await query(
-            "SELECT history FROM chat_histories_interview WHERE user_id = $1 AND step_id = $2",
+            "SELECT history FROM chat_histories_interview_test WHERE user_id = $1 AND step_id = $2",
             [userId, stepId]
           );
 
