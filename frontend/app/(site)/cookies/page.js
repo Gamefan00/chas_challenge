@@ -9,10 +9,12 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
 import { getCookie, setCookie, clearSession } from "@/lib/cookie-utils";
+import { useRouter } from "next/navigation";
 
 const CookieSettingsPage = () => {
   const [cookieConsent, setCookieConsent] = useState(false);
   const [isChanged, setIsChanged] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     // Load current cookie settings
@@ -34,13 +36,12 @@ const CookieSettingsPage = () => {
     }
 
     setIsChanged(false);
-
-    // Display feedback
     alert(
       cookieConsent
         ? "Dina cookie-inställningar har sparats."
         : "Cookies har avböjts. Din session kommer inte att sparas.",
     );
+    router.back();
   };
 
   return (
