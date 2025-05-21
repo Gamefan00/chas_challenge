@@ -85,42 +85,7 @@ async function initializeConversationSettings() {
         label: "Granska och skicka",
         heading: "Sammanfatta och ladda ner",
       },
-      "step-7": {
-        label: "Arbetsuppgifter",
-        heading: "Dina dagliga arbetsuppgifter",
-      },
-      "step-8": {
-        label: "Arbetsplats",
-        heading: "Din fysiska arbetsplats",
-      },
-      "step-9": {
-        label: "Arbetsmiljö",
-        heading: "Din arbetsmiljö",
-      },
-      "step-10": {
-        label: "Tidigare anpassningar",
-        heading: "Tidigare prövade anpassningar",
-      },
-      "step-11": {
-        label: "Önskade hjälpmedel",
-        heading: "Hjälpmedel du tror kan hjälpa",
-      },
-      "step-12": {
-        label: "Sociala aspekter",
-        heading: "Sociala aspekter av arbetet",
-      },
-      "step-13": {
-        label: "Påverkan på kollegor",
-        heading: "Påverkan på kollegor och teamarbete",
-      },
-      "step-14": {
-        label: "Arbetsgivarens inställning",
-        heading: "Din arbetsgivares inställning",
-      },
-      "step-15": {
-        label: "Sammanfattning",
-        heading: "Sammanfattning av intervjun",
-      },
+   
     };
 
     // Application step specific instructions

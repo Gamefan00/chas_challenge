@@ -127,15 +127,7 @@ export async function initializeInterviewConversations() {
     "step-4": [systemMessage],
     "step-5": [systemMessage],
     "step-6": [systemMessage],
-    "step-7": [systemMessage],
-    "step-8": [systemMessage],
-    "step-9": [systemMessage],
-    "step-10": [systemMessage],
-    "step-11": [systemMessage],
-    "step-12": [systemMessage],
-    "step-13": [systemMessage],
-    "step-14": [systemMessage],
-    "step-15": [systemMessage],
+
   };
 
   for (const step in stepConversations) {

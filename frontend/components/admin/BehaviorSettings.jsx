@@ -41,15 +41,6 @@ export default function BehaviorSettings() {
     "step-4": { welcome: "", description: "" },
     "step-5": { welcome: "", description: "" },
     "step-6": { welcome: "", description: "" },
-    "step-7": { welcome: "", description: "" },
-    "step-8": { welcome: "", description: "" },
-    "step-9": { welcome: "", description: "" },
-    "step-10": { welcome: "", description: "" },
-    "step-11": { welcome: "", description: "" },
-    "step-12": { welcome: "", description: "" },
-    "step-13": { welcome: "", description: "" },
-    "step-14": { welcome: "", description: "" },
-    "step-15": { welcome: "", description: "" },
   });
 
   // Load settings from database on component mount
@@ -201,24 +192,6 @@ export default function BehaviorSettings() {
         return "Steg 5: Placeholder";
       case "step-6":
         return "Steg 6: Placeholder";
-      case "step-7":
-        return "Steg 7: Dina dagliga arbetsuppgifter";
-      case "step-8":
-        return "Steg 8: Din fysiska arbetsplats";
-      case "step-9":
-        return "Steg 9: Din arbetsmiljö";
-      case "step-10":
-        return "Steg 10: Tidigare prövade anpassningar";
-      case "step-11":
-        return "Steg 11: Hjälpmedel du tror kan hjälpa";
-      case "step-12":
-        return "Steg 12: Sociala aspekter av arbetet";
-      case "step-13":
-        return "Steg 13: Påverkan på kollegor och teamarbete";
-      case "step-14":
-        return "Steg 14: Din arbetsgivares inställning";
-      case "step-15":
-        return "Steg 15: Sammanfattning av intervjun";
       default:
         return step;
     }

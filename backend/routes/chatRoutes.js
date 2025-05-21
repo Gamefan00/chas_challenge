@@ -230,15 +230,6 @@ router.post("/", async (req, res) => {
           "step-4",
           "step-5",
           "step-6",
-          "step-7",
-          "step-8",
-          "step-9",
-          "step-10",
-          "step-11",
-          "step-12",
-          "step-13",
-          "step-14",
-          "step-15",
         ];
 
         for (const stepId of allInterviewSteps) {
@@ -453,15 +444,6 @@ router.post("/interview/", async (req, res) => {
           "step-4",
           "step-5",
           "step-6",
-          "step-7",
-          "step-8",
-          "step-9",
-          "step-10",
-          "step-11",
-          "step-12",
-          "step-13",
-          "step-14",
-          "step-15",
         ];
         const otherInterviewSteps = allInterviewSteps.filter(
           (stepId) => stepId !== currentStep
