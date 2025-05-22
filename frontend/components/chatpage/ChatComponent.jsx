@@ -163,6 +163,31 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
     sendHistoryToBackend();
   }, [currentChatHistory, historyEndpoint]);
 
+  // function to get combined history for a user
+  async function getUserHistory(userId) {
+    const endpoint =
+      type === "interview"
+        ? `/history/interview/user/${userId}`
+        : `${historyEndpoint}/user/${userId}`;
+    try {
+      console.log(
+        "Fetching user history for userId:",
+        userId,
+        "URL:",
+        `${BASE_URL}${historyEndpoint}/user/${userId}`,
+      );
+
+      const response = await fetch(`${BASE_URL}${endpoint}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch user history");
+      }
+      return await response.json();
+    } catch (error) {
+      console.error("Error fetching combined history:", error);
+      return [];
+    }
+  }
+
   // Load existing histories
   useEffect(() => {
     if (!isHydrated) return;
@@ -237,11 +262,47 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
   };
 
   // Navigate to a different step
-  const navigateToStep = (stepId) => {
+  const navigateToStep = async (stepId) => {
     setCurrentStep(stepId);
 
+    // If no history exists for this step, try to use context from previous steps
     if (chatHistories[stepId].length === 0) {
-      fetchWelcomeMessage(stepId);
+      try {
+        const userId = localStorage.getItem("userId");
+        if (userId) {
+          // Get context from previous steps first
+          const contextHistory = await getUserHistory(userId);
+          if (contextHistory && contextHistory.length > 0) {
+            // Add a system message indicating previous conversation context
+            const systemMessage = {
+              role: "system",
+              text: "Fortsättning från tidigare konversation.",
+            };
+
+            // Format the context messages
+            const formattedContext = contextHistory.map((msg) => ({
+              role: msg.role,
+              text: msg.content,
+            }));
+
+            // Only use the last few messages to avoid context overload
+            const relevantContext = formattedContext.slice(-5);
+
+            setChatHistories((prev) => ({
+              ...prev,
+              [stepId]: [systemMessage, ...relevantContext],
+            }));
+          } else {
+            // If no context, just fetch the welcome message
+            await fetchWelcomeMessage(stepId);
+          }
+        } else {
+          await fetchWelcomeMessage(stepId);
+        }
+      } catch (error) {
+        console.error("Error preparing context for new step:", error);
+        await fetchWelcomeMessage(stepId);
+      }
     }
 
     if (typeof window !== "undefined") {
@@ -310,13 +371,27 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
     try {
       const userId = localStorage.getItem("userId");
 
-      const response = await fetch(`${BASE_URL}/chat`, {
+      // Get previous context from earlier steps (maximum 5 messages)
+      let previousContext = [];
+      try {
+        const allUserHistory = await getUserHistory(userId);
+        previousContext = allUserHistory.filter((msg) => msg.step !== currentStep).slice(-5);
+      } catch (err) {
+        console.error("Could not fetch previous context:", err);
+      }
+
+      // Use the correct endpoint based on bot type
+      const chatEndpoint =
+        type === "interview" ? `${BASE_URL}/chat/interview/` : `${BASE_URL}/chat`;
+
+      const response = await fetch(chatEndpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message,
           currentStep,
           userId,
+          previousContext,
         }),
       });
 
@@ -344,7 +419,6 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
       setIsLoading(false);
     }
   }
-
   // Handle enter key press to send message
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {

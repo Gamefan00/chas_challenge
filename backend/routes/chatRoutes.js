@@ -14,6 +14,7 @@ import {
   getInterviewStepsDescription,
   fetchInterviewSteps,
 } from "../utils/interviewConversationManager.js";
+import { decrypt } from "../utils/encryptionHelper.js";
 
 // Load environment variables
 dotenv.config();
@@ -459,31 +460,46 @@ router.post("/interview/", async (req, res) => {
           if (historyResult.length > 0 && historyResult[0].history) {
             let stepHistory = historyResult[0].history;
 
-            // Only add if there's actual conversation (more than just the welcome message)
-            if (stepHistory.length > 1) {
-              // Add a separator to clearly mark different steps
-              previousStepsContext.push({
-                role: "system",
-                content: [
-                  {
-                    type: "input_text",
-                    text: `--- History from interview ${stepId} ---`,
-                  },
-                ],
-              });
+            // Decrypt history if it's encrypted
+            try {
+              if (typeof stepHistory === "string") {
+                // Try to decrypt or parse the string
+                stepHistory = decrypt(stepHistory);
+              }
 
-              // Add the conversation history from this step
-              previousStepsContext.push(
-                ...stepHistory.map((msg) => ({
-                  role: msg.role,
+              // Only add if it's an array with actual conversation
+              if (Array.isArray(stepHistory) && stepHistory.length > 1) {
+                // Add a separator to clearly mark different steps
+                previousStepsContext.push({
+                  role: "system",
                   content: [
                     {
-                      type: msg.role === "user" ? "input_text" : "output_text",
-                      text: msg.text,
+                      type: "input_text",
+                      text: `--- History from interview ${stepId} ---`,
                     },
                   ],
-                }))
+                });
+
+                // Add the conversation history from this step (with safety check)
+                previousStepsContext.push(
+                  ...stepHistory.map((msg) => ({
+                    role: msg.role || "assistant",
+                    content: [
+                      {
+                        type:
+                          msg.role === "user" ? "input_text" : "output_text",
+                        text: msg.text || "",
+                      },
+                    ],
+                  }))
+                );
+              }
+            } catch (error) {
+              console.error(
+                `Error processing history for step ${stepId}:`,
+                error
               );
+              // Continue without this step's history
             }
           }
         }
