@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import query from "../utils/supabaseQuery.js";
 import {
   fetchApplicationSystemMessageFromDB,
-  stepConversations,
+  stepConversations as applicationStepConversations,
   getApplicationStepsDescription,
   fetchApplicationSteps,
 } from "../utils/applicationConversationManager.js";
@@ -46,14 +46,10 @@ async function getAISettings() {
       ["temperature"]
     );
 
-    console.log("temp result:", temperatureResult);
-
     const maxTokensResult = await query(
       "SELECT value FROM admin_settings WHERE key = $1",
       ["maxTokens"]
     );
-
-    console.log("token result:", maxTokensResult);
 
     // Parse values from database (if they exist) or use defaults
     const model =
@@ -78,6 +74,31 @@ async function getAISettings() {
       temperature: 1,
       maxTokens: 2048,
     };
+  }
+}
+
+// Helper function to safely decrypt history (ONLY decrypt, no JSON parsing fallback)
+function safelyDecryptHistory(historyData, stepId, botType = "application") {
+  try {
+    const stepHistory = decrypt(historyData);
+
+    // Ensure it's an array
+    if (!Array.isArray(stepHistory)) {
+      console.warn(
+        `History for ${botType} step ${stepId} is not an array after decryption:`,
+        typeof stepHistory
+      );
+      return [];
+    }
+
+    return stepHistory;
+  } catch (decryptError) {
+    console.error(
+      `Error decrypting history for ${botType} step ${stepId}:`,
+      decryptError
+    );
+    // If decryption fails, return empty array (no JSON fallback since everything should be encrypted)
+    return [];
   }
 }
 
@@ -143,8 +164,8 @@ router.post("/", async (req, res) => {
 
     // Initialize or update the conversation for this step
     if (
-      !stepConversations[currentStep] ||
-      stepConversations[currentStep].length === 0
+      !applicationStepConversations[currentStep] ||
+      applicationStepConversations[currentStep].length === 0
     ) {
       const welcomeMessage = {
         role: "assistant",
@@ -153,24 +174,31 @@ router.post("/", async (req, res) => {
             type: "output_text",
             text:
               applicationSteps[currentStep] ||
-              defaultStepWelcomeMessagesApplication[currentStep] ||
               "Välkommen! Vad kan jag hjälpa dig med?",
           },
         ],
       };
 
-      stepConversations[currentStep] = [stepSystemMessage, welcomeMessage];
+      applicationStepConversations[currentStep] = [
+        stepSystemMessage,
+        welcomeMessage,
+      ];
     } else {
       // Update the system message to reflect any changes in settings
-      stepConversations[currentStep][0] = stepSystemMessage;
+      applicationStepConversations[currentStep][0] = stepSystemMessage;
     }
 
-    const stepHistory = stepConversations[currentStep];
+    const stepHistory = applicationStepConversations[currentStep];
 
     // Get full step history to send to bot as context
     let previousStepsContext = [];
     if (userId) {
       try {
+        console.log(
+          "Building context for application bot with userId:",
+          userId
+        );
+
         // Get context from application steps
         const allApplicationSteps = [
           "step-1",
@@ -187,15 +215,19 @@ router.post("/", async (req, res) => {
         // For each step, get its history from the database if it exists
         for (const stepId of otherApplicationSteps) {
           const historyResult = await query(
-            "SELECT history FROM chat_histories_application WHERE user_id = $1 AND step_id = $2",
+            "SELECT history FROM chat_histories_application_test WHERE user_id = $1 AND step_id = $2",
             [userId, stepId]
           );
 
           if (historyResult.length > 0 && historyResult[0].history) {
-            let stepHistory = historyResult[0].history;
+            const stepHistory = safelyDecryptHistory(
+              historyResult[0].history,
+              stepId,
+              "application"
+            );
 
             // Only add if there's actual conversation (more than just the welcome message)
-            if (stepHistory.length > 1) {
+            if (Array.isArray(stepHistory) && stepHistory.length > 1) {
               // Add a separator to clearly mark different steps
               previousStepsContext.push({
                 role: "system",
@@ -207,14 +239,14 @@ router.post("/", async (req, res) => {
                 ],
               });
 
-              // Add the conversation history from this step
+              // Add the conversation history from this step (with safety check)
               previousStepsContext.push(
                 ...stepHistory.map((msg) => ({
-                  role: msg.role,
+                  role: msg.role || "assistant",
                   content: [
                     {
                       type: msg.role === "user" ? "input_text" : "output_text",
-                      text: msg.text,
+                      text: msg.text || msg.content || "",
                     },
                   ],
                 }))
@@ -224,26 +256,21 @@ router.post("/", async (req, res) => {
         }
 
         // Get context from interview steps
-        const allInterviewSteps = [
-          "step-1",
-          "step-2",
-          "step-3",
-          "step-4",
-          "step-5",
-          "step-6",
-        ];
-
-        for (const stepId of allInterviewSteps) {
+        for (const stepId of allApplicationSteps) {
           const historyResult = await query(
             "SELECT history FROM chat_histories_interview_test WHERE user_id = $1 AND step_id = $2",
             [userId, stepId]
           );
 
           if (historyResult.length > 0 && historyResult[0].history) {
-            let stepHistory = historyResult[0].history;
+            const stepHistory = safelyDecryptHistory(
+              historyResult[0].history,
+              stepId,
+              "interview"
+            );
 
             // Only add if there's actual conversation (more than just the welcome message)
-            if (stepHistory.length > 1) {
+            if (Array.isArray(stepHistory) && stepHistory.length > 1) {
               // Add a separator to clearly mark interview context
               previousStepsContext.push({
                 role: "system",
@@ -258,11 +285,11 @@ router.post("/", async (req, res) => {
               // Add the interview conversation history from this step
               previousStepsContext.push(
                 ...stepHistory.map((msg) => ({
-                  role: msg.role,
+                  role: msg.role || "assistant",
                   content: [
                     {
                       type: msg.role === "user" ? "input_text" : "output_text",
-                      text: msg.text,
+                      text: msg.text || msg.content || "",
                     },
                   ],
                 }))
@@ -284,12 +311,14 @@ router.post("/", async (req, res) => {
         }
 
         console.log(
-          `Added context from ${previousStepsContext.length} messages from other steps`
+          `Added context from ${previousStepsContext.length} messages from other steps for application bot`
         );
       } catch (error) {
-        console.error("Error getting step history:", error);
+        console.error("Error getting step history for application bot:", error);
         // Continue without previous context if there's an error
       }
+    } else {
+      console.log("No userId provided for application bot context");
     }
 
     const stepContext = {
@@ -313,8 +342,6 @@ router.post("/", async (req, res) => {
         },
       ],
     };
-
-    console.log("previousStepsContext", previousStepsContext);
 
     const input = [
       stepContext,
@@ -351,18 +378,18 @@ router.post("/", async (req, res) => {
       ],
     };
 
-    stepConversations[currentStep] = [
+    applicationStepConversations[currentStep] = [
       ...stepHistory,
       userMessage,
       assistantMessage,
     ];
 
-    if (stepConversations[currentStep].length > 20) {
-      const welcomeMessage = stepConversations[currentStep][1];
-      stepConversations[currentStep] = [
+    if (applicationStepConversations[currentStep].length > 20) {
+      const welcomeMessage = applicationStepConversations[currentStep][1];
+      applicationStepConversations[currentStep] = [
         stepSystemMessage,
         welcomeMessage,
-        ...stepConversations[currentStep].slice(-18),
+        ...applicationStepConversations[currentStep].slice(-18),
       ];
     }
 
@@ -404,8 +431,8 @@ router.post("/interview/", async (req, res) => {
     // Get AI settings with fallback values
     const { model, temperature, maxTokens } = await getAISettings();
 
-    // Fetch application steps - IMPORTANT: This is a function call
-    const applicationSteps = await fetchInterviewSteps();
+    // Fetch interview steps - IMPORTANT: This is a function call
+    const interviewSteps = await fetchInterviewSteps();
 
     // Get the step history from the imported stepConversations, with initial welcome message if needed
     if (
@@ -421,7 +448,7 @@ router.post("/interview/", async (req, res) => {
             {
               type: "output_text",
               text:
-                applicationSteps[currentStep] ||
+                interviewSteps[currentStep] ||
                 "Välkommen! Vad kan jag hjälpa dig med?",
             },
           ],
@@ -458,48 +485,37 @@ router.post("/interview/", async (req, res) => {
           );
 
           if (historyResult.length > 0 && historyResult[0].history) {
-            let stepHistory = historyResult[0].history;
+            const stepHistory = safelyDecryptHistory(
+              historyResult[0].history,
+              stepId,
+              "interview"
+            );
 
-            // Decrypt history if it's encrypted
-            try {
-              if (typeof stepHistory === "string") {
-                // Try to decrypt or parse the string
-                stepHistory = decrypt(stepHistory);
-              }
+            // Only add if there's actual conversation (more than just the welcome message)
+            if (Array.isArray(stepHistory) && stepHistory.length > 1) {
+              // Add a separator to clearly mark different steps
+              previousStepsContext.push({
+                role: "system",
+                content: [
+                  {
+                    type: "input_text",
+                    text: `--- History from interview ${stepId} ---`,
+                  },
+                ],
+              });
 
-              // Only add if it's an array with actual conversation
-              if (Array.isArray(stepHistory) && stepHistory.length > 1) {
-                // Add a separator to clearly mark different steps
-                previousStepsContext.push({
-                  role: "system",
+              // Add the conversation history from this step (with safety check)
+              previousStepsContext.push(
+                ...stepHistory.map((msg) => ({
+                  role: msg.role || "assistant",
                   content: [
                     {
-                      type: "input_text",
-                      text: `--- History from interview ${stepId} ---`,
+                      type: msg.role === "user" ? "input_text" : "output_text",
+                      text: msg.text || msg.content || "",
                     },
                   ],
-                });
-
-                // Add the conversation history from this step (with safety check)
-                previousStepsContext.push(
-                  ...stepHistory.map((msg) => ({
-                    role: msg.role || "assistant",
-                    content: [
-                      {
-                        type:
-                          msg.role === "user" ? "input_text" : "output_text",
-                        text: msg.text || "",
-                      },
-                    ],
-                  }))
-                );
-              }
-            } catch (error) {
-              console.error(
-                `Error processing history for step ${stepId}:`,
-                error
+                }))
               );
-              // Continue without this step's history
             }
           }
         }
@@ -516,30 +532,19 @@ router.post("/interview/", async (req, res) => {
 
         for (const stepId of allApplicationSteps) {
           const historyResult = await query(
-            "SELECT history FROM chat_histories_application WHERE user_id = $1 AND step_id = $2",
+            "SELECT history FROM chat_histories_application_test WHERE user_id = $1 AND step_id = $2",
             [userId, stepId]
           );
 
           if (historyResult.length > 0 && historyResult[0].history) {
-            let stepHistory;
-
-            // Parse history if it's a string
-            if (typeof historyResult[0].history === "string") {
-              try {
-                stepHistory = JSON.parse(historyResult[0].history);
-              } catch (parseError) {
-                console.error(
-                  `Error parsing history for application step ${stepId}:`,
-                  parseError
-                );
-                continue;
-              }
-            } else {
-              stepHistory = historyResult[0].history;
-            }
+            const stepHistory = safelyDecryptHistory(
+              historyResult[0].history,
+              stepId,
+              "application"
+            );
 
             // Only add if there's actual conversation (more than just the welcome message)
-            if (stepHistory.length > 1) {
+            if (Array.isArray(stepHistory) && stepHistory.length > 1) {
               // Add a separator to clearly mark application context
               previousStepsContext.push({
                 role: "system",
@@ -554,11 +559,11 @@ router.post("/interview/", async (req, res) => {
               // Add the application conversation history from this step
               previousStepsContext.push(
                 ...stepHistory.map((msg) => ({
-                  role: msg.role,
+                  role: msg.role || "assistant",
                   content: [
                     {
                       type: msg.role === "user" ? "input_text" : "output_text",
-                      text: msg.text,
+                      text: msg.text || msg.content || "",
                     },
                   ],
                 }))
@@ -589,8 +594,6 @@ router.post("/interview/", async (req, res) => {
     } else {
       console.log("No userId provided for interview bot context");
     }
-
-    console.log("previousStepsContext for interview bot", previousStepsContext);
 
     const stepContext = {
       role: "system",
@@ -640,7 +643,6 @@ router.post("/interview/", async (req, res) => {
       store: true,
     });
 
-    // Rest of your code remains the same
     const assistantMessage = {
       role: "assistant",
       content: [

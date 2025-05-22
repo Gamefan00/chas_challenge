@@ -55,6 +55,7 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
   const [currentStep, setCurrentStep] = useState("step-1");
   const [completedSteps, setCompletedSteps] = useState([]);
   const [cookieConsent, setCookieConsent] = useState(undefined);
+  const [historiesLoaded, setHistoriesLoaded] = useState(false); // Track if histories are loaded
 
   useEffect(() => {
     setCookieConsent(localStorage.getItem("cookiesAccepted") === "true");
@@ -92,14 +93,6 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
       setIsHydrated(true);
     }
   }, []);
-
-  // Fetch welcome message after hydration
-  useEffect(() => {
-    if (isHydrated) {
-      const currentStepToUse = localStorage.getItem("currentStep") || currentStep;
-      fetchWelcomeMessage(currentStepToUse);
-    }
-  }, [isHydrated]);
 
   // Update localStorage when states change
   useEffect(() => {
@@ -166,13 +159,6 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
   // function to get combined history for a user
   async function getUserHistory(userId) {
     try {
-      console.log(
-        "Fetching user history for userId:",
-        userId,
-        "URL:",
-        `${BASE_URL}${historyEndpoint}/user/${userId}`,
-      );
-
       const response = await fetch(`${BASE_URL}${historyEndpoint}/user/${userId}`);
       if (!response.ok) {
         throw new Error("Failed to fetch user history");
@@ -184,122 +170,80 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
     }
   }
 
-  // Load existing histories
+  // Load ALL histories ONCE when component hydrates
   useEffect(() => {
-    if (!isHydrated) return;
+    if (!isHydrated || historiesLoaded) return;
 
-    async function loadStepHistories() {
+    async function loadAllHistories() {
       const userId = localStorage.getItem("userId");
       if (!userId) {
         console.error("No userId found in localStorage");
+        setHistoriesLoaded(true);
         return;
       }
 
-      const newHistories = { ...chatHistories };
-      let stepsNeedingWelcome = [];
+      const newHistories = {};
+      // Initialize all steps first
+      steps.forEach((step) => {
+        newHistories[step.id] = [];
+      });
 
-      for (const stepId of Object.keys(newHistories)) {
+      // Load history for ALL steps at once
+      for (const step of steps) {
+        const stepId = step.id;
         try {
-          const response = await fetch(`${BASE_URL}${historyEndpoint}/${stepId}?userId=${userId}`);
+          const url = `${BASE_URL}${historyEndpoint}/${stepId}?userId=${userId}`;
+
+          const response = await fetch(url);
 
           if (response.ok) {
             const data = await response.json();
             if (Array.isArray(data) && data.length > 0) {
+              // Normalize the message format
               newHistories[stepId] = data.map((msg) => ({
-                role: msg.role,
-                text: msg.content,
+                role: msg.role || "assistant",
+                text: msg.text || msg.content || "",
               }));
-            } else if (stepId === currentStep && newHistories[stepId].length === 0) {
-              stepsNeedingWelcome.push(stepId);
+            } else {
+              // Fetch welcome message for empty steps
+              try {
+                const welcomeResponse = await fetch(`${BASE_URL}${welcomeEndpoint}/${stepId}`);
+                if (welcomeResponse.ok) {
+                  const welcomeData = await welcomeResponse.json();
+                  newHistories[stepId] = [{ role: "assistant", text: welcomeData.message }];
+                }
+              } catch (welcomeError) {
+                console.error(`Failed to fetch welcome for step ${stepId}:`, welcomeError);
+              }
+            }
+          } else {
+            console.error(`Failed to load step ${stepId}: ${response.status}`);
+            // Fetch welcome message as fallback
+            try {
+              const welcomeResponse = await fetch(`${BASE_URL}${welcomeEndpoint}/${stepId}`);
+              if (welcomeResponse.ok) {
+                const welcomeData = await welcomeResponse.json();
+                newHistories[stepId] = [{ role: "assistant", text: welcomeData.message }];
+              }
+            } catch (welcomeError) {
+              console.error(`Failed to fetch welcome for failed step ${stepId}:`, welcomeError);
             }
           }
         } catch (error) {
-          console.error(`Failed to load history for step ${stepId}:`, error);
-          if (stepId === currentStep) {
-            stepsNeedingWelcome.push(stepId);
-          }
+          console.error(`Error loading step ${stepId}:`, error);
         }
       }
 
       setChatHistories(newHistories);
-
-      for (const stepId of stepsNeedingWelcome) {
-        await fetchWelcomeMessage(stepId);
-      }
+      setHistoriesLoaded(true);
     }
 
-    loadStepHistories();
-  }, [BASE_URL, isHydrated, currentStep, historyEndpoint]);
-
-  // Fetch welcome message
-  const fetchWelcomeMessage = async (stepId) => {
-    try {
-      // console.log(`Fetching welcome message for step ${stepId}`);
-      const response = await fetch(`${BASE_URL}${welcomeEndpoint}/${stepId}`);
-
-      if (response.ok) {
-        const data = await response.json();
-
-        setChatHistories((current) => {
-          const stepHistory = current[stepId] || [];
-          if (stepHistory.length === 0) {
-            // console.log(`Setting welcome message for step ${stepId}`);
-            return {
-              ...current,
-              [stepId]: [{ role: "assistant", text: data.message }],
-            };
-          }
-          return current;
-        });
-      }
-    } catch (error) {
-      console.error(`Failed to fetch welcome message for step ${stepId}:`, error);
-    }
-  };
+    loadAllHistories();
+  }, [isHydrated, historiesLoaded, BASE_URL, historyEndpoint, welcomeEndpoint, steps]);
 
   // Navigate to a different step
   const navigateToStep = async (stepId) => {
     setCurrentStep(stepId);
-
-    // If no history exists for this step, try to use context from previous steps
-    if (chatHistories[stepId].length === 0) {
-      try {
-        const userId = localStorage.getItem("userId");
-        if (userId) {
-          // Get context from previous steps first
-          const contextHistory = await getUserHistory(userId);
-          if (contextHistory && contextHistory.length > 0) {
-            // Add a system message indicating previous conversation context
-            const systemMessage = {
-              role: "system",
-              text: "Fortsättning från tidigare konversation.",
-            };
-
-            // Format the context messages
-            const formattedContext = contextHistory.map((msg) => ({
-              role: msg.role,
-              text: msg.content,
-            }));
-
-            // Only use the last few messages to avoid context overload
-            const relevantContext = formattedContext.slice(-5);
-
-            setChatHistories((prev) => ({
-              ...prev,
-              [stepId]: [systemMessage, ...relevantContext],
-            }));
-          } else {
-            // If no context, just fetch the welcome message
-            await fetchWelcomeMessage(stepId);
-          }
-        } else {
-          await fetchWelcomeMessage(stepId);
-        }
-      } catch (error) {
-        console.error("Error preparing context for new step:", error);
-        await fetchWelcomeMessage(stepId);
-      }
-    }
 
     if (typeof window !== "undefined") {
       localStorage.setItem("currentStep", stepId);
@@ -415,6 +359,7 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
       setIsLoading(false);
     }
   }
+
   // Handle enter key press to send message
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
