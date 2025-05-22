@@ -56,6 +56,11 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
   const [completedSteps, setCompletedSteps] = useState([]);
   const [cookieConsent, setCookieConsent] = useState(undefined);
 
+  // Generate localStorage keys based on type
+  const currentStepKey = type === "interview" ? "currentInterviewStep" : "currentApplicationStep";
+  const completedStepsKey =
+    type === "interview" ? "interviewCompletedSteps" : "applicationCompletedSteps";
+
   useEffect(() => {
     setCookieConsent(localStorage.getItem("cookiesAccepted") === "true");
   }, []);
@@ -72,12 +77,21 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
   // Load data from localStorage once on client side
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const savedStep = localStorage.getItem("currentStep");
+      // Clean up old localStorage keys (legacy cleanup)
+      const oldKeys = ["currentStep", "completedSteps"];
+      oldKeys.forEach((key) => {
+        if (localStorage.getItem(key)) {
+          console.log(`Removing legacy localStorage key: ${key}`);
+          localStorage.removeItem(key);
+        }
+      });
+
+      const savedStep = localStorage.getItem(currentStepKey);
       if (savedStep) {
         setCurrentStep(savedStep);
       }
 
-      const savedCompletedSteps = localStorage.getItem("completedSteps");
+      const savedCompletedSteps = localStorage.getItem(completedStepsKey);
       if (savedCompletedSteps) {
         try {
           const parsedSteps = JSON.parse(savedCompletedSteps);
@@ -85,34 +99,34 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
             setCompletedSteps(parsedSteps);
           }
         } catch (e) {
-          console.error("Error parsing completedSteps from localStorage:", e);
-          localStorage.removeItem("completedSteps");
+          console.error(`Error parsing ${completedStepsKey} from localStorage:`, e);
+          localStorage.removeItem(completedStepsKey);
         }
       }
       setIsHydrated(true);
     }
-  }, []);
+  }, [currentStepKey, completedStepsKey]);
 
   // Fetch welcome message after hydration
   useEffect(() => {
     if (isHydrated) {
-      const currentStepToUse = localStorage.getItem("currentStep") || currentStep;
+      const currentStepToUse = localStorage.getItem(currentStepKey) || currentStep;
       fetchWelcomeMessage(currentStepToUse);
     }
-  }, [isHydrated]);
+  }, [isHydrated, currentStepKey]);
 
   // Update localStorage when states change
   useEffect(() => {
     if (isHydrated && typeof window !== "undefined") {
-      localStorage.setItem("currentStep", currentStep);
+      localStorage.setItem(currentStepKey, currentStep);
     }
-  }, [currentStep, isHydrated]);
+  }, [currentStep, isHydrated, currentStepKey]);
 
   useEffect(() => {
     if (isHydrated && typeof window !== "undefined") {
-      localStorage.setItem("completedSteps", JSON.stringify(completedSteps));
+      localStorage.setItem(completedStepsKey, JSON.stringify(completedSteps));
     }
-  }, [completedSteps, isHydrated]);
+  }, [completedSteps, isHydrated, completedStepsKey]);
 
   const currentStepData = steps.find((step) => step.id === currentStep);
   const heading = currentStepData?.heading || "Chat";
@@ -150,6 +164,7 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
             userId,
             currentStep,
             currentChatHistory,
+            type,
           }),
         });
 
@@ -161,7 +176,7 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
       }
     }
     sendHistoryToBackend();
-  }, [currentChatHistory, historyEndpoint]);
+  }, [currentChatHistory, historyEndpoint, type, cookieConsent]);
 
   // Load existing histories
   useEffect(() => {
@@ -179,7 +194,9 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
 
       for (const stepId of Object.keys(newHistories)) {
         try {
-          const response = await fetch(`${BASE_URL}${historyEndpoint}/${stepId}?userId=${userId}`);
+          const response = await fetch(
+            `${BASE_URL}${historyEndpoint}/${stepId}?userId=${userId}&type=${type}`,
+          );
 
           if (response.ok) {
             const data = await response.json();
@@ -208,13 +225,13 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
     }
 
     loadStepHistories();
-  }, [BASE_URL, isHydrated, currentStep, historyEndpoint]);
+  }, [BASE_URL, isHydrated, currentStep, historyEndpoint, type]);
 
   // Fetch welcome message
   const fetchWelcomeMessage = async (stepId) => {
     try {
       // console.log(`Fetching welcome message for step ${stepId}`);
-      const response = await fetch(`${BASE_URL}${welcomeEndpoint}/${stepId}`);
+      const response = await fetch(`${BASE_URL}${welcomeEndpoint}/${stepId}?type=${type}`);
 
       if (response.ok) {
         const data = await response.json();
@@ -245,7 +262,7 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
     }
 
     if (typeof window !== "undefined") {
-      localStorage.setItem("currentStep", stepId);
+      localStorage.setItem(currentStepKey, stepId);
     }
   };
 
@@ -276,7 +293,7 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
         setCompletedSteps(updatedCompletedSteps);
 
         if (typeof window !== "undefined") {
-          localStorage.setItem("completedSteps", JSON.stringify(updatedCompletedSteps));
+          localStorage.setItem(completedStepsKey, JSON.stringify(updatedCompletedSteps));
         }
       }
 
@@ -285,7 +302,7 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
         setCurrentStep(nextStep);
 
         if (typeof window !== "undefined") {
-          localStorage.setItem("currentStep", nextStep);
+          localStorage.setItem(currentStepKey, nextStep);
         }
       }
     }
@@ -317,6 +334,7 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
           message,
           currentStep,
           userId,
+          type,
         }),
       });
 

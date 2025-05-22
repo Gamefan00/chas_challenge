@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
-
-import { Check, Trash2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Check, Trash2, Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Sidebar,
@@ -86,15 +86,17 @@ export default function SidebarNav({
       const isNowMobile = window.innerWidth < 768;
       setIsMobile(isNowMobile);
 
-      if (!isNowMobile && !isMobile) {
+      if (!isNowMobile) {
         // If the sidebar is closed and the screen is resized to desktop, open it
         setIsSidebarOpen(true);
-      }
-
-      if (isNowMobile && !isMobile) {
-        // If the sidebar is open and the screen is resized to mobile, close it
+      } else {
         setIsSidebarOpen(false);
       }
+
+      // if (isNowMobile && !isMobile) {
+      //   // If the sidebar is open and the screen is resized to mobile, close it
+      //   setIsSidebarOpen(false);
+      // }
     };
     handleResize(); // Initial check
 
@@ -103,7 +105,7 @@ export default function SidebarNav({
     return () => {
       window.removeEventListener("resize", handleResize);
     };
-  }, []);
+  }, [type]);
 
   // Desktop view
   useEffect(() => {
@@ -228,16 +230,13 @@ export default function SidebarNav({
         return;
       }
 
-      // Updated to use /api/history/reset endpoint with POST method
+      // Create endpoint based on type
+      const endpoint =
+        type === "interview"
+          ? `${BASE_URL}/clear/interview/${userId}`
+          : `${BASE_URL}/clear/application/${userId}`;
 
-      const endpoint = `${BASE_URL}/clear/application/${userId}`;
-      console.log("endpoint", endpoint);
-      // const endpoint =
-      //   type === "interview"
-      //     ? `${BASE_URL}/clear/interview/${userId}`
-      //     : `${BASE_URL}/clear/application/${userId}`;
-
-      // console.log("Clearing history with endpoint:", endpoint);
+      console.log("Clearing history with endpoint:", endpoint);
 
       const response = await fetch(endpoint, {
         method: "DELETE",
@@ -249,11 +248,20 @@ export default function SidebarNav({
         throw new Error("Failed to reset chat history");
       }
 
-      // Clear completed steps from localStorage
-      localStorage.removeItem("completedSteps");
+      // Clear the correct localStorage keys based on type
+      const currentStepKey =
+        type === "interview" ? "currentInterviewStep" : "currentApplicationStep";
+      const completedStepsKey =
+        type === "interview" ? "interviewCompletedSteps" : "applicationCompletedSteps";
+
+      // Remove the type-specific localStorage items
+      localStorage.removeItem(currentStepKey);
+      localStorage.removeItem(completedStepsKey);
+
+      // Update local state
       setLocalCompletedSteps([]);
 
-      // Optionally navigate back to first step
+      // Navigate back to first step
       onNavigate("step-1");
 
       // Close sidebar on mobile after reset
@@ -275,118 +283,120 @@ export default function SidebarNav({
   return (
     <div className="flex flex-col">
       {/* Toggle button outside sidebar - visible when sidebar is closed */}
-
       <div className={cn(`absolute z-20 mt-2 ml-2`, isSidebarOpen && "hidden")}>
         <SidebarTrigger onClick={() => setIsSidebarOpen(true)} className="toggle-button" />
       </div>
 
-      {/* Sidebar with conditional rendering for width */}
-      <div
-        className={cn(
-          "sidebar-container sticky top-0 h-[90vh] flex-1 overflow-hidden",
-          isSidebarOpen ? "w-64" : "w-0 overflow-hidden",
-          isMobile && isSidebarOpen ? "absolute top-0 left-0 z-40" : "",
-        )}
-      >
-        <Sidebar className="relative flex w-64 flex-col transition-opacity duration-500">
-          <div className="relative z-10 mt-2 ml-2">
-            <SidebarTrigger onClick={() => setIsSidebarOpen(false)} className="toggle-button" />
-          </div>
+      {/* Sidebar with motion */}
+      <AnimatePresence>
+        {isSidebarOpen && (
+          <motion.div
+            key="sidebar"
+            initial={{ width: 0, opacity: 0 }}
+            animate={{ width: isMobile ? "100%" : "16rem", opacity: 1 }}
+            exit={{ width: 0, opacity: 0 }}
+            transition={{ type: "tween", duration: 0.3 }}
+            className={cn(
+              "sidebar-container sticky top-0 z-40 h-[90vh] overflow-hidden",
+              isMobile ? "absolute top-0 left-0" : "",
+            )}
+          >
+            <Sidebar className="relative flex w-full flex-col transition-opacity duration-500">
+              {/* Close button inside sidebar */}
+              <div className="relative z-10 mt-2 ml-2">
+                <SidebarTrigger onClick={() => setIsSidebarOpen(false)} className="toggle-button" />
+              </div>
 
-          <SidebarContent className="flex h-full flex-col justify-between">
-            <SidebarGroup>
-              <SidebarGroupContent>
-                <div className="">
-                  <SidebarMenu>
-                    {selectedSteps.map((step) => {
-                      // Determine if this step is completed or active
-                      const isCompleted = localCompletedSteps.includes(step.id);
-                      const isActive = currentStep === step.id;
+              <SidebarContent className="flex h-full flex-col justify-between">
+                <SidebarGroup>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      {selectedSteps.map((step) => {
+                        const isCompleted = localCompletedSteps.includes(step.id);
+                        const isActive = currentStep === step.id;
 
-                      // Calculate if this step is accessible
-                      const previousStepIndex =
-                        selectedSteps.findIndex((s) => s.id === step.id) - 1;
-                      const previousStepId =
-                        previousStepIndex >= 0 ? selectedSteps[previousStepIndex].id : null;
-                      const isPreviousCompleted =
-                        !previousStepId || localCompletedSteps.includes(previousStepId);
-                      const isAccessible = isActive || isCompleted || isPreviousCompleted;
+                        const previousStepIndex =
+                          selectedSteps.findIndex((s) => s.id === step.id) - 1;
+                        const previousStepId =
+                          previousStepIndex >= 0 ? selectedSteps[previousStepIndex].id : null;
+                        const isPreviousCompleted =
+                          !previousStepId || localCompletedSteps.includes(previousStepId);
+                        const isAccessible = isActive || isCompleted || isPreviousCompleted;
 
-                      const forceShowCompleted = step.id === "step-6" && isActive;
+                        const forceShowCompleted = step.id === "step-6" && isActive;
 
-                      return (
-                        <SidebarMenuItem key={step.id}>
-                          <SidebarMenuButton
-                            onClick={() =>
-                              isAccessible && handleStepClick(step.id) && setIsSidebarOpen(false)
-                            }
-                            disabled={!isAccessible}
-                            className={cn(
-                              "w-full justify-start",
-                              isActive && "bg-primary/10 text-primary",
-                              isCompleted ? "text-green-600" : "text-accent-foreground",
-                              !isAccessible && "cursor-not-allowed opacity-50",
-                            )}
-                          >
-                            <div className="mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center">
-                              {isCompleted || forceShowCompleted ? (
-                                // Green circle with white checkmark
-                                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-green-500">
-                                  <Check className="h-3 w-3 text-white" strokeWidth={3} />
-                                </div>
-                              ) : (
-                                <div
-                                  className={cn(
-                                    "h-5 w-5 rounded-full border-2",
-                                    isActive ? "border-primary bg-primary" : "border-border",
-                                  )}
-                                >
-                                  {isActive && (
-                                    <div className="bg-background w-full rounded-full" />
-                                  )}
-                                </div>
+                        return (
+                          <SidebarMenuItem key={step.id}>
+                            <SidebarMenuButton
+                              onClick={() =>
+                                isAccessible && handleStepClick(step.id) && setIsSidebarOpen(false)
+                              }
+                              disabled={!isAccessible}
+                              className={cn(
+                                "w-full justify-start",
+                                isActive && "bg-primary/10 text-primary",
+                                isCompleted ? "text-green-600" : "text-accent-foreground",
+                                !isAccessible && "cursor-not-allowed opacity-50",
                               )}
-                            </div>
-                            <span className={cn("text-sm", isActive && "font-medium")}>
-                              {step.label}
-                            </span>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      );
-                    })}
-                  </SidebarMenu>
+                            >
+                              <div className="mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center">
+                                {isCompleted || forceShowCompleted ? (
+                                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-green-500">
+                                    <Check className="h-3 w-3 text-white" strokeWidth={3} />
+                                  </div>
+                                ) : (
+                                  <div
+                                    className={cn(
+                                      "h-5 w-5 rounded-full border-2",
+                                      isActive ? "border-primary bg-primary" : "border-border",
+                                    )}
+                                  >
+                                    {isActive && (
+                                      <div className="bg-background w-full rounded-full" />
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                              <span className={cn("text-sm", isActive && "font-medium")}>
+                                {step.label}
+                              </span>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        );
+                      })}
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </SidebarGroup>
+
+                {/* Reset chat button */}
+                <div className="m-4">
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="ghost" className="w-full justify-start hover:shadow-md">
+                        <Trash2 className="mr-2 h-5 w-5" />
+                        <span>Återställ chatt</span>
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Är du helt säker?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Denna åtgärd kan inte ångras. Detta kommer att permanent radera din
+                          chatthistorik från våra servrar.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Avbryt</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleResetChat}>Fortsätt</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
-              </SidebarGroupContent>
-            </SidebarGroup>
-            <div className="">
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <div className="m-4">
-                    <Button variant="ghost" className="w-full justify-start hover:shadow-md">
-                      {" "}
-                      <Trash2 className="mr-2 h-5 w-5" />
-                      <span> Återställ chatt</span>
-                    </Button>
-                  </div>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Är du helt säker?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Denna åtgärd kan inte ångras. Detta kommer att permanent radera din
-                      chatthistorik från våra servrar.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Avbryt</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleResetChat}>Fortsätt</AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </div>
-          </SidebarContent>
-        </Sidebar>
-      </div>
+              </SidebarContent>
+            </Sidebar>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
