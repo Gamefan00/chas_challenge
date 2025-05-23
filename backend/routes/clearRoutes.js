@@ -1,35 +1,46 @@
-// import express from "express";
+import express from "express";
+import query from "../utils/supabaseQuery.js";
 
-// const router = express.Router();
+const router = express.Router();
+// Delete application chat history
 
-// router.post("/", (req, res) => {
-//   initializeApplicationConversations();
-//   res.json({
-//     message: "All conversation histories cleared and welcome messages restored",
-//   });
-// });
+router.delete("/application/:userId", async (req, res) => {
+  try {
+    const {userId} = req.params;
+    console.log("userId:", userId);
 
-// router.post("/:stepId", (req, res) => {
-//   const { stepId } = req.params;
+    // Delete all history for this user
+    await query(
+      "DELETE FROM chat_histories_application_test WHERE user_id = $1",
+      [userId]
+    );
+    console.log("res", res);
+    console.log("req", req);
 
-//   if (stepConversations[stepId]) {
-//     const welcomeMessage = {
-//       role: "assistant",
-//       content: [
-//         {
-//           type: "output_text",
-//           text: stepWelcomeMessagesApplication[stepId],
-//         },
-//       ],
-//     };
+    res.json({message: "Application chat history cleared successfully"});
+    console.log("Application chat history cleared successfully");
+  } catch (error) {
+    console.error("Error clearing application history:", error);
+    res.status(500).json({error: "Failed to clear application history"});
+  }
+});
 
-//     stepConversations[stepId] = [systemMessage, welcomeMessage];
-//     res.json({
-//       message: `Conversation history for ${stepId} cleared and welcome message restored`,
-//     });
-//   } else {
-//     res.status(404).json({ error: "Step not found" });
-//   }
-// });
+// Delete interview chat history
+router.delete("/interview/:userId", async (req, res) => {
+  try {
+    const {userId} = req.params;
+    console.log("Deleting chat history for user:", userId);
 
-// export default router;
+    await query(
+      "DELETE FROM chat_histories_interview_test WHERE user_id = $1",
+      [userId]
+    );
+
+    res.json({message: "Interview chat history cleared successfully"});
+  } catch (error) {
+    console.error("Error clearing interview history:", error);
+    res.status(500).json({error: "Failed to clear interview history"});
+  }
+});
+
+export default router;

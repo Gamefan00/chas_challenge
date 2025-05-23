@@ -43,7 +43,7 @@ export default function DocumentationSection() {
             {documents.map((doc, index) => (
               <motion.div
                 key={index}
-                className="flex items-start rounded-md border-b p-3"
+                className="flex items-start border-b p-3"
                 initial={{ opacity: 0, x: -5 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.3, delay: 0.5 + index * 0.1 }}

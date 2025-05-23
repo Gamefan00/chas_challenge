@@ -45,7 +45,7 @@ export default function StepsSection() {
     >
       <Card className="mb-8">
         <CardHeader>
-          <CardTitle className="border-b pb-2">Steg-för-steg ansökningsguide</CardTitle>
+          <CardTitle className="border-b pb-2">Steg-för-steg i ansökningsprocessen</CardTitle>
         </CardHeader>
         <CardContent>
           <motion.p
@@ -61,7 +61,7 @@ export default function StepsSection() {
             {steps.map((step, index) => (
               <motion.div
                 key={index}
-                className="rounded-md border-b p-4"
+                className="border-b p-4"
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.4 + index * 0.1 }}

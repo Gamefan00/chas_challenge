@@ -5,12 +5,12 @@ import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import chatRoutes from "./routes/chatRoutes.js";
 import historyRoutes from "./routes/historyRoutes.js";
-// import clearRoutes from "./routes/clearRoutes.js";
+import clearRoutes from "./routes/clearRoutes.js";
 import getUserIdRoutes from "./routes/getUserIdRoute.js";
 import authRoutes from "./routes/authRoutes.js";
 import aiModelConfigRoutes from "./routes/settingsRoutes/aiModelConfigRoutes.js";
 import aiBehaviorConfigRoutes from "./routes/settingsRoutes/aiBehaviorConfigRoutes.js";
-import { initializeConversationSettings } from "./utils/initializeConversationSettings.js";
+import {initializeConversationSettings} from "./utils/initializeConversationSettings.js";
 import query from "./utils/supabaseQuery.js";
 
 // Load environment variables
@@ -35,7 +35,7 @@ initializeConversationSettings();
 // Routes
 app.use("/chat", chatRoutes);
 app.use("/history", historyRoutes);
-// app.use("/clear", clearRoutes);
+app.use("/clear", clearRoutes);
 app.use("/getUserId", getUserIdRoutes);
 app.use("/auth", authRoutes);
 app.use("/settingsRoutes/aiModelConfig", aiModelConfigRoutes);

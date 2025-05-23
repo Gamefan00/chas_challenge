@@ -67,8 +67,66 @@ const CookieSettingsPage = () => {
     router.back();
   };
 
-  const deleteUserData = async () => {
-    // Ta bort användardata från servern
+  // const deleteUserData = async () => {
+  //   // Ta bort användardata från servern
+  // };
+
+  // RESET BTN function
+  const handleResetChat = async () => {
+    try {
+      // Get userId from localStorage or your auth system
+      const userId = localStorage.getItem("userId");
+
+      const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+
+      if (!userId) {
+        console.error("No userId found");
+        return;
+      }
+
+      // Create endpoint based on type
+      const applicationEndPoint = `${BASE_URL}/clear/application/${userId}`;
+      const interviewEndPoint = `${BASE_URL}/clear/interview/${userId}`;
+
+      const applicationResponse = await fetch(applicationEndPoint, {
+        method: "DELETE",
+      });
+
+      const interviewResponse = await fetch(interviewEndPoint, {
+        method: "DELETE",
+      });
+
+      if (!applicationResponse.ok) {
+        console.error("Failed to reset chat history:", response.statusText);
+        throw new Error("Failed to reset chat history");
+      }
+
+      if (!interviewResponse.ok) {
+        console.error("Failed to reset interview history:", interviewResponse.statusText);
+        throw new Error("Failed to reset interview history");
+      }
+
+      // Remove the type-specific localStorage items
+      localStorage.removeItem("currentInterviewStep");
+      localStorage.removeItem("currentapplicationStep");
+      localStorage.removeItem("interviewCompletedSteps");
+      localStorage.removeItem("applicationCompletedSteps");
+
+      localStorage.removeItem("completedSteps");
+      localStorage.removeItem("currentStep");
+
+      // // Update local state
+      // setLocalCompletedSteps([]);
+
+      // Optional: Show success notification
+      alert("Chatthistoriken har återställts");
+
+      // Reload the page to refresh the UI state
+      window.location.reload();
+    } catch (error) {
+      console.error("Error resetting chat history:", error);
+      alert("Ett fel uppstod vid återställning av chatt-historiken");
+    }
   };
 
   return (
@@ -153,7 +211,7 @@ const CookieSettingsPage = () => {
                       </DialogDescription>
                     </DialogHeader>
                     <DialogFooter className="flex gap-2 sm:justify-start">
-                      <Button variant="destructive" onClick={deleteUserData} disabled={isDeleting}>
+                      <Button onClick={handleResetChat} variant="destructive" disabled={isDeleting}>
                         {isDeleting ? "Tar bort..." : "Ja, ta bort min data"}
                       </Button>
                       <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>

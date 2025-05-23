@@ -36,7 +36,6 @@ const steps = [
   { id: "step-6", label: "Granska och skicka" },
 ];
 
-
 const interviewSteps = [
   {
     id: "step-1",
@@ -306,10 +305,7 @@ export default function SidebarNav({
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <div className="p-4">
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start hover:bg-gray-100 hover:shadow-md"
-                    >
+                    <Button variant="ghost" className="w-full justify-start hover:shadow-md">
                       {" "}
                       <Trash2 className="mr-2 h-5 w-5" />
                       <span> Återställ chatt</span>
