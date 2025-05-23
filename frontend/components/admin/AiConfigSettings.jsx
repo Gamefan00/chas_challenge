@@ -140,7 +140,7 @@ export default function AIBotSettings() {
     <div className="space-y-6">
       {/* AI Model Configuration Card */}
       <Card className="w-full shadow-sm">
-        <CardHeader className="flex justify-between">
+        <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
           <CardTitle className="text-lg font-semibold">AI-Modell Konfiguration</CardTitle>
           <SaveBtn onClick={handleSave} status={saveStatus} />
         </CardHeader>

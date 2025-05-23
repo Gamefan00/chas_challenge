@@ -2,7 +2,7 @@
 import Header from "@/components/shared/Header";
 import Tabs from "@/components/shared/TabsComponent";
 import BehaviorSettings from "@/components/admin/BehaviorSettings";
-import ConfigSettings from "@/components/admin/ConfigSettings";
+import ConfigSettings from "@/components/admin/AiConfigSettings";
 
 const aiSettings = () => {
   const tabs = [
