@@ -52,16 +52,6 @@ export default function Sidebar() {
       href: "/admin",
       icon: MessageSquareIcon,
     },
-    {
-      name: "Landningssida",
-      href: "/admin/landing-settings",
-      icon: SettingsIcon,
-    },
-    {
-      name: "Resurssida",
-      href: "/admin/resource-settings",
-      icon: Info,
-    },
   ];
 
   const handleLogout = async () => {
