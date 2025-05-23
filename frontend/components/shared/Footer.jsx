@@ -51,13 +51,6 @@ const Footer = () => {
               </Link>
 
               <Link
-                href="/anvandarvillkor"
-                className="hover:text-primary transition-colors"
-                target="_blank"
-              >
-                Användervillkor
-              </Link>
-              <Link
                 href="/integrity"
                 className="hover:text-primary transition-colors"
                 target="_blank"
