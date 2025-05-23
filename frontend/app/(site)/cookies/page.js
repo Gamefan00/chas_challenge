@@ -89,7 +89,7 @@ const CookieSettingsPage = () => {
                     </Label>
                     <p className="text-muted-foreground text-sm">
                       Lagrar din session så att du kan fortsätta från där du slutade. Din data
-                      sparas krypterad i 30 dagar och raderas sedan automatiskt.
+                      sparas krypterad i 100 dagar och raderas sedan automatiskt.
                     </p>
                   </div>
                   <Switch

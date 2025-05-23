@@ -53,12 +53,12 @@ const CookieConsent = () => {
             </Button>
           </div>
           <CardDescription>
-            Vi använder cookies för att förbättra din upplevelse och lagra din session i 30 dagar.
+            Vi använder cookies för att förbättra din upplevelse och lagra din session i 100 dagar.
           </CardDescription>
         </CardHeader>
         <CardContent className="pb-2 text-sm">
           <p className="text-muted-foreground">
-            Vi lagrar dina konversationer i en krypterad databas i 30 dagar för att kunna fortsätta
+            Vi lagrar dina konversationer i en krypterad databas i 100 dagar för att kunna fortsätta
             assistera dig med din ansökan. Dina uppgifter delas aldrig med tredje part. Läs mer i
             vår{" "}
             <Link href="/integrity" className="text-primary underline-offset-4 hover:underline">

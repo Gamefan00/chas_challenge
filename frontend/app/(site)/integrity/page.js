@@ -69,7 +69,7 @@ const IntegritetPage = () => {
                 </p>
                 <ul className="text-muted-foreground list-disc space-y-1 pl-6">
                   <li>Lagras krypterat i en säker databas</li>
-                  <li>Sparas endast i 30 dagar, därefter raderas de automatiskt</li>
+                  <li>Sparas endast i 100 dagar, därefter raderas de automatiskt</li>
                   <li>Skyddas med stark kryptering för att förhindra obehörig åtkomst</li>
                   <li>Delas aldrig med tredje part</li>
                 </ul>
