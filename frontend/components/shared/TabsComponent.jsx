@@ -3,7 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 export default function TabsComponent({
   defaultValue,
   className = "space-y-4",
-  tabsListClassName = "grid max-w-4xl md:grid-cols-4 gap-4",
+  tabsListClassName = "grid max-w-4xl md:grid-cols-2 gap-4",
   tabsContentClassName = "mt-6",
   tabs = [],
 }) {

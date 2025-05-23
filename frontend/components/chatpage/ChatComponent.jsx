@@ -13,7 +13,7 @@ import TopTrackingbar from "@/components/chatpage/TopTrackingBar";
 import Sidebar from "@/components/chatpage/SidebarNav";
 import BackToBottomBtn from "@/components/chatpage/BackToBottomBtn";
 
-import { useResizableTextarea } from "@/hooks/useResizableTextarea";
+// import { useResizableTextarea } from "@/hooks/useResizableTextarea";
 
 import Markdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
@@ -52,12 +52,29 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
+
   const [interviewCurrentStep, setInterviewCurrentStep] = useState("step-1");
   const [interviewCompletedSteps, setInterviewCompletedSteps] = useState([]);
   const [applicationCurrentStep, setApplicationCurrentStep] = useState("step-1");
   const [applicationCompletedSteps, setApplicationCompletedSteps] = useState([]);
+
   const [cookieConsent, setCookieConsent] = useState(undefined);
-  const [historiesLoaded, setHistoriesLoaded] = useState(false); // Track if histories are loaded
+  const [historiesLoaded, setHistoriesLoaded] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check for mobile and sidebar state
+  useEffect(() => {
+    const handleResize = () => {
+      const isNowMobile = window.innerWidth < 768;
+      setIsMobile(isNowMobile);
+      setIsSidebarOpen(!isNowMobile);
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const getLocalStorageKeys = (type) => {
     if (type === "interview") {
@@ -139,7 +156,7 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
 
   // Reference to message container for scrolling
   const messageContainerRef = useRef(null);
-  const { autoResizeTextarea, resetTextareaSize } = useResizableTextarea(messageContainerRef);
+  // const { autoResizeTextarea, resetTextareaSize } = useResizableTextarea(messageContainerRef);
 
   // Auto-scroll when messages change
   useEffect(() => {
@@ -426,27 +443,37 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
   // Show loading state until hydration is complete
   if (!isHydrated) {
     return (
-      <div className="bg-background flex h-[90vh] w-full items-center justify-center">
+      <div className="bg-background flex h-[100vh] w-full items-center justify-center">
         <Loader2 className="text-primary h-8 w-8 animate-spin" />
       </div>
     );
   }
 
+  // Calculate sidebar width for positioning
+  const toAddMovement = isSidebarOpen ? (isMobile ? 0 : 50) : 0;
+
   return (
-    <div className="bg-background relative flex h-[90vh] overflow-hidden">
+    <div className="bg-background relative flex h-[calc(100vh-64px)] overflow-hidden">
       {/* Interactive Sidebar */}
       <Sidebar
         currentStep={currentStep}
         completedSteps={completedSteps}
         onNavigate={navigateToStep}
         type={type}
+        onSidebarToggle={setIsSidebarOpen}
       />
-      <div className="flex w-full flex-col">
-        {/* This is the only scrollable area  */}
+      {/* Main content area */}
+      <main
+        className="relative flex w-full flex-col transition-all duration-300 ease-in-out"
+        style={{
+          marginLeft: isMobile ? "0px" : `${toAddMovement}px`,
+          width: isMobile ? "100%" : `calc(100% - ${toAddMovement}px)`,
+        }}
+      >
+        {/* Scrollable chat area */}
         <div
-          className="h-[85%] w-full overflow-y-auto"
+          className="darkScroll relative w-full flex-1 overflow-y-auto pb-50"
           ref={messageContainerRef}
-          style={{ height: "calc(85% - var(--textarea-extra-height, 0px))" }}
         >
           <TopTrackingbar
             heading={heading}
@@ -456,109 +483,110 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
             completeCurrentStep={completeCurrentStep}
             steps={stepsId}
           />
-          <div>
-            {/* Chat Messages */}
-            <div className="mx-auto max-w-3xl px-3">
-              {currentChatHistory.map((message, index) => (
-                <div
-                  key={index}
-                  className={`mb-4 ${
-                    message.role === "user"
-                      ? "flex flex-col items-end justify-end"
-                      : "flex flex-col items-start justify-start"
+
+          {/* Chat Messages */}
+          <div className="mx-auto max-w-3xl px-3">
+            {currentChatHistory.map((message, index) => (
+              <div
+                key={index}
+                className={`mb-4 ${
+                  message.role === "user"
+                    ? "flex flex-col items-end justify-end"
+                    : "flex flex-col items-start justify-start"
+                }`}
+              >
+                <Card
+                  className={`max-w-[80%] rounded-xl p-4 break-words ${
+                    message.role === "user" ? "user-msg bg-primary" : "bg-card"
                   }`}
                 >
-                  <Card
-                    className={`max-w-[80%] rounded-xl p-4 break-words ${
-                      message.role === "user" ? "user-msg bg-primary" : "bg-card"
-                    }`}
-                  >
-                    <div className="markdown-container">
-                      <Markdown
-                        remarkPlugins={[remarkGfm]}
-                        rehypePlugins={[rehypeRaw, rehypeSanitize]}
-                        components={{
-                          code(props) {
-                            const { children, className, ...rest } = props;
-                            return (
-                              <code
-                                className={`${className} text-primary bg-background rounded px-1.5 py-0.5`}
-                                {...rest}
-                              >
-                                {children}
-                              </code>
-                            );
-                          },
-                          pre(props) {
-                            return (
-                              <pre
-                                className="text-primary bg-primary overflow-x-auto rounded-md p-4 text-sm"
-                                {...props}
-                              />
-                            );
-                          },
-                        }}
-                      >
-                        {message.text || ""}
-                      </Markdown>
-                    </div>
-                  </Card>
-                  {message.role === "assistant" && <CopyButton message={message.text} />}
-                </div>
-              ))}
-              {isLoading && (
-                <Card className="inline-block items-start rounded-xl px-3 py-1 pb-0">
-                  <MessageLoading />
+                  <div className="markdown-container">
+                    <Markdown
+                      remarkPlugins={[remarkGfm]}
+                      rehypePlugins={[rehypeRaw, rehypeSanitize]}
+                      components={{
+                        code(props) {
+                          const { children, className, ...rest } = props;
+                          return (
+                            <code
+                              className={`${className} text-primary bg-background rounded px-1.5 py-0.5`}
+                              {...rest}
+                            >
+                              {children}
+                            </code>
+                          );
+                        },
+                        pre(props) {
+                          return (
+                            <pre
+                              className="text-primary bg-primary overflow-x-auto rounded-md p-4 text-sm"
+                              {...props}
+                            />
+                          );
+                        },
+                      }}
+                    >
+                      {message.text || ""}
+                    </Markdown>
+                  </div>
                 </Card>
+                {message.role === "assistant" && <CopyButton message={message.text} />}
+              </div>
+            ))}
+            {isLoading && (
+              <Card className="inline-block items-start rounded-xl px-3 py-1 pb-0">
+                <MessageLoading />
+              </Card>
+            )}
+          </div>
+        </div>
+
+        {/* Textarea  */}
+        <div
+          className={` ${isMobile ? "fixed" : "absolute"} bottom-10 z-30 h-[22%] w-full transition-all duration-300 ease-in-out md:bottom-0`}
+        >
+          <div className="absolute right-0 bottom-0 left-0 mx-auto w-full max-w-4xl">
+            <div className="relative h-48 pt-12">
+              {/* Scoll back to bottom button */}
+              <BackToBottomBtn containerRef={messageContainerRef} threshold={30} className="" />
+              <div className="bg-background h-full">
+                <Textarea
+                  value={message}
+                  onChange={(e) => {
+                    setMessage(e.target.value);
+                  }}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Skriv ett meddelande..."
+                  className="border-border bg-background darkScroll h-32 w-full resize-none overflow-y-auto rounded-xl p-3 pr-16 shadow-lg"
+                />
+
+                <div className="absolute right-2 bottom-6">
+                  <Button
+                    onClick={handleSendMessage}
+                    disabled={isLoading || !message.trim()}
+                    size="icon"
+                    className="bg-primary h-10 w-10 rounded-xl"
+                  >
+                    <Send className="h-5 w-5" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+            <div className="absolute right-0 bottom-0 left-0 flex justify-center">
+              {!cookieConsent && (
+                <div className="text-foreground/50 absolute -top-1 flex w-full justify-center text-center md:-top-8">
+                  <small className="bg-background md:bg-background/90 rounded px-2 py-1">
+                    För bästa chattupplevelse och för att spara din chatt­historik,{" "}
+                    <Link href="/cookies" className="hover:text-primary underline">
+                      acceptera cookies
+                    </Link>
+                  </small>
+                </div>
               )}
             </div>
           </div>
         </div>
-        <div className="h-[15%] w-full">
-          <div className="relative mx-auto max-w-7xl">
-            <div className="w-full">
-              <BackToBottomBtn containerRef={messageContainerRef} threshold={30} />
-              <div
-                style={{ maxWidth: "4xl", margin: "0 auto" }}
-                className="flex w-full max-w-4xl items-center px-4 pb-4"
-              >
-                <div className="relative flex flex-1 flex-col">
-                  <Textarea
-                    value={message}
-                    onChange={(e) => {
-                      setMessage(e.target.value);
-                      autoResizeTextarea(e);
-                    }}
-                    onKeyDown={handleKeyDown}
-                    placeholder="Skriv ett meddelande..."
-                    className="border-border bg-background max-h-max min-h-24 w-full resize-none overflow-y-auto rounded-xl p-3 pr-16 shadow-sm"
-                  />
-                  {!cookieConsent && (
-                    <div className="text-foreground/50 absolute bottom-2 flex w-full justify-center">
-                      <small>
-                        För bästa chattupplevelse och för att spara din chatt­historik,{" "}
-                        <Link href="/cookies" className="hover:text-primary underline">
-                          acceptera cookies
-                        </Link>
-                      </small>
-                    </div>
-                  )}
-                  <div className="absolute top-1 right-1">
-                    <Button
-                      onClick={handleSendMessage}
-                      disabled={isLoading || !message.trim()}
-                      size="icon"
-                      className="bg-primary h-10 w-10 rounded-full"
-                    >
-                      <Send className="h-5 w-5" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      </main>
     </div>
   );
 }

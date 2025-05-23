@@ -23,7 +23,7 @@ const linksData = [
 const Navbar = ({ position }) => {
   return (
     <nav
-      className={`bg-background ${position} top-0 z-50 flex h-16 items-center justify-between px-4 shadow-sm`}
+      className={`bg-background ${position} top-0 z-50 flex h-16 w-full items-center justify-between px-4 shadow-sm`}
     >
       <Logo />
 
@@ -58,7 +58,7 @@ const Navbar = ({ position }) => {
             </div>
             <SheetFooter>
               <SheetClose asChild>
-                <Button variant={"outline"}>Stäng</Button>
+                <Button variant={"outline"}>Stäng </Button>
               </SheetClose>
             </SheetFooter>
           </SheetContent>

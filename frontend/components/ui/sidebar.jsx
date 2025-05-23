@@ -198,7 +198,7 @@ function Sidebar({
       <div
         data-slot="sidebar-container"
         className={cn(
-          "border-sidebar-border inset-y-0 z-10 hidden h-[90vh] w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear md:flex",
+          "border-sidebar-border inset-y-0 z-10 hidden h-[100vh] w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear md:flex",
           side === "left"
             ? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"
             : "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",
@@ -274,7 +274,7 @@ function SidebarInset({ className, ...props }) {
     <main
       data-slot="sidebar-inset"
       className={cn(
-        "bg-background flex h-[90vh] w-full flex-1 flex-col",
+        "bg-background flex h-[100vh] w-full flex-1 flex-col",
         "md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow-sm md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-2",
         className,
       )}

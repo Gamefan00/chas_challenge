@@ -119,13 +119,13 @@ const CookieSettingsPage = () => {
       // setLocalCompletedSteps([]);
 
       // Optional: Show success notification
-      alert("Chatthistoriken har återställts");
+      // alert("Chatthistoriken har återställts");
 
       // Reload the page to refresh the UI state
       window.location.reload();
     } catch (error) {
       console.error("Error resetting chat history:", error);
-      alert("Ett fel uppstod vid återställning av chatt-historiken");
+      // alert("Ett fel uppstod vid återställning av chatt-historiken");
     }
   };
 

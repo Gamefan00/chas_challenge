@@ -74,6 +74,7 @@ export default function SidebarNav({
   completedSteps = [],
   onNavigate = () => {},
   type = "",
+  onSidebarToggle = () => {},
 }) {
   const [localCompletedSteps, setLocalCompletedSteps] = useState(completedSteps);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -126,6 +127,11 @@ export default function SidebarNav({
       setIsSidebarOpen(false);
     }
   }, [isMobile]);
+
+  // Communicate sidebar state to parent
+  useEffect(() => {
+    onSidebarToggle(isSidebarOpen && !isMobile);
+  }, [isSidebarOpen, isMobile, onSidebarToggle]);
 
   // Check localStorage on mount and when props change
   useEffect(() => {
@@ -220,9 +226,13 @@ export default function SidebarNav({
 
   const handleStepClick = (stepId) => {
     if (isMobile) {
-      setIsSidebarOpen(true);
+      setIsSidebarOpen(false); // Close sidebar after navigation on mobile
     }
     onNavigate(stepId);
+  };
+
+  const handleSidebarToggle = (isOpen) => {
+    setIsSidebarOpen(isOpen);
   };
 
   // RESET BTN function
@@ -301,22 +311,21 @@ export default function SidebarNav({
   return (
     <div className="flex flex-col">
       {/* Toggle button outside sidebar - visible when sidebar is closed */}
-
       <div className={cn(`absolute z-20 mt-2 ml-2`, isSidebarOpen && "hidden")}>
-        <SidebarTrigger onClick={() => setIsSidebarOpen(true)} className="toggle-button" />
+        <SidebarTrigger onClick={() => handleSidebarToggle(true)} className="toggle-button" />
       </div>
 
       {/* Sidebar with conditional rendering for width */}
       <div
         className={cn(
-          "sidebar-container sticky top-0 h-[90vh] flex-1 overflow-hidden",
+          "sidebar-container sticky top-0 h-[100vh] flex-1 overflow-hidden",
           isSidebarOpen ? "w-64" : "w-0 overflow-hidden",
           isMobile && isSidebarOpen ? "absolute top-0 left-0 z-40" : "",
         )}
       >
         <Sidebar className="relative flex w-64 flex-col transition-opacity duration-500">
           <div className="relative z-10 mt-2 ml-2">
-            <SidebarTrigger onClick={() => setIsSidebarOpen(false)} className="toggle-button" />
+            <SidebarTrigger onClick={() => handleSidebarToggle(false)} className="toggle-button" />
           </div>
 
           <SidebarContent className="flex h-full flex-col justify-between">
@@ -343,9 +352,7 @@ export default function SidebarNav({
                       return (
                         <SidebarMenuItem key={step.id}>
                           <SidebarMenuButton
-                            onClick={() =>
-                              isAccessible && handleStepClick(step.id) && setIsSidebarOpen(false)
-                            }
+                            onClick={() => isAccessible && handleStepClick(step.id)}
                             disabled={!isAccessible}
                             className={cn(
                               "w-full justify-start",
@@ -389,7 +396,6 @@ export default function SidebarNav({
                 <AlertDialogTrigger asChild>
                   <div className="p-4">
                     <Button variant="ghost" className="w-full justify-start hover:shadow-md">
-                      {" "}
                       <Trash2 className="mr-2 h-5 w-5" />
                       <span> Återställ chatt</span>
                     </Button>
