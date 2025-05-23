@@ -1,35 +1,78 @@
-// import express from "express";
+import express from "express";
+import query from "../utils/supabaseQuery.js";
 
-// const router = express.Router();
+const router = express.Router();
 
-// router.post("/", (req, res) => {
-//   initializeApplicationConversations();
-//   res.json({
-//     message: "All conversation histories cleared and welcome messages restored",
-//   });
-// });
+// Delete application chat history
+router.delete("/application/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    console.log("Clearing application history for userId:", userId);
 
-// router.post("/:stepId", (req, res) => {
-//   const { stepId } = req.params;
+    if (!userId) {
+      return res.status(400).json({ error: "Missing userId parameter" });
+    }
 
-//   if (stepConversations[stepId]) {
-//     const welcomeMessage = {
-//       role: "assistant",
-//       content: [
-//         {
-//           type: "output_text",
-//           text: stepWelcomeMessagesApplication[stepId],
-//         },
-//       ],
-//     };
+    // Delete all history for this user from application table
+    const result = await query(
+      "DELETE FROM chat_histories_application_test WHERE user_id = $1",
+      [userId]
+    );
 
-//     stepConversations[stepId] = [systemMessage, welcomeMessage];
-//     res.json({
-//       message: `Conversation history for ${stepId} cleared and welcome message restored`,
-//     });
-//   } else {
-//     res.status(404).json({ error: "Step not found" });
-//   }
-// });
+    console.log("Application delete result:", result);
+    console.log(
+      "Application chat history cleared successfully for user:",
+      userId
+    );
 
-// export default router;
+    res.json({
+      message: "Application chat history cleared successfully",
+      userId: userId,
+      deletedRecords: result.rowCount || 0,
+    });
+  } catch (error) {
+    console.error("Error clearing application history:", error);
+    res.status(500).json({
+      error: "Failed to clear application history",
+      details: error.message,
+    });
+  }
+});
+
+// Delete interview chat history
+router.delete("/interview/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    console.log("Clearing interview history for userId:", userId);
+
+    if (!userId) {
+      return res.status(400).json({ error: "Missing userId parameter" });
+    }
+
+    // Delete all history for this user from interview table
+    const result = await query(
+      "DELETE FROM chat_histories_interview_test WHERE user_id = $1",
+      [userId]
+    );
+
+    console.log("Interview delete result:", result);
+    console.log(
+      "Interview chat history cleared successfully for user:",
+      userId
+    );
+
+    res.json({
+      message: "Interview chat history cleared successfully",
+      userId: userId,
+      deletedRecords: result.rowCount || 0,
+    });
+  } catch (error) {
+    console.error("Error clearing interview history:", error);
+    res.status(500).json({
+      error: "Failed to clear interview history",
+      details: error.message,
+    });
+  }
+});
+
+export default router;

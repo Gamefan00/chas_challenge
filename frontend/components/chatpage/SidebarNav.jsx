@@ -36,7 +36,6 @@ const steps = [
   { id: "step-6", label: "Granska och skicka" },
 ];
 
-
 const interviewSteps = [
   {
     id: "step-1",
@@ -80,6 +79,19 @@ export default function SidebarNav({
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
 
+  const getLocalStorageKeys = (type) => {
+    if (type === "interview") {
+      return {
+        currentStepKey: "interviewCurrentStep",
+        completedStepsKey: "interviewCompletedSteps",
+      };
+    } else {
+      return {
+        currentStepKey: "applicationCurrentStep",
+        completedStepsKey: "applicationCompletedSteps",
+      };
+    }
+  };
   const selectedSteps = type === "interview" ? interviewSteps : steps;
 
   useEffect(() => {
@@ -118,25 +130,25 @@ export default function SidebarNav({
   // Check localStorage on mount and when props change
   useEffect(() => {
     let updatedCompletedSteps = [...completedSteps];
-    // Check if there's data in localStorage
+
     if (typeof window !== "undefined") {
-      const savedCompletedSteps = localStorage.getItem("completedSteps");
+      const { completedStepsKey } = getLocalStorageKeys(type);
+      const savedCompletedSteps = localStorage.getItem(completedStepsKey);
+
       if (savedCompletedSteps) {
         try {
           const parsedSteps = JSON.parse(savedCompletedSteps);
           if (Array.isArray(parsedSteps)) {
-            // Merge with current completed steps
             updatedCompletedSteps = [...new Set([...updatedCompletedSteps, ...parsedSteps])];
           }
         } catch (e) {
-          console.error("Error parsing completed steps from localStorage");
+          console.error(`Error parsing ${completedStepsKey} from localStorage`);
         }
       }
     }
 
-    // Update localStorage
     setLocalCompletedSteps(updatedCompletedSteps);
-  }, [completedSteps, currentStep]);
+  }, [completedSteps, currentStep, type]);
 
   // Listen for custom stepsCompleted event
   useEffect(() => {
@@ -148,39 +160,38 @@ export default function SidebarNav({
         setLocalCompletedSteps(updatedSteps);
 
         if (typeof window !== "undefined") {
-          localStorage.setItem("completedSteps", JSON.stringify(updatedSteps));
+          const { completedStepsKey } = getLocalStorageKeys(type);
+          localStorage.setItem(completedStepsKey, JSON.stringify(updatedSteps));
         }
       }
     };
+
     window.addEventListener("stepCompleted", handleStepCompleted);
     return () => {
       window.removeEventListener("stepCompleted", handleStepCompleted);
     };
-  }, [localCompletedSteps]);
+  }, [localCompletedSteps, type]);
 
   // Handling for last step
   useEffect(() => {
     const isLastStepActive = currentStep === "step-6";
     if (isLastStepActive) {
-      // Check if the previous step is completed
       const isPreviousStepCompleted = localCompletedSteps.includes("step-5");
 
-      // Only auto-complete the last step if the previous step is completed
       if (isPreviousStepCompleted && !localCompletedSteps.includes("step-6")) {
-        // add last step to completed steps
         const updatedSteps = [...localCompletedSteps, "step-6"];
         setLocalCompletedSteps(updatedSteps);
 
         if (typeof window !== "undefined") {
-          localStorage.setItem("completedSteps", JSON.stringify(updatedSteps));
+          const { completedStepsKey } = getLocalStorageKeys(type);
+          localStorage.setItem(completedStepsKey, JSON.stringify(updatedSteps));
         }
 
-        // Notify parent component
         const event = new CustomEvent("stepCompleted", { detail: { step: "step-6" } });
         window.dispatchEvent(event);
       }
     }
-  }, [currentStep, localCompletedSteps]);
+  }, [currentStep, localCompletedSteps, type]);
 
   // Close sidebar when clicking outside in mobile view
   useEffect(() => {
@@ -213,8 +224,79 @@ export default function SidebarNav({
     }
     onNavigate(stepId);
   };
-  // console.log("isMobile", isMobile);
-  // console.log("isSidebarOpen", isSidebarOpen);
+
+  // RESET BTN function
+  const handleResetChat = async () => {
+    console.log("Reset chat initiated for type:", type);
+
+    try {
+      // Get userId from localStorage
+      const userId = localStorage.getItem("userId");
+      console.log("Retrieved userId:", userId);
+
+      const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+      console.log("Using BASE_URL:", BASE_URL);
+
+      // Step 1: Server-side cleanup FIRST (before localStorage)
+      if (userId) {
+        try {
+          const endpoint =
+            type === "interview"
+              ? `${BASE_URL}/clear/interview/${userId}`
+              : `${BASE_URL}/clear/application/${userId}`;
+
+          console.log("Calling server endpoint:", endpoint);
+
+          const response = await fetch(endpoint, {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+
+          if (!response.ok) {
+            const errorData = await response.text();
+            throw new Error(`Server error: ${response.status} - ${errorData}`);
+          }
+        } catch (serverError) {
+          console.error("Error communicating with server:", serverError);
+          throw serverError;
+        }
+      }
+
+      // Step 2: Clear localStorage keys based on type
+      if (type === "interview") {
+        localStorage.removeItem("interviewCurrentStep");
+        localStorage.removeItem("interviewCompletedSteps");
+        localStorage.setItem("interviewCurrentStep", "step-1");
+      } else {
+        localStorage.removeItem("applicationCurrentStep");
+        localStorage.removeItem("applicationCompletedSteps");
+        localStorage.setItem("applicationCurrentStep", "step-1");
+      }
+
+      // Remove legacy keys
+      localStorage.removeItem("completedSteps");
+      localStorage.removeItem("currentStep");
+
+      // Step 3: Reset local state
+      setLocalCompletedSteps([]);
+
+      // Step 4: Set a flag in localStorage to indicate we're in a reset state
+      // This will help the ChatComponent know it should reload fresh content
+      localStorage.setItem(`${type}ChatReset`, "true");
+
+      // Step 5: Reload the page with a longer delay
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    } catch (error) {
+      console.error("Error in handleResetChat:", error);
+      alert(
+        "Det uppstod ett fel när chatten skulle återställas. Försök igen eller ladda om sidan manuellt.",
+      );
+    }
+  };
 
   return (
     <div className="flex flex-col">
@@ -325,8 +407,30 @@ export default function SidebarNav({
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Avbryt</AlertDialogCancel>
-                    <AlertDialogAction>Fortsätt</AlertDialogAction>
+                    <AlertDialogCancel
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Ensure sidebar stays open in mobile view
+                        if (isMobile) {
+                          setIsSidebarOpen(true);
+                        }
+                      }}
+                    >
+                      Avbryt
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Call the reset function
+                        handleResetChat();
+                        // Ensure sidebar stays open in mobile view
+                        if (isMobile) {
+                          setIsSidebarOpen(true);
+                        }
+                      }}
+                    >
+                      Fortsätt
+                    </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
