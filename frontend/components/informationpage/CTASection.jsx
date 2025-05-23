@@ -35,7 +35,7 @@ export default function CTASection() {
             whileTap={{ scale: 0.95 }}
           >
             <Button size="lg">
-              <Link href="/applicationChat">Starta din ansökan nu</Link>
+              <Link href="/applicationChat">Starta formulärguide nu</Link>
             </Button>
           </motion.div>
         </CardFooter>

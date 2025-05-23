@@ -11,7 +11,7 @@ export default function HeroSettings() {
       title: "Förenkla din väg till arbetshjälpmedel",
       description:
         "Låt vår AI-assistent guida dig genom ansökningsprocessen och maximera dina chanser att få rätt stöd för dina behov.",
-      buttonText: "Kom igång nu",
+      buttonText: "Starta formulärguide",
       link: "/applicationChat",
     },
   ];

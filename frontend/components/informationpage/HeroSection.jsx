@@ -42,7 +42,7 @@ const HeroSection = () => {
               animate={{ y: 0, opacity: 100 }}
               transition={{ duration: 0.9 }}
             >
-              <Button className="cursor-pointer">Starta din ansökan</Button>
+              <Button className="cursor-pointer">Starta formulärguide</Button>
             </motion.div>
           </CardFooter>
         </div>

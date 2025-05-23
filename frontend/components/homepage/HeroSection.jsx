@@ -44,7 +44,7 @@ const HeroSection = () => {
               transition={{ duration: 0.9 }}
             >
               <Button asChild>
-                <Link href={"/applicationChat"}>Kom igång nu</Link>
+                <Link href={"/applicationChat"}>Starta formulärguide</Link>
               </Button>
             </motion.div>
           </CardFooter>

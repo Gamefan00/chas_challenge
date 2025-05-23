@@ -58,7 +58,7 @@ const HowItWorks = () => {
     <section className="w-full">
       <Card>
         <motion.div
-          className="w-full py-12"
+          className="w-full py-6"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
@@ -96,11 +96,11 @@ const HowItWorks = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.8 }}
           >
-            <CardFooter>
+            {/* <CardFooter>
               <Button asChild>
-                <Link href={"/applicationChat"}>Starta din ansökan</Link>
+                <Link href={"/applicationChat"}>Starta formulärguide</Link>
               </Button>
-            </CardFooter>
+            </CardFooter> */}
           </motion.div>
         </motion.div>
       </Card>
