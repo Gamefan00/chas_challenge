@@ -10,10 +10,24 @@ import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
 import { getCookie, setCookie, clearSession } from "@/lib/cookie-utils";
 import { useRouter } from "next/navigation";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const CookieSettingsPage = () => {
   const [cookieConsent, setCookieConsent] = useState(false);
   const [isChanged, setIsChanged] = useState(false);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [dialogMessage, setDialogMessage] = useState("");
+
   const router = useRouter();
 
   useEffect(() => {
@@ -36,12 +50,25 @@ const CookieSettingsPage = () => {
     }
 
     setIsChanged(false);
-    alert(
+
+    // Set dialog message based on consent choice
+    setDialogMessage(
       cookieConsent
         ? "Dina cookie-inställningar har sparats."
         : "Cookies har avböjts. Din session kommer inte att sparas.",
     );
+
+    // Show confirmation dialog
+    setConfirmDialogOpen(true);
+  };
+
+  const handleConfirmClose = () => {
+    setConfirmDialogOpen(false);
     router.back();
+  };
+
+  const deleteUserData = async () => {
+    // Ta bort användardata från servern
   };
 
   return (
@@ -100,15 +127,59 @@ const CookieSettingsPage = () => {
                 </div>
               </div>
 
-              <div className="mt-6 flex justify-end">
-                <Button onClick={saveSettings} disabled={!isChanged}>
-                  Spara inställningar
-                </Button>
+              <div className="mt-6 border-t pt-4">
+                <h3 className="mb-2 text-base font-medium">Hantera min data</h3>
+                <p className="text-muted-foreground mb-4 text-sm">
+                  Du kan när som helst välja att ta bort all din data från våra servrar. Detta
+                  kommer att radera all personlig information och sessioner permanent.
+                </p>
+
+                <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                  <div className="mt-6 flex flex-col space-y-5 md:flex-row md:justify-between">
+                    <DialogTrigger asChild>
+                      <Button variant="destructive">Ta bort all min data</Button>
+                    </DialogTrigger>
+                    <div className="border-t-1 md:border-0"></div>
+                    <Button onClick={saveSettings} disabled={!isChanged}>
+                      Spara inställningar
+                    </Button>
+                  </div>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Är du säker?</DialogTitle>
+                      <DialogDescription>
+                        Detta kommer permanent att ta bort all din data från våra servrar. Denna
+                        åtgärd kan inte ångras och du kommer att loggas ut.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="flex gap-2 sm:justify-start">
+                      <Button variant="destructive" onClick={deleteUserData} disabled={isDeleting}>
+                        {isDeleting ? "Tar bort..." : "Ja, ta bort min data"}
+                      </Button>
+                      <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+                        Avbryt
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </div>
             </CardContent>
           </Card>
         </motion.div>
       </div>
+
+      {/* Confirmation dialog for cookie settings saved */}
+      <Dialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Inställningar sparade</DialogTitle>
+            <DialogDescription>{dialogMessage}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button onClick={handleConfirmClose}>OK</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
