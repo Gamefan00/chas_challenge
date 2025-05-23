@@ -25,7 +25,6 @@ router.delete("/application/:userId", async (req, res) => {
 });
 
 // Delete interview chat history
-
 router.delete("/interview/:userId", async (req, res) => {
   try {
     const {userId} = req.params;

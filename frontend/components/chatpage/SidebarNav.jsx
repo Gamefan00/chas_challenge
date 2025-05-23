@@ -190,12 +190,14 @@ export default function SidebarNav({
         // Check if the click is outside the sidebar
         const sidebarElement = document.querySelector(".sidebar-container");
         const toggleButton = document.querySelector(".toggle-button");
+        const alertDialog = document.querySelector("[role='dialog']"); // Target the AlertDialog
 
         if (
           sidebarElement &&
           !sidebarElement.contains(event.target) &&
           toggleButton &&
-          !toggleButton.contains(event.target)
+          !toggleButton.contains(event.target) &&
+          (!alertDialog || !alertDialog.contains(event.target)) // Also check if click is not in the AlertDialog
         ) {
           setIsSidebarOpen(false);
         }
@@ -224,7 +226,7 @@ export default function SidebarNav({
       const userId = localStorage.getItem("userId");
 
       const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-
+      setIsSidebarOpen(true);
       if (!userId) {
         console.error("No userId found");
         return;
@@ -261,22 +263,14 @@ export default function SidebarNav({
       // Update local state
       setLocalCompletedSteps([]);
 
-      // Navigate back to first step
-      onNavigate("step-1");
-
-      // Close sidebar on mobile after reset
-      if (isMobile) {
-        setIsSidebarOpen(false);
-      }
-
       // Optional: Show success notification
-      alert("Chatthistoriken har återställts");
+      // alert("Chatthistoriken har återställts");
 
       // Reload the page to refresh the UI state
       window.location.reload();
     } catch (error) {
       console.error("Error resetting chat history:", error);
-      alert("Ett fel uppstod vid återställning av chatthistoriken");
+      // alert("Ett fel uppstod vid återställning av chatthistoriken");
     }
   };
 
@@ -328,9 +322,11 @@ export default function SidebarNav({
                         return (
                           <SidebarMenuItem key={step.id}>
                             <SidebarMenuButton
-                              onClick={() =>
-                                isAccessible && handleStepClick(step.id) && setIsSidebarOpen(false)
-                              }
+                              onClick={() => {
+                                if (isAccessible) {
+                                  handleStepClick(step.id);
+                                }
+                              }}
                               disabled={!isAccessible}
                               className={cn(
                                 "w-full justify-start",
@@ -367,12 +363,17 @@ export default function SidebarNav({
                     </SidebarMenu>
                   </SidebarGroupContent>
                 </SidebarGroup>
-
                 {/* Reset chat button */}
                 <div className="m-4">
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button variant="ghost" className="w-full justify-start hover:shadow-md">
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start hover:shadow-md"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                        }}
+                      >
                         <Trash2 className="mr-2 h-5 w-5" />
                         <span>Återställ chatt</span>
                       </Button>
@@ -386,8 +387,31 @@ export default function SidebarNav({
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel>Avbryt</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleResetChat}>Fortsätt</AlertDialogAction>
+                        <AlertDialogCancel
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // Ensure sidebar stays open in mobile view
+                            if (isMobile) {
+                              setIsSidebarOpen(true);
+                            }
+                          }}
+                        >
+                          Avbryt
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // Call the reset function
+                            handleResetChat();
+                            // Ensure sidebar stays open in mobile view
+                            // Note: This might not be necessary since handleResetChat already calls setIsSidebarOpen(true)
+                            if (isMobile) {
+                              setIsSidebarOpen(true);
+                            }
+                          }}
+                        >
+                          Fortsätt
+                        </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
