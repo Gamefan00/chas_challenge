@@ -156,7 +156,6 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
 
   // Reference to message container for scrolling
   const messageContainerRef = useRef(null);
-  // const { autoResizeTextarea, resetTextareaSize } = useResizableTextarea(messageContainerRef);
 
   // Auto-scroll when messages change
   useEffect(() => {
@@ -378,7 +377,6 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
     });
 
     setMessage("");
-    resetTextareaSize();
 
     try {
       const userId = localStorage.getItem("userId");
@@ -547,7 +545,7 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
         >
           <div className="absolute right-0 bottom-0 left-0 mx-auto w-full max-w-4xl">
             <div className="relative h-48 pt-12">
-              {/* Scoll back to bottom button */}
+              {/* Scroll back to bottom button */}
               <BackToBottomBtn containerRef={messageContainerRef} threshold={30} className="" />
               <div className="bg-background h-full">
                 <Textarea
