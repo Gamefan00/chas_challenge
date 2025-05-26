@@ -12,7 +12,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <>
+    <div className="pt-16">
       <UserIdInitializer />
       <Navbar position={"fixed"} />
       <SidebarProvider>
@@ -20,6 +20,6 @@ export default function RootLayout({ children }) {
       </SidebarProvider>
       <CookieConsent />
       <Footer />
-    </>
+    </div>
   );
 }
