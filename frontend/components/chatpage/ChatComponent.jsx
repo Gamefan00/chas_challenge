@@ -541,10 +541,10 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
 
         {/* Textarea  */}
         <div
-          className={` ${isMobile ? "fixed" : "absolute"} bottom-10 z-30 h-[22%] w-full transition-all duration-300 ease-in-out md:bottom-0`}
+          className={` ${isMobile ? "fixed" : "absolute"} ${cookieConsent ? "bottom-0" : "bottom-10"} z-30 h-[22%] w-full transition-all duration-300 ease-in-out md:bottom-0`}
         >
           <div className="absolute right-0 bottom-0 left-0 mx-auto w-full max-w-4xl">
-            <div className="relative h-48 pt-12">
+            <div className="relative mx-3 h-48 pt-12">
               {/* Scroll back to bottom button */}
               <BackToBottomBtn containerRef={messageContainerRef} threshold={30} className="" />
               <div className="bg-background h-full">
