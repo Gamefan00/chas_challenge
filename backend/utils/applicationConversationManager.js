@@ -1,52 +1,96 @@
 import query from "./supabaseQuery.js";
 
-// Define a default system message as fallback
 const defaultSystemMessageApplication = {
   role: "system",
   content: [
     {
       type: "input_text",
-      text: "Du är expert på arbetshjälpmedel.\n\nRegler:\nDu vägleder användaren (individer eller arbetsgivare) genom processen att ansöka om arbetshjälpmedel från Försäkringskassan, inklusive:\nVal av rätt blankett (FK 7545 eller FK 7546)\nStöd med svar vid utredningssamtal\nFörklaringar av regler och lagar (t.ex. AML, HSL, Diskrimineringslagen)\nTextförslag för fritextfält\nSekretesskyddad hantering av konversationer och dokument",
+      text: `Du är expert på arbetshjälpmedel.
+
+VIKTIGT: Identifiera först om användaren är Arbetstagare eller Arbetsgivare baserat på deras svar.
+Var uppmärksam på att användaren kan stava fel, använda synonymer eller beskriva sin roll indirekt.
+
+Om användaren skriver något som antyder att de är en arbetstagare, exempelvis att de:
+- Är anställda
+- Söker för sig själva
+- Beskriver sin egen arbetssituation eller funktionsnedsättning
+Då ska du behandla dem som ARBETSTAGARE.
+
+Om användaren skriver något som antyder att de är en arbetsgivare, exempelvis att de:
+- Är chef
+- Representerar ett företag
+- Ansöker för en anställd
+- Beskriver en anställds situation
+Då ska du behandla dem som ARBETSGIVARE.
+
+Förtydliga alltid vilken roll du har uppfattat genom att säga "Som arbetstagare..." eller "Som arbetsgivare..." i ditt svar.
+
+=== ARBETSTAGARE INSTRUKTIONER ===
+Om användaren är en arbetstagare (anställd som ansöker för sig själv):
+- Använd blankett FK 7545
+- Fokusera på personliga behov och funktionsnedsättning
+- Vägled genom personlig ansökan
+- Hjälp med att beskriva egen arbetssituation
+
+=== ARBETSGIVARE INSTRUKTIONER ===
+Om användaren är en arbetsgivare (ansöker för en anställd):
+- Använd blankett FK 7546
+- Fokusera på anpassningar av arbetsplatsen
+- Vägled genom ansökan för anställd
+- Hjälp med att beskriva arbetsmiljön
+
+=== ALLMÄNNA REGLER ===
+Du vägleder användaren genom processen att ansöka om arbetshjälpmedel från Försäkringskassan, inklusive:
+- Val av rätt blankett (FK 7545 eller FK 7546)
+- Stöd med svar vid utredningssamtal
+- Förklaringar av regler och lagar (t.ex. AML, HSL, Diskrimineringslagen)
+- Textförslag för fritextfält
+- Sekretesskyddad hantering av konversationer och dokument`,
     },
   ],
 };
-export { defaultSystemMessageApplication };
+
+// Default step welcome messages for different roles
 const defaultStepWelcomeMessagesApplication = {
-  "step-1":
-    "Välkommen till processen för att ansöka om arbetshjälpmedel! I detta första steg behöver vi bestämma vilken typ av ärende du har. \n\nÄr du en arbetstagare som behöver hjälpmedel för att kunna arbeta, eller representerar du en arbetsgivare som ansöker för en anställds räkning? Detta avgör vilken blankett som ska användas (FK 7545 eller FK 7546).",
-
-  "step-2":
-    "Nu ska vi beskriva din funktionsnedsättning och hur den påverkar ditt arbete. \n\nBerätta om din funktionsnedsättning, diagnos (om du har en) och vilka begränsningar den medför i arbetslivet. Detaljerad information här hjälper Försäkringskassan att förstå dina behov bättre.",
-
-  "step-3":
-    "I detta steg ska vi identifiera dina grundläggande behov för att kunna utföra ditt arbete. \n\nVilka arbetsuppgifter har du svårt att utföra på grund av din funktionsnedsättning? Vilka specifika hinder möter du i arbetet? Konkreta exempel hjälper till att bygga din ansökan.",
-
-  "step-4":
-    "Nu ska vi undersöka andra behov som kan finnas för att du ska kunna utföra ditt arbete. \n\nDetta kan handla om behov som inte är direkt kopplade till din funktionsnedsättning men som ändå påverkar din arbetsförmåga. Det kan också innefatta sociala eller organisatoriska aspekter av arbetet.",
-
-  "step-5":
-    "I detta steg ska vi gå igenom vilket stöd du redan får idag. \n\nBerätta om du har några hjälpmedel eller anpassningar på din arbetsplats idag, eller om du får stöd från andra aktörer som kommun, region, eller Arbetsförmedlingen. Detta är viktigt för att undvika dubbla insatser.",
-
-  "step-6":
-    "Nu är det dags att granska och sammanfatta din ansökan. \n\nLåt oss gå igenom den information du har delat och se till att din ansökan är komplett innan den skickas in. Jag kan hjälpa dig att formulera texten för fritextfälten i blanketten.",
+  "step-1": {
+    arbetstagare:
+      "Välkommen till processen för att ansöka om arbetshjälpmedel! Som arbetstagare kommer vi att hjälpa dig fylla i blankett FK 7545. Berätta kort om din arbetssituation och vad du behöver hjälp med.",
+    arbetsgivare:
+      "Välkommen till processen för att ansöka om arbetshjälpmedel! Som arbetsgivare kommer vi att hjälpa dig fylla i blankett FK 7546 för din anställd. Berätta om vilken anställd du ansöker för och deras behov.",
+  },
+  "step-2": {
+    arbetstagare:
+      "Nu ska vi beskriva din funktionsnedsättning och hur den påverkar ditt arbete. Berätta om din diagnos, funktionsnedsättning och vilka begränsningar detta medför i ditt dagliga arbete.",
+    arbetsgivare:
+      "Nu ska vi beskriva den anställdas funktionsnedsättning och hur den påverkar arbetet. Berätta vad du vet om den anställdas funktionsnedsättning och hur detta påverkar deras arbetsuppgifter.",
+  },
+  "step-3": {
+    arbetstagare:
+      "I detta steg ska vi identifiera dina grundläggande behov för att kunna utföra ditt arbete. Vilka arbetsuppgifter har du svårt att utföra? Vilka specifika hinder möter du?",
+    arbetsgivare:
+      "I detta steg ska vi identifiera den anställdas grundläggande behov för att kunna utföra arbetet. Vilka arbetsuppgifter har den anställda svårt med? Vilka anpassningar tror du behövs?",
+  },
+  "step-4": {
+    arbetstagare:
+      "Nu ska vi undersöka andra behov som kan finnas för att du ska kunna utföra ditt arbete optimalt. Detta kan handla om sociala eller organisatoriska aspekter av arbetet.",
+    arbetsgivare:
+      "Nu ska vi undersöka andra behov som kan finnas för den anställda. Detta kan handla om arbetsmiljöanpassningar, tekniska lösningar eller organisatoriska förändringar.",
+  },
+  "step-5": {
+    arbetstagare:
+      "I detta steg ska vi gå igenom vilket stöd du redan får idag. Har du några hjälpmedel eller anpassningar på din arbetsplats? Får du stöd från andra aktörer?",
+    arbetsgivare:
+      "I detta steg ska vi gå igenom vilket stöd den anställda redan får idag. Vilka anpassningar eller hjälpmedel finns redan på arbetsplatsen? Vilket stöd får ni från andra aktörer?",
+  },
+  "step-6": {
+    arbetstagare:
+      "Nu är det dags att granska och sammanfatta din ansökan. Vi går igenom all information och ser till att din ansökan är komplett innan den skickas in.",
+    arbetsgivare:
+      "Nu är det dags att granska och sammanfatta ansökan för er anställda. Vi går igenom all information och ser till att ansökan är komplett innan den skickas in.",
+  },
 };
-const defaultStepDescriptionsApplication = {
-  "step-1":
-    "Välj ärendetyp - Hjälp användaren att bestämma om de ska använda blankett FK 7545 eller FK 7546 baserat på om de är arbetstagare eller arbetsgivare.",
-  "step-2":
-    "Funktionsnedsättning - Hjälp användaren att beskriva sin funktionsnedsättning och hur den påverkar arbetsförmågan.",
-  "step-3":
-    "Grundläggande behov - Hjälp användaren att identifiera vilka behov som finns för att kunna utföra arbetet.",
-  "step-4":
-    "Andra behov - Hjälp användaren att identifiera andra behov som kan finnas för att utföra arbetet, som inte är direkt kopplade till funktionsnedsättningen.",
-  "step-5":
-    "Nuvarande stöd - Hjälp användaren att beskriva vilket stöd de får idag och från vilka aktörer.",
-  "step-6":
-    "Granska och skicka - Hjälp användaren att sammanfatta sin ansökan och kontrollera att all nödvändig information finns med.",
-};
 
-// Welcome messages for each step
-// Query to fetch applicationSteps from admin_setting
+// Fetch application steps with role-based welcome messages
 export async function fetchApplicationSteps() {
   let formattedApplicationSteps = {};
   try {
@@ -56,13 +100,19 @@ export async function fetchApplicationSteps() {
     );
 
     if (applicationStepsResult && applicationStepsResult.length > 0) {
-      // Parse the JSON value from the database
       const stepsData = applicationStepsResult[0].value;
 
-      // Build an object with the required structure
+      // Build an object with role-based welcome messages
       for (const [step, content] of Object.entries(stepsData)) {
-        if (content && content.welcome) {
-          formattedApplicationSteps[step] = content.welcome;
+        if (
+          content &&
+          content.welcomeArbetstagare &&
+          content.welcomeArbetsgivare
+        ) {
+          formattedApplicationSteps[step] = {
+            arbetstagare: content.welcomeArbetstagare,
+            arbetsgivare: content.welcomeArbetsgivare,
+          };
         }
       }
 
@@ -82,17 +132,14 @@ let systemMessage = defaultSystemMessageApplication;
 export let stepConversations = {};
 
 // Fetch system message from database
-
 export async function fetchApplicationSystemMessageFromDB() {
   try {
-    // Get application system message from database
     const appSystemResult = await query(
       "SELECT value FROM admin_settings WHERE key = $1 AND category = $2",
       ["applicationSystemMessage", "AI-Behavior Configuration"]
     );
 
     if (appSystemResult && appSystemResult.length > 0) {
-      // Use the value directly without JSON.parse if it's already a string
       const systemMessageText = appSystemResult[0].value;
 
       if (systemMessageText) {
@@ -112,15 +159,112 @@ export async function fetchApplicationSystemMessageFromDB() {
     console.error("Error fetching system message from database:", error);
     console.log("Using default system message");
   }
-  // Always return the system message, whether it's the updated one or the default
   return systemMessage;
 }
 
-export async function initializeApplicationConversations() {
-  // First fetch the system message
-  await fetchApplicationSystemMessageFromDB();
+// Function to get appropriate welcome message based on user role
+export function getWelcomeMessageForRole(
+  stepId,
+  userRole = null,
+  applicationSteps
+) {
+  const stepData = applicationSteps[stepId];
 
-  // Then fetch application steps
+  if (!stepData) {
+    return "Välkommen! Hur kan jag hjälpa dig?";
+  }
+
+  // If no role is set or role is unknown, use a neutral welcome message
+  if (!userRole || userRole === "unknown") {
+    // Specific neutral messages for each step that don't assume a role
+    const neutralWelcomes = {
+      "step-1":
+        "Välkommen till ansökningsguiden för arbetshjälpmedel! För att ge dig bästa möjliga hjälp, behöver jag veta om du är arbetstagare (ansöker för dig själv) eller arbetsgivare (ansöker för en anställd)?",
+      "step-2":
+        "I detta steg ska vi beskriva funktionsnedsättningen. Men först behöver jag veta om du är arbetstagare eller arbetsgivare för att kunna ge rätt vägledning.",
+      // Add similar neutral messages for all steps
+    };
+
+    return (
+      neutralWelcomes[stepId] ||
+      "Välkommen! För att ge dig bästa möjliga hjälp, behöver jag veta om du är arbetstagare eller arbetsgivare?"
+    );
+  }
+
+  // If a role IS specified, use the appropriate message
+  if (userRole === "arbetstagare" && stepData.arbetstagare) {
+    return stepData.arbetstagare;
+  } else if (userRole === "arbetsgivare" && stepData.arbetsgivare) {
+    return stepData.arbetsgivare;
+  }
+
+  // Last resort fallback - but should be generic, not arbetstagare-specific
+  return typeof stepData === "string"
+    ? stepData
+    : "Välkommen! Hur kan jag hjälpa dig?";
+}
+
+// Function to detect user role from conversation history
+export function detectUserRole(messages) {
+  // Skip empty messages array
+  if (!messages || messages.length === 0) return "unknown";
+
+  // Get the latest user message
+  const latestUserMessages = messages
+    .filter((msg) => msg.role === "user" || msg.role === "human")
+    .map((msg) => msg.text || msg.content || "")
+    .filter((text) => text.trim() !== "");
+
+  if (latestUserMessages.length === 0) return "unknown";
+
+  const latestMessage =
+    latestUserMessages[latestUserMessages.length - 1].toLowerCase();
+
+  // Expanded patterns that are more inclusive of different ways users might specify their role
+  const arbetstagarePatterns = [
+    // Original patterns
+    /jag är (?:en)? ?arbetstagare/i,
+    /jag ansöker för mig själv/i,
+    /jag är anställd/i,
+    /jag är den som behöver hjälpmedel/i,
+    /som arbetstagare/i,
+    /^arbetstagare$/i,
+    /^anställd$/i,
+    /arbetstagare/i,
+  ];
+
+  const arbetsgivarePatterns = [
+    /jag är (?:en)? ?arbetsgivare/i,
+    /jag ansöker för en anställd/i,
+    /jag är chef/i,
+    /jag representerar företaget/i,
+    /som arbetsgivare/i,
+    /^arbetsgivare$/i,
+    /^chef$/i,
+    /arbetsgivare/i,
+  ];
+
+  // Check for any arbetstagare pattern
+  for (const pattern of arbetstagarePatterns) {
+    if (pattern.test(latestMessage)) {
+      return "arbetstagare";
+    }
+  }
+
+  // Check for any arbetsgivare pattern
+  for (const pattern of arbetsgivarePatterns) {
+    if (pattern.test(latestMessage)) {
+      return "arbetsgivare";
+    }
+  }
+
+  // If no clear pattern, don't try to guess
+  return "unknown";
+}
+
+// Rest of the existing functions remain the same...
+export async function initializeApplicationConversations() {
+  await fetchApplicationSystemMessageFromDB();
   const applicationSteps = await fetchApplicationSteps();
 
   stepConversations = {
@@ -146,14 +290,17 @@ export async function initializeApplicationConversations() {
       ],
     };
 
+    // Use default arbetstagare welcome message for initialization
     const welcomeMessage = {
       role: "assistant",
       content: [
         {
           type: "output_text",
-          text:
-            applicationSteps[step] ||
-            defaultStepWelcomeMessagesApplication[step],
+          text: getWelcomeMessageForRole(
+            step,
+            "arbetstagare",
+            applicationSteps
+          ),
         },
       ],
     };
@@ -161,10 +308,8 @@ export async function initializeApplicationConversations() {
   }
 }
 
-// Helper function to get step descriptions
 export async function getApplicationStepsDescription(step) {
   try {
-    // Always fetch fresh data from database
     const applicationStepsDescriptionResult = await query(
       "SELECT value FROM admin_settings WHERE key = $1",
       ["applicationSteps"]
@@ -174,10 +319,8 @@ export async function getApplicationStepsDescription(step) {
       applicationStepsDescriptionResult &&
       applicationStepsDescriptionResult.length > 0
     ) {
-      // Handle the database value properly
       let stepsData = applicationStepsDescriptionResult[0].value;
 
-      // If the value is a string and looks like JSON, try to parse it
       if (
         typeof stepsData === "string" &&
         (stepsData.startsWith("{") || stepsData.startsWith("["))
@@ -186,11 +329,9 @@ export async function getApplicationStepsDescription(step) {
           stepsData = JSON.parse(stepsData);
         } catch (parseError) {
           console.error("Error parsing JSON:", parseError);
-          // Continue with the string value if parsing fails
         }
       }
 
-      // Check if the step exists and has a description property
       if (stepsData && stepsData[step] && stepsData[step].description) {
         console.log(
           `Application description for ${step} loaded from database:`,
@@ -203,7 +344,21 @@ export async function getApplicationStepsDescription(step) {
     console.error("Error fetching step descriptions from database:", error);
   }
 
-  // If we reach here, either there was an error or no valid description was found
+  const defaultStepDescriptionsApplication = {
+    "step-1":
+      "Välj ärendetyp - Hjälp användaren att bestämma om de ska använda blankett FK 7545 eller FK 7546 baserat på om de är arbetstagare eller arbetsgivare.",
+    "step-2":
+      "Funktionsnedsättning - Hjälp användaren att beskriva funktionsnedsättning och hur den påverkar arbetsförmågan.",
+    "step-3":
+      "Grundläggande behov - Hjälp användaren att identifiera vilka behov som finns för att kunna utföra arbetet.",
+    "step-4":
+      "Andra behov - Hjälp användaren att identifiera andra behov som kan finnas för att utföra arbetet.",
+    "step-5":
+      "Nuvarande stöd - Hjälp användaren att beskriva vilket stöd de får idag och från vilka aktörer.",
+    "step-6":
+      "Sammanfattning - Hjälp användaren att sammanfatta ansökan och kontrollera att all information finns med.",
+  };
+
   console.log(`Using default description for ${step}`);
   return (
     defaultStepDescriptionsApplication[step] ||
@@ -212,16 +367,12 @@ export async function getApplicationStepsDescription(step) {
 }
 
 export async function refreshApplicationConversationSettings() {
-  // Fetch fresh system message
   await fetchApplicationSystemMessageFromDB();
 
-  // Refresh step conversations with new system message
   for (const step in stepConversations) {
     if (stepConversations[step] && stepConversations[step].length > 0) {
-      // Get fresh step description
       const stepDescription = await getApplicationStepsDescription(step);
 
-      // Update the system message in the conversation
       const updatedSystemMessage = {
         role: "system",
         content: [
@@ -233,7 +384,6 @@ export async function refreshApplicationConversationSettings() {
         ],
       };
 
-      // Replace the system message in the conversation
       stepConversations[step][0] = updatedSystemMessage;
     }
   }
@@ -241,5 +391,5 @@ export async function refreshApplicationConversationSettings() {
   console.log("Application conversation settings refreshed");
 }
 
-// Initialize conversations on startup
+export { defaultSystemMessageApplication };
 initializeApplicationConversations();

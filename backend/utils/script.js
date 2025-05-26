@@ -51,7 +51,7 @@ async function initializeConversationSettings() {
         "step-5":
           "Nuvarande stöd - Hjälp användaren att beskriva vilket stöd de får idag och från vilka aktörer.",
         "step-6":
-          "Granska och skicka - Hjälp användaren att sammanfatta sin ansökan och kontrollera att all nödvändig information finns med.",
+          "Sammanfattning - Hjälp användaren att sammanfatta sin ansökan och kontrollera att all nödvändig information finns med.",
       },
     };
 
@@ -82,10 +82,9 @@ async function initializeConversationSettings() {
         heading: "Stöd du redan får",
       },
       "step-6": {
-        label: "Granska och skicka",
+        label: "Sammanfattning",
         heading: "Sammanfatta och ladda ner",
       },
-   
     };
 
     // Application step specific instructions

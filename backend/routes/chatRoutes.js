@@ -7,13 +7,19 @@ import {
   stepConversations as applicationStepConversations,
   getApplicationStepsDescription,
   fetchApplicationSteps,
+  detectUserRole as detectApplicationUserRole,
+  getWelcomeMessageForRole as getApplicationWelcomeMessageForRole,
 } from "../utils/applicationConversationManager.js";
+
 import {
   fetchInterviewSystemMessageFromDB,
   stepConversations as interviewStepConversations,
   getInterviewStepsDescription,
   fetchInterviewSteps,
+  detectUserRole as detectInterviewUserRole,
+  getWelcomeMessageForRole as getInterviewWelcomeMessageForRole,
 } from "../utils/interviewConversationManager.js";
+
 import { decrypt } from "../utils/encryptionHelper.js";
 
 // Load environment variables
@@ -102,6 +108,35 @@ function safelyDecryptHistory(historyData, stepId, botType = "application") {
   }
 }
 
+// Helper function to extract AI-detected role from response
+function extractRoleFromAIResponse(text) {
+  if (!text) return null;
+
+  const lowerText = text.toLowerCase();
+
+  // Check for explicit statements about the user's role
+  if (
+    lowerText.includes("som arbetstagare") ||
+    lowerText.includes("du är arbetstagare") ||
+    lowerText.includes("för dig som arbetstagare") ||
+    lowerText.includes("blankett fk 7545")
+  ) {
+    return "arbetstagare";
+  }
+
+  if (
+    lowerText.includes("som arbetsgivare") ||
+    lowerText.includes("du är arbetsgivare") ||
+    lowerText.includes("för dig som arbetsgivare") ||
+    lowerText.includes("blankett fk 7546") ||
+    lowerText.includes("blankett fk 7547")
+  ) {
+    return "arbetsgivare";
+  }
+
+  return null;
+}
+
 /////////////////////////////////////////////////
 // Application bot data fetching from database //
 /////////////////////////////////////////////////
@@ -109,6 +144,10 @@ function safelyDecryptHistory(historyData, stepId, botType = "application") {
 router.get("/welcome/:step", async (req, res) => {
   try {
     const { step } = req.params;
+    const { role } = req.query;
+
+    // Only use role if it's valid (not unknown)
+    const roleToUse = role && role !== "unknown" ? role : null;
 
     // Fetch fresh application steps on each request
     const applicationSteps = await fetchApplicationSteps();
@@ -117,7 +156,14 @@ router.get("/welcome/:step", async (req, res) => {
       return res.status(404).json({ error: "Step not found" });
     }
 
-    res.json({ message: applicationSteps[step] });
+    // Get role-appropriate welcome message
+    const welcomeMessage = getApplicationWelcomeMessageForRole(
+      step,
+      roleToUse,
+      applicationSteps
+    );
+
+    res.json({ message: welcomeMessage });
   } catch (error) {
     console.error("Error fetching welcome message:", error);
     res.status(500).json({ error: "Failed to fetch welcome message" });
@@ -136,7 +182,7 @@ router.post("/", async (req, res) => {
       throw new Error("Invalid system message format");
     }
 
-    const { message, currentStep = "step-1", userId } = req.body;
+    const { message, currentStep = "step-1", userId, detectRole } = req.body;
 
     // Get AI settings with fallback values
     const { model, temperature, maxTokens } = await getAISettings();
@@ -144,10 +190,43 @@ router.post("/", async (req, res) => {
     // Fetch application steps
     const applicationSteps = await fetchApplicationSteps();
 
+    // Get conversation history for role detection
+    let conversationHistory = [];
+    if (userId) {
+      try {
+        const historyResult = await query(
+          "SELECT history FROM chat_histories_application_test WHERE user_id = $1 AND step_id = $2",
+          [userId, currentStep]
+        );
+
+        if (historyResult.length > 0 && historyResult[0].history) {
+          conversationHistory = safelyDecryptHistory(
+            historyResult[0].history,
+            currentStep,
+            "application"
+          );
+        }
+      } catch (error) {
+        console.error(
+          "Error getting conversation history for role detection:",
+          error
+        );
+      }
+    }
+
+    // Detect user role from conversation
+    let detectedRole = detectApplicationUserRole([
+      ...conversationHistory,
+      { role: "user", text: message },
+    ]);
+
+    // Add an extra field to track if AI should confirm role detection
+    let aiShouldConfirmRole = detectedRole === "unknown" || detectRole === true;
+
     // Get the step description freshly for this request
     const stepDescription = await getApplicationStepsDescription(currentStep);
 
-    // Build the step system message with fresh data
+    // Build the step system message with fresh data and role information
     const stepSystemMessage = {
       role: "system",
       content: [
@@ -159,22 +238,39 @@ router.post("/", async (req, res) => {
           type: "input_text",
           text: `Step instructions: ${stepDescription}`,
         },
+        {
+          type: "input_text",
+          text: `DETEKTERAD ANVÄNDARROLL: ${detectedRole}. Anpassa dina svar och råd efter denna roll.`,
+        },
       ],
     };
+
+    // If detectRole flag is set or no role detected yet, modify the system message
+    if (detectRole || !detectedRole || detectedRole === "unknown") {
+      stepSystemMessage.content.push({
+        type: "input_text",
+        text: "PRIORITET: Det är mycket viktigt att identifiera om användaren är arbetstagare eller arbetsgivare. Var extra uppmärksam på alla indikationer i användarens meddelande som kan avslöja deras roll. Om användaren skriver 'arbetstagare', 'anställd', eller liknande, anta att de är arbetstagare. Om de skriver 'arbetsgivare', 'chef', 'företag', eller liknande, anta att de är arbetsgivare. Om det fortfarande är oklart, börja ditt svar med en direkt fråga om de är arbetstagare eller arbetsgivare.",
+      });
+    }
 
     // Initialize or update the conversation for this step
     if (
       !applicationStepConversations[currentStep] ||
       applicationStepConversations[currentStep].length === 0
     ) {
+      // Use role-appropriate welcome message
+      const roleBasedWelcome = getApplicationWelcomeMessageForRole(
+        currentStep,
+        detectedRole,
+        applicationSteps
+      );
+
       const welcomeMessage = {
         role: "assistant",
         content: [
           {
             type: "output_text",
-            text:
-              applicationSteps[currentStep] ||
-              "Välkommen! Vad kan jag hjälpa dig med?",
+            text: roleBasedWelcome,
           },
         ],
       };
@@ -184,7 +280,7 @@ router.post("/", async (req, res) => {
         welcomeMessage,
       ];
     } else {
-      // Update the system message to reflect any changes in settings
+      // Update the system message to reflect any changes in settings and role detection
       applicationStepConversations[currentStep][0] = stepSystemMessage;
     }
 
@@ -328,7 +424,7 @@ router.post("/", async (req, res) => {
           type: "input_text",
           text: `User is currently on step "${currentStep}": ${getApplicationStepsDescription(
             currentStep
-          )}`,
+          )}. Detected role: ${detectedRole}`,
         },
       ],
     };
@@ -393,7 +489,19 @@ router.post("/", async (req, res) => {
       ];
     }
 
-    res.json({ message: response.output_text });
+    // Check if AI's response indicates a role when our pattern detection didn't find one
+    if ((detectedRole === "unknown" || !detectedRole) && response.output_text) {
+      const aiDetectedRole = extractRoleFromAIResponse(response.output_text);
+      if (aiDetectedRole) {
+        console.log(`Role detected from AI response: ${aiDetectedRole}`);
+        detectedRole = aiDetectedRole;
+      }
+    }
+
+    res.json({
+      message: response.output_text,
+      detectedRole: detectedRole,
+    });
   } catch (error) {
     console.error("Chat error:", error);
     res.status(500).json({ error: "Failed to process your request" });
@@ -407,6 +515,10 @@ router.post("/", async (req, res) => {
 router.get("/interview/welcome/:step", async (req, res) => {
   try {
     const { step } = req.params;
+    const { role } = req.query;
+
+    // Only use role if it's valid (not unknown)
+    const roleToUse = role && role !== "unknown" ? role : null;
 
     // Fetch fresh interview steps on each request
     const interviewSteps = await fetchInterviewSteps();
@@ -415,18 +527,33 @@ router.get("/interview/welcome/:step", async (req, res) => {
       return res.status(404).json({ error: "Step not found" });
     }
 
-    res.json({ message: interviewSteps[step] });
+    // Get role-appropriate welcome message
+    const welcomeMessage = getInterviewWelcomeMessageForRole(
+      step,
+      roleToUse,
+      interviewSteps
+    );
+
+    res.json({ message: welcomeMessage });
   } catch (error) {
-    console.error("Error fetching welcome message:", error);
+    console.error("Error fetching interview welcome message:", error);
     res.status(500).json({ error: "Failed to fetch welcome message" });
   }
 });
 
 router.post("/interview/", async (req, res) => {
   try {
+    // Always fetch fresh system message on each request
     const systemMessage = await fetchInterviewSystemMessageFromDB();
+    if (
+      !systemMessage ||
+      !systemMessage.content ||
+      systemMessage.content.length === 0
+    ) {
+      throw new Error("Invalid system message format");
+    }
 
-    const { message, currentStep = "step-1", userId } = req.body;
+    const { message, currentStep = "step-1", userId, detectRole } = req.body;
 
     // Get AI settings with fallback values
     const { model, temperature, maxTokens } = await getAISettings();
@@ -434,26 +561,98 @@ router.post("/interview/", async (req, res) => {
     // Fetch interview steps - IMPORTANT: This is a function call
     const interviewSteps = await fetchInterviewSteps();
 
-    // Get the step history from the imported stepConversations, with initial welcome message if needed
+    // Get conversation history for role detection
+    let conversationHistory = [];
+    if (userId) {
+      try {
+        const historyResult = await query(
+          "SELECT history FROM chat_histories_interview_test WHERE user_id = $1 AND step_id = $2",
+          [userId, currentStep]
+        );
+
+        if (historyResult.length > 0 && historyResult[0].history) {
+          conversationHistory = safelyDecryptHistory(
+            historyResult[0].history,
+            currentStep,
+            "interview"
+          );
+        }
+      } catch (error) {
+        console.error(
+          "Error getting conversation history for role detection:",
+          error
+        );
+      }
+    }
+
+    // Detect user role from conversation - same approach as application route
+    let detectedRole = detectInterviewUserRole([
+      ...conversationHistory,
+      { role: "user", text: message },
+    ]);
+
+    // Add an extra field to track if AI should confirm role detection
+    let aiShouldConfirmRole = detectedRole === "unknown" || detectRole === true;
+
+    // Get the step description freshly for this request
+    const stepDescription = await getInterviewStepsDescription(currentStep);
+
+    // Build the step system message with fresh data and role information
+    const enhancedSystemMessage = {
+      role: "system",
+      content: [
+        {
+          type: "input_text",
+          text: systemMessage.content[0].text,
+        },
+        {
+          type: "input_text",
+          text: `Step instructions: ${stepDescription}`,
+        },
+        {
+          type: "input_text",
+          text: `DETEKTERAD ANVÄNDARROLL: ${detectedRole}. Anpassa dina intervjufrågor och svar efter denna roll.`,
+        },
+      ],
+    };
+
+    // If detectRole flag is set or no role detected yet, modify the system message
+    if (detectRole || !detectedRole || detectedRole === "unknown") {
+      enhancedSystemMessage.content.push({
+        type: "input_text",
+        text: "PRIORITET: Det är mycket viktigt att identifiera om användaren är arbetstagare eller arbetsgivare. Var extra uppmärksam på alla indikationer i användarens meddelande som kan avslöja deras roll. Om användaren skriver 'arbetstagare', 'anställd', eller liknande, anta att de är arbetstagare. Om de skriver 'arbetsgivare', 'chef', 'företag', eller liknande, anta att de är arbetsgivare. Om det fortfarande är oklart, börja ditt svar med en direkt fråga om de är arbetstagare eller arbetsgivare.",
+      });
+    }
+
+    // Initialize or update the conversation for this step
     if (
       !interviewStepConversations[currentStep] ||
       interviewStepConversations[currentStep].length === 0
     ) {
-      // Initialize conversation for this step if it doesn't exist
+      // Use role-appropriate welcome message
+      const roleBasedWelcome = getInterviewWelcomeMessageForRole(
+        currentStep,
+        detectedRole,
+        interviewSteps
+      );
+
+      const welcomeMessage = {
+        role: "assistant",
+        content: [
+          {
+            type: "output_text",
+            text: roleBasedWelcome,
+          },
+        ],
+      };
+
       interviewStepConversations[currentStep] = [
-        systemMessage,
-        {
-          role: "assistant",
-          content: [
-            {
-              type: "output_text",
-              text:
-                interviewSteps[currentStep] ||
-                "Välkommen! Vad kan jag hjälpa dig med?",
-            },
-          ],
-        },
+        enhancedSystemMessage,
+        welcomeMessage,
       ];
+    } else {
+      // Update the system message to reflect any changes in settings and role detection
+      interviewStepConversations[currentStep][0] = enhancedSystemMessage;
     }
 
     const stepHistory = interviewStepConversations[currentStep];
@@ -602,7 +801,7 @@ router.post("/interview/", async (req, res) => {
           type: "input_text",
           text: `User is currently on step "${currentStep}": ${getInterviewStepsDescription(
             currentStep
-          )}`,
+          )}. Detected role: ${detectedRole}`,
         },
       ],
     };
@@ -662,15 +861,29 @@ router.post("/interview/", async (req, res) => {
     if (interviewStepConversations[currentStep].length > 20) {
       const welcomeMessage = interviewStepConversations[currentStep][1];
       interviewStepConversations[currentStep] = [
-        systemMessage,
+        enhancedSystemMessage,
         welcomeMessage,
         ...interviewStepConversations[currentStep].slice(-18),
       ];
     }
 
-    res.json({ message: response.output_text });
+    // Check if AI's response indicates a role when our pattern detection didn't find one
+    if ((detectedRole === "unknown" || !detectedRole) && response.output_text) {
+      const aiDetectedRole = extractRoleFromAIResponse(response.output_text);
+      if (aiDetectedRole) {
+        console.log(
+          `Role detected from AI response (interview): ${aiDetectedRole}`
+        );
+        detectedRole = aiDetectedRole;
+      }
+    }
+
+    res.json({
+      message: response.output_text,
+      detectedRole: detectedRole,
+    });
   } catch (error) {
-    console.error("Chat error:", error);
+    console.error("Interview chat error:", error);
     res.status(500).json({ error: "Failed to process your request" });
   }
 });
