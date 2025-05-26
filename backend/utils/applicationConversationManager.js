@@ -1,5 +1,14 @@
-import query from "./supabaseQuery.js";
+import {
+  detectUserRole,
+  fetchSystemMessageFromDB,
+  fetchSteps,
+  getStepDescription,
+  getWelcomeMessageForRole as baseGetWelcomeMessageForRole,
+  initializeConversations,
+  refreshConversationSettings,
+} from "./baseConversationManager.js";
 
+// Application specific constants
 const defaultSystemMessageApplication = {
   role: "system",
   content: [
@@ -90,306 +99,100 @@ const defaultStepWelcomeMessagesApplication = {
   },
 };
 
-// Fetch application steps with role-based welcome messages
+const defaultStepDescriptionsApplication = {
+  "step-1":
+    "Välj ärendetyp - Hjälp användaren att bestämma om de ska använda blankett FK 7545 eller FK 7546 baserat på om de är arbetstagare eller arbetsgivare.",
+  "step-2":
+    "Funktionsnedsättning - Hjälp användaren att beskriva funktionsnedsättning och hur den påverkar arbetsförmågan.",
+  "step-3":
+    "Grundläggande behov - Hjälp användaren att identifiera vilka behov som finns för att kunna utföra arbetet.",
+  "step-4":
+    "Andra behov - Hjälp användaren att identifiera andra behov som kan finnas för att utföra arbetet.",
+  "step-5":
+    "Nuvarande stöd - Hjälp användaren att beskriva vilket stöd de får idag och från vilka aktörer.",
+  "step-6":
+    "Sammanfattning - Hjälp användaren att sammanfatta ansökan och kontrollera att all information finns med.",
+};
+
+// Application-specific neutral messages
+const applicationNeutralWelcomes = {
+  "step-1":
+    "Välkommen till ansökningsguiden för arbetshjälpmedel! För att ge dig bästa möjliga hjälp, behöver jag veta om du är arbetstagare (ansöker för dig själv) eller arbetsgivare (ansöker för en anställd)?",
+  "step-2":
+    "I detta steg ska vi beskriva funktionsnedsättningen. Men först behöver jag veta om du är arbetstagare eller arbetsgivare för att kunna ge rätt vägledning.",
+  // Add similar neutral messages for all steps
+};
+
+// Application conversation state
+export let systemMessage = defaultSystemMessageApplication;
+export let stepConversations = {};
+export let applicationSteps = defaultStepWelcomeMessagesApplication;
+
+// Export application-specific versions of utility functions
+export { detectUserRole };
+
 export async function fetchApplicationSteps() {
-  let formattedApplicationSteps = {};
-  try {
-    const applicationStepsResult = await query(
-      "SELECT value FROM admin_settings WHERE key = $1",
-      ["applicationSteps"]
-    );
-
-    if (applicationStepsResult && applicationStepsResult.length > 0) {
-      const stepsData = applicationStepsResult[0].value;
-
-      // Build an object with role-based welcome messages
-      for (const [step, content] of Object.entries(stepsData)) {
-        if (
-          content &&
-          content.welcomeArbetstagare &&
-          content.welcomeArbetsgivare
-        ) {
-          formattedApplicationSteps[step] = {
-            arbetstagare: content.welcomeArbetstagare,
-            arbetsgivare: content.welcomeArbetsgivare,
-          };
-        }
-      }
-
-      console.log("Application steps loaded from database");
-      return formattedApplicationSteps;
-    }
-  } catch (error) {
-    console.error("Error fetching applicationSteps from database:", error);
-  }
-
-  // Return default steps if database fetch fails
-  console.log("Using default application steps");
-  return defaultStepWelcomeMessagesApplication;
+  applicationSteps = await fetchSteps(
+    "applicationSteps",
+    defaultStepWelcomeMessagesApplication
+  );
+  return applicationSteps;
 }
 
-let systemMessage = defaultSystemMessageApplication;
-export let stepConversations = {};
-
-// Fetch system message from database
 export async function fetchApplicationSystemMessageFromDB() {
-  try {
-    const appSystemResult = await query(
-      "SELECT value FROM admin_settings WHERE key = $1 AND category = $2",
-      ["applicationSystemMessage", "AI-Behavior Configuration"]
-    );
-
-    if (appSystemResult && appSystemResult.length > 0) {
-      const systemMessageText = appSystemResult[0].value;
-
-      if (systemMessageText) {
-        systemMessage = {
-          role: "system",
-          content: [
-            {
-              type: "input_text",
-              text: systemMessageText,
-            },
-          ],
-        };
-        console.log("System message loaded from database");
-      }
-    }
-  } catch (error) {
-    console.error("Error fetching system message from database:", error);
-    console.log("Using default system message");
-  }
+  systemMessage = await fetchSystemMessageFromDB(
+    "applicationSystemMessage",
+    "AI-Behavior Configuration",
+    defaultSystemMessageApplication
+  );
   return systemMessage;
 }
 
-// Function to get appropriate welcome message based on user role
-export function getWelcomeMessageForRole(
-  stepId,
-  userRole = null,
-  applicationSteps
-) {
-  const stepData = applicationSteps[stepId];
-
-  if (!stepData) {
-    return "Välkommen! Hur kan jag hjälpa dig?";
-  }
-
-  // If no role is set or role is unknown, use a neutral welcome message
-  if (!userRole || userRole === "unknown") {
-    // Specific neutral messages for each step that don't assume a role
-    const neutralWelcomes = {
-      "step-1":
-        "Välkommen till ansökningsguiden för arbetshjälpmedel! För att ge dig bästa möjliga hjälp, behöver jag veta om du är arbetstagare (ansöker för dig själv) eller arbetsgivare (ansöker för en anställd)?",
-      "step-2":
-        "I detta steg ska vi beskriva funktionsnedsättningen. Men först behöver jag veta om du är arbetstagare eller arbetsgivare för att kunna ge rätt vägledning.",
-      // Add similar neutral messages for all steps
-    };
-
-    return (
-      neutralWelcomes[stepId] ||
-      "Välkommen! För att ge dig bästa möjliga hjälp, behöver jag veta om du är arbetstagare eller arbetsgivare?"
-    );
-  }
-
-  // If a role IS specified, use the appropriate message
-  if (userRole === "arbetstagare" && stepData.arbetstagare) {
-    return stepData.arbetstagare;
-  } else if (userRole === "arbetsgivare" && stepData.arbetsgivare) {
-    return stepData.arbetsgivare;
-  }
-
-  // Last resort fallback - but should be generic, not arbetstagare-specific
-  return typeof stepData === "string"
-    ? stepData
-    : "Välkommen! Hur kan jag hjälpa dig?";
-}
-
-// Function to detect user role from conversation history
-export function detectUserRole(messages) {
-  // Skip empty messages array
-  if (!messages || messages.length === 0) return "unknown";
-
-  // Get the latest user message
-  const latestUserMessages = messages
-    .filter((msg) => msg.role === "user" || msg.role === "human")
-    .map((msg) => msg.text || msg.content || "")
-    .filter((text) => text.trim() !== "");
-
-  if (latestUserMessages.length === 0) return "unknown";
-
-  const latestMessage =
-    latestUserMessages[latestUserMessages.length - 1].toLowerCase();
-
-  // Expanded patterns that are more inclusive of different ways users might specify their role
-  const arbetstagarePatterns = [
-    // Original patterns
-    /jag är (?:en)? ?arbetstagare/i,
-    /jag ansöker för mig själv/i,
-    /jag är anställd/i,
-    /jag är den som behöver hjälpmedel/i,
-    /som arbetstagare/i,
-    /^arbetstagare$/i,
-    /^anställd$/i,
-    /arbetstagare/i,
-  ];
-
-  const arbetsgivarePatterns = [
-    /jag är (?:en)? ?arbetsgivare/i,
-    /jag ansöker för en anställd/i,
-    /jag är chef/i,
-    /jag representerar företaget/i,
-    /som arbetsgivare/i,
-    /^arbetsgivare$/i,
-    /^chef$/i,
-    /arbetsgivare/i,
-  ];
-
-  // Check for any arbetstagare pattern
-  for (const pattern of arbetstagarePatterns) {
-    if (pattern.test(latestMessage)) {
-      return "arbetstagare";
-    }
-  }
-
-  // Check for any arbetsgivare pattern
-  for (const pattern of arbetsgivarePatterns) {
-    if (pattern.test(latestMessage)) {
-      return "arbetsgivare";
-    }
-  }
-
-  // If no clear pattern, don't try to guess
-  return "unknown";
-}
-
-// Rest of the existing functions remain the same...
-export async function initializeApplicationConversations() {
-  await fetchApplicationSystemMessageFromDB();
-  const applicationSteps = await fetchApplicationSteps();
-
-  stepConversations = {
-    "step-1": [systemMessage],
-    "step-2": [systemMessage],
-    "step-3": [systemMessage],
-    "step-4": [systemMessage],
-    "step-5": [systemMessage],
-    "step-6": [systemMessage],
-  };
-
-  for (const step in stepConversations) {
-    const stepDescription = await getApplicationStepsDescription(step);
-
-    const stepSystemMessage = {
-      ...systemMessage,
-      content: [
-        ...systemMessage.content,
-        {
-          type: "input_text",
-          text: `Step instructions: ${stepDescription}`,
-        },
-      ],
-    };
-
-    // Use default arbetstagare welcome message for initialization
-    const welcomeMessage = {
-      role: "assistant",
-      content: [
-        {
-          type: "output_text",
-          text: getWelcomeMessageForRole(
-            step,
-            "arbetstagare",
-            applicationSteps
-          ),
-        },
-      ],
-    };
-    stepConversations[step] = [stepSystemMessage, welcomeMessage];
-  }
-}
-
 export async function getApplicationStepsDescription(step) {
-  try {
-    const applicationStepsDescriptionResult = await query(
-      "SELECT value FROM admin_settings WHERE key = $1",
-      ["applicationSteps"]
-    );
-
-    if (
-      applicationStepsDescriptionResult &&
-      applicationStepsDescriptionResult.length > 0
-    ) {
-      let stepsData = applicationStepsDescriptionResult[0].value;
-
-      if (
-        typeof stepsData === "string" &&
-        (stepsData.startsWith("{") || stepsData.startsWith("["))
-      ) {
-        try {
-          stepsData = JSON.parse(stepsData);
-        } catch (parseError) {
-          console.error("Error parsing JSON:", parseError);
-        }
-      }
-
-      if (stepsData && stepsData[step] && stepsData[step].description) {
-        console.log(
-          `Application description for ${step} loaded from database:`,
-          stepsData[step].description
-        );
-        return stepsData[step].description;
-      }
-    }
-  } catch (error) {
-    console.error("Error fetching step descriptions from database:", error);
-  }
-
-  const defaultStepDescriptionsApplication = {
-    "step-1":
-      "Välj ärendetyp - Hjälp användaren att bestämma om de ska använda blankett FK 7545 eller FK 7546 baserat på om de är arbetstagare eller arbetsgivare.",
-    "step-2":
-      "Funktionsnedsättning - Hjälp användaren att beskriva funktionsnedsättning och hur den påverkar arbetsförmågan.",
-    "step-3":
-      "Grundläggande behov - Hjälp användaren att identifiera vilka behov som finns för att kunna utföra arbetet.",
-    "step-4":
-      "Andra behov - Hjälp användaren att identifiera andra behov som kan finnas för att utföra arbetet.",
-    "step-5":
-      "Nuvarande stöd - Hjälp användaren att beskriva vilket stöd de får idag och från vilka aktörer.",
-    "step-6":
-      "Sammanfattning - Hjälp användaren att sammanfatta ansökan och kontrollera att all information finns med.",
-  };
-
-  console.log(`Using default description for ${step}`);
-  return (
-    defaultStepDescriptionsApplication[step] ||
-    "Hjälp användaren med arbetshjälpmedel från Försäkringskassan."
+  return getStepDescription(
+    "applicationSteps",
+    step,
+    defaultStepDescriptionsApplication
   );
 }
 
+export function getApplicationWelcomeMessageForRole(stepId, userRole = null) {
+  return baseGetWelcomeMessageForRole(
+    stepId,
+    userRole,
+    applicationSteps,
+    applicationNeutralWelcomes
+  );
+}
+
+export async function initializeApplicationConversations() {
+  const result = await initializeConversations(
+    "applicationSystemMessage",
+    "AI-Behavior Configuration",
+    defaultSystemMessageApplication,
+    "applicationSteps",
+    defaultStepWelcomeMessagesApplication,
+    "applicationSteps",
+    defaultStepDescriptionsApplication
+  );
+
+  stepConversations = result.stepConversations;
+  systemMessage = result.systemMessage;
+  applicationSteps = result.steps;
+}
+
 export async function refreshApplicationConversationSettings() {
-  await fetchApplicationSystemMessageFromDB();
-
-  for (const step in stepConversations) {
-    if (stepConversations[step] && stepConversations[step].length > 0) {
-      const stepDescription = await getApplicationStepsDescription(step);
-
-      const updatedSystemMessage = {
-        role: "system",
-        content: [
-          ...systemMessage.content,
-          {
-            type: "input_text",
-            text: `Step instructions: ${stepDescription}`,
-          },
-        ],
-      };
-
-      stepConversations[step][0] = updatedSystemMessage;
-    }
-  }
-
-  console.log("Application conversation settings refreshed");
+  systemMessage = await refreshConversationSettings(
+    stepConversations,
+    "applicationSystemMessage",
+    "AI-Behavior Configuration",
+    defaultSystemMessageApplication,
+    "applicationSteps",
+    defaultStepDescriptionsApplication
+  );
 }
 
 export { defaultSystemMessageApplication };
+
+// Initialize on module load
 initializeApplicationConversations();

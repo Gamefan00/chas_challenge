@@ -201,7 +201,12 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
 
   // Update localStorage when detected role changes
   useEffect(() => {
-    if (isHydrated && typeof window !== "undefined" && detectedUserRole) {
+    if (
+      isHydrated &&
+      typeof window !== "undefined" &&
+      detectedUserRole &&
+      detectedUserRole !== "unknown"
+    ) {
       const { userRoleKey } = getLocalStorageKeys(type);
       localStorage.setItem(userRoleKey, detectedUserRole);
     }
@@ -488,12 +493,13 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
 
     try {
       const userId = localStorage.getItem("userId");
-      const userRole = localStorage.getItem("userRole");
+      const userRole = detectedUserRole;
 
-      // Check if this is the first user message and no role is detected
-      const isFirstMessage =
+      const isFirstUserMessage =
         currentChatHistory.length === 1 && currentChatHistory[0].role === "assistant";
-      const needsRoleDetection = (!userRole || userRole === "unknown") && isFirstMessage;
+
+      const shouldDetectRole =
+        currentStep === "step-1" && (!userRole || userRole === "unknown") && !isFirstUserMessage;
 
       // Get previous context from earlier steps (maximum 5 messages)
       let previousContext = [];
@@ -512,13 +518,11 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
         message,
         currentStep,
         userId: userId || null,
-        detectRole: true,
+        // Only request detection after first exchange
+        detectRole: shouldDetectRole,
+        existingRole: detectedUserRole || "unknown",
         previousContext,
       };
-
-      if (needsRoleDetection) {
-        requestBody.detectRole = true;
-      }
 
       const response = await fetch(chatEndpoint, {
         method: "POST",
@@ -532,7 +536,7 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
 
       const data = await response.json();
 
-      // First check if a role was detected
+      // First check if the AI detected a role in its response
       if (data.detectedRole && data.detectedRole !== "unknown") {
         // Check if this is a new role or different from current
         if (
@@ -540,23 +544,16 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
           detectedUserRole === "unknown" ||
           detectedUserRole !== data.detectedRole
         ) {
-          console.log(`User role detected/updated: ${data.detectedRole}`);
+          console.log(`User role detected by AI: ${data.detectedRole}`);
 
-          // Always update localStorage and state
+          // Update localStorage and state with the AI-detected role
           localStorage.setItem("userRole", data.detectedRole);
           setDetectedUserRole(data.detectedRole);
 
           // If role changed, update welcome messages
-          if (
-            !detectedUserRole ||
-            detectedUserRole === "unknown" ||
-            detectedUserRole !== data.detectedRole
-          ) {
-            // Fetch welcome messages with the newly detected role
-            roleWasDetected = true;
-            await handleRoleDetection(data.detectedRole, data.message);
-            return; // Let handleRoleDetection handle the message update
-          }
+          roleWasDetected = true;
+          await handleRoleDetection(data.detectedRole, data.message);
+          return; // Let handleRoleDetection handle the message update
         }
       }
 
@@ -570,15 +567,6 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
       }
     } catch (error) {
       console.error("Error sending message:", error);
-
-      // Use functional update for error case too
-      setChatHistories((prevHistories) => ({
-        ...prevHistories,
-        [currentStep]: [
-          ...updatedHistory,
-          { role: "assistant", text: "Tyvärr uppstod ett fel. Vänligen försök igen." },
-        ],
-      }));
     } finally {
       setIsLoading(false);
     }

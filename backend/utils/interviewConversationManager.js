@@ -1,6 +1,14 @@
-import query from "./supabaseQuery.js";
+import {
+  detectUserRole,
+  fetchSystemMessageFromDB,
+  fetchSteps,
+  getStepDescription,
+  getWelcomeMessageForRole as baseGetWelcomeMessageForRole,
+  initializeConversations,
+  refreshConversationSettings,
+} from "./baseConversationManager.js";
 
-// Define default system messages with role-based instructions
+// Interview specific constants
 const defaultSystemMessageInterview = {
   role: "system",
   content: [
@@ -89,315 +97,107 @@ const defaultStepWelcomeMessagesInterview = {
   },
 };
 
-// Fetch interview steps with role-based welcome messages
+const defaultStepDescriptionsInterview = {
+  "step-1":
+    "Förberedelse - Hjälp användaren att berätta om sig själv och sin arbetssituation.",
+  "step-2":
+    "Funktionsnedsättning - Hjälp användaren att beskriva funktionsnedsättning och dess påverkan.",
+  "step-3":
+    "Arbetsuppgifter - Hjälp användaren att identifiera specifika utmaningar i arbetsuppgifter.",
+  "step-4":
+    "Tidigare erfarenheter - Hjälp användaren att beskriva tidigare hjälpmedel och anpassningar.",
+  "step-5":
+    "Arbetsmiljö - Hjälp användaren att beskriva sin arbetsmiljö och samarbete.",
+  "step-6":
+    "Kommunikation - Hjälp användaren att beskriva kommunikationsbehov och samspel.",
+};
+
+// Interview-specific neutral messages
+const interviewNeutralWelcomes = {
+  "step-1":
+    "Välkommen till utredningssamtalsverktyget! För att ge dig bästa möjliga hjälp, behöver jag veta om du är arbetstagare eller arbetsgivare?",
+  "step-2":
+    "I detta steg ska vi förbereda för utredningssamtalet. För att anpassa mina råd, kan du berätta om du är arbetstagare eller arbetsgivare?",
+  "step-3":
+    "Välkommen till steg 3! För att ge dig rätt stöd, behöver jag veta om du är arbetstagare eller arbetsgivare?",
+  "step-4":
+    "I detta steg ska vi diskutera specifika frågor. För att anpassa mina råd, är du arbetstagare eller arbetsgivare?",
+  "step-5":
+    "Välkommen till steg 5! För bästa möjliga hjälp, kan du berätta om du är arbetstagare eller arbetsgivare?",
+  "step-6":
+    "Välkommen till sista steget! För att anpassa mina råd, är du arbetstagare eller arbetsgivare?",
+};
+
+// Interview conversation state
+export let systemMessage = defaultSystemMessageInterview;
+export let stepConversations = {};
+export let interviewSteps = defaultStepWelcomeMessagesInterview;
+
+// Export interview-specific versions of utility functions
+export { detectUserRole };
+
 export async function fetchInterviewSteps() {
-  let formattedInterviewSteps = {};
-  try {
-    const interviewStepsResult = await query(
-      "SELECT value FROM admin_settings WHERE key = $1",
-      ["interviewSteps"]
-    );
-
-    if (interviewStepsResult && interviewStepsResult.length > 0) {
-      const stepsData = interviewStepsResult[0].value;
-
-      // Build an object with role-based welcome messages
-      for (const [step, content] of Object.entries(stepsData)) {
-        if (
-          content &&
-          content.welcomeArbetstagare &&
-          content.welcomeArbetsgivare
-        ) {
-          formattedInterviewSteps[step] = {
-            arbetstagare: content.welcomeArbetstagare,
-            arbetsgivare: content.welcomeArbetsgivare,
-          };
-        }
-      }
-
-      console.log("Interview steps loaded from database");
-      return formattedInterviewSteps;
-    }
-  } catch (error) {
-    console.error("Error fetching interviewSteps from database:", error);
-  }
-
-  // Return default steps if database fetch fails
-  console.log("Using default interview steps");
-  return defaultStepWelcomeMessagesInterview;
+  interviewSteps = await fetchSteps(
+    "interviewSteps",
+    defaultStepWelcomeMessagesInterview
+  );
+  return interviewSteps;
 }
 
-let systemMessage = defaultSystemMessageInterview;
-export let stepConversations = {};
-
-// Fetch system message from database
 export async function fetchInterviewSystemMessageFromDB() {
-  try {
-    const appSystemResult = await query(
-      "SELECT value FROM admin_settings WHERE key = $1 AND category = $2",
-      ["interviewSystemMessage", "AI-Behavior Configuration"]
-    );
-
-    if (appSystemResult && appSystemResult.length > 0) {
-      const systemMessageText = appSystemResult[0].value;
-      if (systemMessageText) {
-        systemMessage = {
-          role: "system",
-          content: [
-            {
-              type: "input_text",
-              text: systemMessageText,
-            },
-          ],
-        };
-        console.log("Interview system message loaded from database");
-      }
-    }
-  } catch (error) {
-    console.error(
-      "Error fetching interview system message from database:",
-      error
-    );
-    console.log("Using default interview system message");
-  }
+  systemMessage = await fetchSystemMessageFromDB(
+    "interviewSystemMessage",
+    "AI-Behavior Configuration",
+    defaultSystemMessageInterview
+  );
   return systemMessage;
 }
 
-// Function to get appropriate welcome message based on user role
-export function getWelcomeMessageForRole(step, role, interviewSteps) {
-  // If no role is provided, return a default message asking for role
-  if (!role) {
-    // Default welcome messages that explicitly ask for user role
-    const defaultWelcomeMessages = {
-      "step-1":
-        "Välkommen till utredningssamtalsverktyget! För att ge dig bästa möjliga hjälp, behöver jag veta om du är arbetstagare eller arbetsgivare?",
-      "step-2":
-        "I detta steg ska vi förbereda för utredningssamtalet. För att anpassa mina råd, kan du berätta om du är arbetstagare eller arbetsgivare?",
-      "step-3":
-        "Välkommen till steg 3! För att ge dig rätt stöd, behöver jag veta om du är arbetstagare eller arbetsgivare?",
-      "step-4":
-        "I detta steg ska vi diskutera specifika frågor. För att anpassa mina råd, är du arbetstagare eller arbetsgivare?",
-      "step-5":
-        "Välkommen till steg 5! För bästa möjliga hjälp, kan du berätta om du är arbetstagare eller arbetsgivare?",
-      "step-6":
-        "Välkommen till sista steget! För att anpassa mina råd, är du arbetstagare eller arbetsgivare?",
-    };
-
-    // Return default message for current step or a generic one if step not found
-    return (
-      defaultWelcomeMessages[step] ||
-      "Välkommen till utredningssamtalsverktyget! För att ge dig bästa möjliga hjälp, behöver jag veta om du är arbetstagare eller arbetsgivare?"
-    );
-  }
-
-  // For arbetstagare
-  if (role === "arbetstagare") {
-    const employeeWelcomeMessages = interviewSteps[step]
-      ?.employeeWelcomeMessage || {
-      "step-1":
-        "Välkommen till utredningssamtalsverktyget! Som arbetstagare kan jag hjälpa dig att förbereda dig för samtal med Försäkringskassan.",
-      // Add default messages for other steps
-    };
-    return (
-      employeeWelcomeMessages[step] ||
-      "Välkommen! Som arbetstagare kan jag hjälpa dig att förbereda dig för samtal med Försäkringskassan."
-    );
-  }
-
-  // For arbetsgivare
-  if (role === "arbetsgivare") {
-    const employerWelcomeMessages = interviewSteps[step]
-      ?.employerWelcomeMessage || {
-      "step-1":
-        "Välkommen till utredningssamtalsverktyget! Som arbetsgivare kan jag hjälpa dig att förbereda för samtal med Försäkringskassan.",
-      // Add default messages for other steps
-    };
-    return (
-      employerWelcomeMessages[step] ||
-      "Välkommen! Som arbetsgivare kan jag hjälpa dig att förbereda för samtal med Försäkringskassan."
-    );
-  }
-
-  // If role is something else or invalid, provide a generic welcome
-  return (
-    interviewSteps[step]?.welcomeMessage ||
-    "Välkommen till utredningssamtalsverktyget! För att ge dig bästa möjliga hjälp, behöver jag veta om du är arbetstagare eller arbetsgivare?"
+export async function getInterviewStepsDescription(step) {
+  return getStepDescription(
+    "interviewSteps",
+    step,
+    defaultStepDescriptionsInterview
   );
 }
 
-// Function to detect user role from conversation history (same as application)
-export function detectUserRole(messages) {
-  // Skip empty messages array
-  if (!messages || messages.length === 0) return "unknown";
-
-  // Get the latest user message
-  const latestUserMessages = messages
-    .filter((msg) => msg.role === "user" || msg.role === "human")
-    .map((msg) => msg.text || msg.content || "")
-    .filter((text) => text.trim() !== "");
-
-  if (latestUserMessages.length === 0) return "unknown";
-
-  const latestMessage =
-    latestUserMessages[latestUserMessages.length - 1].toLowerCase();
-
-  // Expanded patterns that are more inclusive of different ways users might specify their role
-  const arbetstagarePatterns = [
-    // Original patterns
-    /jag är (?:en)? ?arbetstagare/i,
-    /jag ansöker för mig själv/i,
-    /jag är anställd/i,
-    /jag är den som behöver hjälpmedel/i,
-    /som arbetstagare/i,
-    /^arbetstagare$/i,
-    /^anställd$/i,
-    /arbetstagare/i,
-  ];
-
-  const arbetsgivarePatterns = [
-    // Original patterns
-    /jag är (?:en)? ?arbetsgivare/i,
-    /jag ansöker för en anställd/i,
-    /jag är chef/i,
-    /jag representerar företaget/i,
-    /som arbetsgivare/i,
-    /^arbetsgivare$/i,
-    /^chef$/i,
-    /arbetsgivare/i,
-  ];
-
-  // Check for any arbetstagare pattern
-  for (const pattern of arbetstagarePatterns) {
-    if (pattern.test(latestMessage)) {
-      return "arbetstagare";
-    }
-  }
-
-  // Check for any arbetsgivare pattern
-  for (const pattern of arbetsgivarePatterns) {
-    if (pattern.test(latestMessage)) {
-      return "arbetsgivare";
-    }
-  }
-
-  // If no clear pattern, don't try to guess
-  return "unknown";
+export function getInterviewWelcomeMessageForRole(stepId, userRole = null) {
+  return baseGetWelcomeMessageForRole(
+    stepId,
+    userRole,
+    interviewSteps,
+    interviewNeutralWelcomes
+  );
 }
 
 export async function initializeInterviewConversations() {
-  await fetchInterviewSystemMessageFromDB();
-  const interviewSteps = await fetchInterviewSteps();
-
-  stepConversations = {
-    "step-1": [systemMessage],
-    "step-2": [systemMessage],
-    "step-3": [systemMessage],
-    "step-4": [systemMessage],
-    "step-5": [systemMessage],
-    "step-6": [systemMessage],
-  };
-
-  for (const step in stepConversations) {
-    const stepDescription = await getInterviewStepsDescription(step);
-
-    const stepSystemMessage = {
-      ...systemMessage,
-      content: [
-        ...systemMessage.content,
-        {
-          type: "input_text",
-          text: `Step instructions: ${stepDescription}`,
-        },
-      ],
-    };
-
-    // Use default arbetstagare welcome message for initialization
-    const welcomeMessage = {
-      role: "assistant",
-      content: [
-        {
-          type: "output_text",
-          text: getWelcomeMessageForRole(step, "arbetstagare", interviewSteps),
-        },
-      ],
-    };
-    stepConversations[step] = [stepSystemMessage, welcomeMessage];
-  }
-}
-
-export async function getInterviewStepsDescription(step) {
-  try {
-    const interviewStepsDescriptionResult = await query(
-      "SELECT value FROM admin_settings WHERE key = $1",
-      ["interviewSteps"]
-    );
-
-    if (
-      interviewStepsDescriptionResult &&
-      interviewStepsDescriptionResult.length > 0
-    ) {
-      const stepsData = interviewStepsDescriptionResult[0].value;
-
-      if (stepsData && stepsData[step] && stepsData[step].description) {
-        console.log(
-          `Interview description for ${step} loaded from database:`,
-          stepsData[step].description
-        );
-        return stepsData[step].description;
-      }
-    }
-  } catch (error) {
-    console.error(
-      "Error fetching interview step descriptions from database:",
-      error
-    );
-  }
-
-  const defaultStepDescriptionsInterview = {
-    "step-1":
-      "Förberedelse - Hjälp användaren att berätta om sig själv och sin arbetssituation.",
-    "step-2":
-      "Funktionsnedsättning - Hjälp användaren att beskriva funktionsnedsättning och dess påverkan.",
-    "step-3":
-      "Arbetsuppgifter - Hjälp användaren att identifiera specifika utmaningar i arbetsuppgifter.",
-    "step-4":
-      "Tidigare erfarenheter - Hjälp användaren att beskriva tidigare hjälpmedel och anpassningar.",
-    "step-5":
-      "Arbetsmiljö - Hjälp användaren att beskriva sin arbetsmiljö och samarbete.",
-    "step-6":
-      "Kommunikation - Hjälp användaren att beskriva kommunikationsbehov och samspel.",
-  };
-
-  console.log(`Using default description for ${step}`);
-  return (
-    defaultStepDescriptionsInterview[step] ||
-    "Hjälp användaren med intervjun om arbetshjälpmedel."
+  const result = await initializeConversations(
+    "interviewSystemMessage",
+    "AI-Behavior Configuration",
+    defaultSystemMessageInterview,
+    "interviewSteps",
+    defaultStepWelcomeMessagesInterview,
+    "interviewSteps",
+    defaultStepDescriptionsInterview
   );
+
+  stepConversations = result.stepConversations;
+  systemMessage = result.systemMessage;
+  interviewSteps = result.steps;
 }
 
 export async function refreshInterviewConversationSettings() {
-  await fetchInterviewSystemMessageFromDB();
-
-  for (const step in stepConversations) {
-    if (stepConversations[step] && stepConversations[step].length > 0) {
-      const stepDescription = await getInterviewStepsDescription(step);
-
-      const updatedSystemMessage = {
-        role: "system",
-        content: [
-          ...systemMessage.content,
-          {
-            type: "input_text",
-            text: `Step instructions: ${stepDescription}`,
-          },
-        ],
-      };
-
-      stepConversations[step][0] = updatedSystemMessage;
-    }
-  }
-  console.log("Interview conversation settings refreshed");
+  systemMessage = await refreshConversationSettings(
+    stepConversations,
+    "interviewSystemMessage",
+    "AI-Behavior Configuration",
+    defaultSystemMessageInterview,
+    "interviewSteps",
+    defaultStepDescriptionsInterview
+  );
 }
 
 export { defaultSystemMessageInterview };
+
+// Initialize on module load
 initializeInterviewConversations();
