@@ -575,7 +575,7 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
             <div className="absolute right-0 bottom-0 left-0 flex justify-center">
               {!cookieConsent && (
                 <div className="text-foreground/50 absolute -top-1 flex w-full justify-center text-center md:-top-8">
-                  <small className="bg-background md:bg-background/90 rounded px-2 py-1">
+                  <small className="bg-background md:bg-background/90 border-border/50 rounded border-1 px-2 py-1">
                     För bästa chattupplevelse och för att spara din chatt­historik,{" "}
                     <Link href="/cookies" className="hover:text-primary underline">
                       acceptera cookies
