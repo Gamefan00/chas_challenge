@@ -319,7 +319,11 @@ export default function SidebarNav({
       <div
         className={cn(
           "sidebar-container sticky top-0 h-[100vh] flex-1 overflow-hidden",
-          isSidebarOpen ? "w-64" : "w-0 overflow-hidden",
+          // Add transition classes for smooth animation
+          "transition-all duration-500 ease-in-out",
+          // Width transitions
+          isSidebarOpen ? "w-64" : "w-0",
+          // Mobile overlay behavior with backdrop
           isMobile && isSidebarOpen ? "absolute top-0 left-0 z-40" : "",
         )}
       >

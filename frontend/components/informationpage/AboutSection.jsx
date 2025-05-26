@@ -47,7 +47,7 @@ export default function AboutSection() {
             <div className="grid gap-4 md:grid-cols-2">
               {[
                 "Har en dokumenterad funktionsnedsättning eller arbetsskada",
-                "Är anställd eller egenföretagare",
+                "Har varit anställd eller egenföretagare i minst 12 månader",
                 "Behöver hjälpmedel för att kunna utföra ditt arbete",
                 "Är mellan 18 och 67 år",
               ].map((item, index) => (
