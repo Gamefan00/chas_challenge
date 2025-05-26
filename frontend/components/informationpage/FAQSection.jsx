@@ -17,27 +17,27 @@ const faqs = [
   },
   {
     id: 2,
-    question: "Hur lång tid tar hela ansökningsprocessen i genomsnitt?",
+    question: "Hur lång tid tar hela ansökningsprocessen via Försäkringskassan?",
     answer:
-      "Den totala tiden varierar beroende på komplexiteten i ditt ärende och vilken myndighet som handlägger ansökan. Med vår tjänst kan du räkna med att själva ansökningsförfarandet (insamling av dokument och ifyllande av formulär) tar ca 2-3 veckor. Handläggningstiden hos myndigheten är vanligtvis 6-12 veckor, men kan vara både kortare och längre.",
+      "Det tar normalt två månader från att du skickade in ansökan till att du får ett beslut. Men det kan ta längre tid om det saknas nödvändiga underlag.",
   },
   {
     id: 3,
     question: "Vad händer om min ansökan avslås trots hjälp från er tjänst?",
     answer:
-      "Om din ansökan avslås erbjuder vi en grundlig analys av avslagsbeslutet och hjälper dig att utforma en överklagan om det finns grund för detta. Vår statistik visar att cirka 40% av överklaganden som förbereds med vår hjälp leder till ett ändrat beslut.",
+      "Vi kan tyvärr inte garantera ett positivt resultat för alla ansökningar, men genom vår hjälp ökar chansen att få arbetshjälpmedel. Vår tjänst är ett stöd genom hela ansökningsprocessen, men beslutet fattas alltid av den ansvariga myndigheten och ligger utanför vår kontroll.",
   },
   {
     id: 4,
     question: "Kan arbetsgivaren använda er tjänst för att ansöka om hjälpmedel till anställda?",
     answer:
-      "Ja, arbetsgivare kan använda vår tjänst för att hantera ansökningar för sina anställda. Vi erbjuder särskilda företagsabonnemang för organisationer som vill underlätta processen för flera anställda. Kontakta vår företagsavdelning för mer information.",
+      "Ja, arbetsgivare kan använda vår tjänst för att hantera ansökningar för sina anställda.",
   },
   {
     id: 5,
     question: "Vilken typ av personlig information behöver jag dela med er tjänst?",
     answer:
-      "För att kunna ge relevant vägledning behöver vi information om din funktionsnedsättning, arbetsuppgifter och vilka behov du har. All information hanteras i enlighet med GDPR och vi använder avancerad kryptering för att säkerställa att dina uppgifter är skyddade. Du kan när som helst begära att få dina uppgifter raderade.",
+      "För att kunna ge relevant vägledning behöver vi information om din funktionsnedsättning, arbetsuppgifter och vilka behov du har. All information hanteras i enlighet med GDPR och vi använder avancerad kryptering för att säkerställa att dina uppgifter är skyddade. Du kan när som helst begära att få dina uppgifter raderade. Informationen raderas automatiskt efter 100 dagar.",
   },
 ];
 

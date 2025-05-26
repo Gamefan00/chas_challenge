@@ -1,6 +1,5 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 
 const steps = [
@@ -45,34 +44,22 @@ export default function StepsSection() {
     >
       <Card className="mb-8">
         <CardHeader>
-          <CardTitle className="border-b pb-2">Steg-för-steg i ansökningsprocessen</CardTitle>
+          <CardTitle className="text-center">Steg-för-steg i ansökningsprocessen</CardTitle>
         </CardHeader>
         <CardContent>
-          <motion.p
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.4 }}
-            className="mb-6 font-semibold"
-          >
-            Här är en detaljerad beskrivning av ansökningsprocessen från start till slut:
-          </motion.p>
-
-          <div className="space-y-4">
+          <div className="md:grid md:grid-cols-2 md:gap-4">
             {steps.map((step, index) => (
               <motion.div
                 key={index}
-                className="border-b p-4"
+                className="border-b p-4 md:border-b-0"
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.4 + index * 0.1 }}
               >
-                <div className="flex flex-col gap-4 md:flex-row md:items-center">
-                  <Badge
-                    variant="outline"
-                    className="bg-primary text-primary-foreground flex h-8 w-8 rounded-full"
-                  >
+                <div className="flex flex-col gap-4">
+                  <div className="bg-primary text-primary-foreground flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-sm font-medium">
                     {index + 1}
-                  </Badge>
+                  </div>
                   <div>
                     <h3 className="font-extrabold">{step.title}</h3>
                     <p className="text-foreground mt-1">{step.description}</p>

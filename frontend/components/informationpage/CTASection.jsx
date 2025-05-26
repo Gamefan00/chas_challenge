@@ -18,7 +18,7 @@ export default function CTASection() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.6 }}
     >
-      <Card className="mt-8">
+      <Card className="border-b-primary mt-8 mb-8 overflow-hidden border-b-4">
         <CardHeader>
           <CardTitle className="text-foreground text-center">Redo att komma igång?</CardTitle>
           <CardDescription className="text-foreground text-center">
