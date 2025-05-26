@@ -13,8 +13,6 @@ import TopTrackingbar from "@/components/chatpage/TopTrackingBar";
 import Sidebar from "@/components/chatpage/SidebarNav";
 import BackToBottomBtn from "@/components/chatpage/BackToBottomBtn";
 
-// import { useResizableTextarea } from "@/hooks/useResizableTextarea";
-
 import Markdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize from "rehype-sanitize";
@@ -46,12 +44,30 @@ function CopyButton({ message }) {
   );
 }
 
+// Role indicator component
+function RoleIndicator({ detectedRole }) {
+  // Don't render anything if role is undefined, null, or "unknown"
+  if (!detectedRole || detectedRole === "unknown") return null;
+
+  const roleText = detectedRole === "arbetstagare" ? "Arbetstagare" : "Arbetsgivare";
+  const roleColor = detectedRole === "arbetstagare" ? "text-blue-500" : "text-green-500";
+
+  return (
+    <div className="bg-muted text-muted-foreground mb-2 flex items-center gap-2 rounded-md px-3 py-1 text-sm">
+      <span className="text-xs">Detekterad roll:</span>
+      <span className={`font-medium ${roleColor}`}>{roleText}</span>
+    </div>
+  );
+}
+
 export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint, type }) {
   // Use environment variable or default to localhost
   const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
+
+  const [detectedUserRole, setDetectedUserRole] = useState(null);
 
   const [interviewCurrentStep, setInterviewCurrentStep] = useState("step-1");
   const [interviewCompletedSteps, setInterviewCompletedSteps] = useState([]);
@@ -81,15 +97,41 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
       return {
         currentStepKey: "interviewCurrentStep",
         completedStepsKey: "interviewCompletedSteps",
+        userRoleKey: "userRole",
       };
     } else {
       return {
         currentStepKey: "applicationCurrentStep",
         completedStepsKey: "applicationCompletedSteps",
+        userRoleKey: "userRole",
       };
     }
   };
+  async function handleRoleDetection(newRole, message) {
+    console.log(`Handling role detection: ${newRole}`);
 
+    try {
+      // First update the current step with the AI's response
+      setChatHistories((prevHistories) => {
+        const updatedHistory = [
+          ...prevHistories[currentStep],
+          { role: "assistant", text: message },
+        ];
+
+        return {
+          ...prevHistories,
+          [currentStep]: updatedHistory,
+        };
+      });
+
+      // Then refresh welcome messages for other steps with the new role
+      await refreshWelcomeMessagesWithRole(newRole);
+
+      console.log(`Role detection handled successfully: ${newRole}`);
+    } catch (error) {
+      console.error("Error in handleRoleDetection:", error);
+    }
+  }
   // Determine which state to use based on type
   const currentStep = type === "interview" ? interviewCurrentStep : applicationCurrentStep;
   const setCurrentStep = type === "interview" ? setInterviewCurrentStep : setApplicationCurrentStep;
@@ -113,7 +155,7 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
   // Load data from localStorage once on client side
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const { currentStepKey, completedStepsKey } = getLocalStorageKeys(type);
+      const { currentStepKey, completedStepsKey, userRoleKey } = getLocalStorageKeys(type);
 
       const savedStep = localStorage.getItem(currentStepKey);
       if (savedStep) {
@@ -131,6 +173,12 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
           console.error(`Error parsing ${completedStepsKey} from localStorage:`, e);
           localStorage.removeItem(completedStepsKey);
         }
+      }
+
+      // Load detected role from localStorage
+      const savedRole = localStorage.getItem(userRoleKey);
+      if (savedRole) {
+        setDetectedUserRole(savedRole);
       }
       setIsHydrated(true);
     }
@@ -150,6 +198,14 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
       localStorage.setItem(completedStepsKey, JSON.stringify(completedSteps));
     }
   }, [completedSteps, isHydrated, type]);
+
+  // Update localStorage when detected role changes
+  useEffect(() => {
+    if (isHydrated && typeof window !== "undefined" && detectedUserRole) {
+      const { userRoleKey } = getLocalStorageKeys(type);
+      localStorage.setItem(userRoleKey, detectedUserRole);
+    }
+  }, [detectedUserRole, isHydrated, type]);
 
   const currentStepData = steps.find((step) => step.id === currentStep);
   const heading = currentStepData?.heading || "Chat";
@@ -278,44 +334,94 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
       setHistoriesLoaded(true);
     }
 
-    // Helper function to load welcome messages
+    // Helper function to load welcome messages with role support
     async function loadWelcomeMessage(stepId, newHistories) {
       try {
-        const welcomeResponse = await fetch(`${BASE_URL}${welcomeEndpoint}/${stepId}`);
+        // Check localStorage directly for most up-to-date role
+        const storedRole = localStorage.getItem("userRole");
+        const roleToUse = storedRole || detectedUserRole;
+
+        // Include role in the welcome request if we have it
+        const roleParam = roleToUse ? `?role=${roleToUse}` : "";
+        const welcomeResponse = await fetch(`${BASE_URL}${welcomeEndpoint}/${stepId}${roleParam}`);
+
         if (welcomeResponse.ok) {
           const welcomeData = await welcomeResponse.json();
           newHistories[stepId] = [{ role: "assistant", text: welcomeData.message }];
-          console.log(`Loaded welcome message for step ${stepId}`);
+          console.log(
+            `Loaded welcome message for step ${stepId} with role: ${roleToUse || "default"}`,
+          );
         } else {
           console.error(`Failed to fetch welcome for step ${stepId}: ${welcomeResponse.status}`);
-          newHistories[stepId] = [
-            {
-              role: "assistant",
-              text: "Hej! Hur kan jag hjälpa dig idag?",
-            },
-          ];
+          newHistories[stepId] = [{ role: "assistant", text: "Hej! Hur kan jag hjälpa dig idag?" }];
         }
       } catch (welcomeError) {
         console.error(`Error fetching welcome for step ${stepId}:`, welcomeError);
-        newHistories[stepId] = [
-          {
-            role: "assistant",
-            text: "Hej! Hur kan jag hjälpa dig idag?",
-          },
-        ];
+        newHistories[stepId] = [{ role: "assistant", text: "Hej! Hur kan jag hjälpa dig idag?" }];
       }
     }
 
     loadAllHistories();
-  }, [isHydrated, historiesLoaded, BASE_URL, historyEndpoint, welcomeEndpoint, steps]);
+  }, [
+    isHydrated,
+    historiesLoaded,
+    BASE_URL,
+    historyEndpoint,
+    welcomeEndpoint,
+    steps,
+    detectedUserRole,
+  ]);
 
   // Navigate to a different step
   const navigateToStep = async (stepId) => {
+    // Set local state for step change
     setCurrentStep(stepId);
 
+    // Update localStorage
     if (typeof window !== "undefined") {
       const { currentStepKey } = getLocalStorageKeys(type);
       localStorage.setItem(currentStepKey, stepId);
+
+      // Get the current role directly from localStorage
+      const userRole = localStorage.getItem("userRole");
+
+      if (userRole && userRole !== "unknown") {
+        // First update the detected role state to match localStorage
+        if (userRole !== detectedUserRole) {
+          setDetectedUserRole(userRole);
+        }
+
+        // Get the current chat history for the target step
+        const targetStepHistory = chatHistories[stepId] || [];
+
+        // Only load welcome message if this step has just a welcome message or is empty
+        if (targetStepHistory.length <= 1) {
+          try {
+            // Directly fetch new welcome message with role
+            const welcomeResponse = await fetch(
+              `${BASE_URL}${welcomeEndpoint}/${stepId}?role=${userRole}`,
+            );
+
+            if (welcomeResponse.ok) {
+              const welcomeData = await welcomeResponse.json();
+
+              // Update just this step's welcome message
+              setChatHistories((prev) => ({
+                ...prev,
+                [stepId]: [{ role: "assistant", text: welcomeData.message }],
+              }));
+
+              console.log(`Updated welcome message for step ${stepId} with role: ${userRole}`);
+            } else {
+              console.error(
+                `Failed to update welcome for step ${stepId}: ${welcomeResponse.status}`,
+              );
+            }
+          } catch (error) {
+            console.error(`Error updating welcome for step ${stepId}:`, error);
+          }
+        }
+      }
     }
   };
 
@@ -363,23 +469,31 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
     }
   };
 
-  // Send user message for current step
+  // Send user message for current step with role detection support
   async function handleSendMessage() {
     if (!message.trim()) return;
 
     setIsLoading(true);
+    let roleWasDetected = false; // Flag to track if role detection occurred
 
     const updatedHistory = [...currentChatHistory, { role: "user", text: message }];
 
-    setChatHistories({
-      ...chatHistories,
+    // Set initial state with user message
+    setChatHistories((prevHistories) => ({
+      ...prevHistories,
       [currentStep]: updatedHistory,
-    });
+    }));
 
     setMessage("");
 
     try {
       const userId = localStorage.getItem("userId");
+      const userRole = localStorage.getItem("userRole");
+
+      // Check if this is the first user message and no role is detected
+      const isFirstMessage =
+        currentChatHistory.length === 1 && currentChatHistory[0].role === "assistant";
+      const needsRoleDetection = (!userRole || userRole === "unknown") && isFirstMessage;
 
       // Get previous context from earlier steps (maximum 5 messages)
       let previousContext = [];
@@ -394,15 +508,22 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
       const chatEndpoint =
         type === "interview" ? `${BASE_URL}/chat/interview/` : `${BASE_URL}/chat`;
 
+      const requestBody = {
+        message,
+        currentStep,
+        userId: userId || null,
+        detectRole: true,
+        previousContext,
+      };
+
+      if (needsRoleDetection) {
+        requestBody.detectRole = true;
+      }
+
       const response = await fetch(chatEndpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message,
-          currentStep,
-          userId,
-          previousContext,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
@@ -411,22 +532,140 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
 
       const data = await response.json();
 
-      setChatHistories({
-        ...chatHistories,
-        [currentStep]: [...updatedHistory, { role: "assistant", text: data.message }],
-      });
+      // First check if a role was detected
+      if (data.detectedRole && data.detectedRole !== "unknown") {
+        // Check if this is a new role or different from current
+        if (
+          !detectedUserRole ||
+          detectedUserRole === "unknown" ||
+          detectedUserRole !== data.detectedRole
+        ) {
+          console.log(`User role detected/updated: ${data.detectedRole}`);
+
+          // Always update localStorage and state
+          localStorage.setItem("userRole", data.detectedRole);
+          setDetectedUserRole(data.detectedRole);
+
+          // If role changed, update welcome messages
+          if (
+            !detectedUserRole ||
+            detectedUserRole === "unknown" ||
+            detectedUserRole !== data.detectedRole
+          ) {
+            // Fetch welcome messages with the newly detected role
+            roleWasDetected = true;
+            await handleRoleDetection(data.detectedRole, data.message);
+            return; // Let handleRoleDetection handle the message update
+          }
+        }
+      }
+
+      // ONLY update with the standard approach if NO role was detected
+      if (!roleWasDetected) {
+        // Use functional update to ensure we're working with latest state
+        setChatHistories((prevHistories) => ({
+          ...prevHistories,
+          [currentStep]: [...updatedHistory, { role: "assistant", text: data.message }],
+        }));
+      }
     } catch (error) {
       console.error("Error sending message:", error);
 
-      setChatHistories({
-        ...chatHistories,
+      // Use functional update for error case too
+      setChatHistories((prevHistories) => ({
+        ...prevHistories,
         [currentStep]: [
           ...updatedHistory,
           { role: "assistant", text: "Tyvärr uppstod ett fel. Vänligen försök igen." },
         ],
-      });
+      }));
     } finally {
       setIsLoading(false);
+    }
+  }
+  // Function to refresh welcome messages when role changes
+  async function refreshWelcomeMessagesWithRole(newRole) {
+    try {
+      console.log(`Refreshing welcome messages with role: ${newRole}`);
+
+      // Track which steps need updating
+      const stepsToUpdate = {};
+
+      // First determine which steps need updating (only those with welcome messages)
+      Object.keys(chatHistories).forEach((stepId) => {
+        // Skip current step - it's already handled separately
+        if (stepId === currentStep) return;
+
+        const stepHistory = chatHistories[stepId];
+
+        // Only update steps with just a welcome message or empty history
+        if (
+          !stepHistory ||
+          stepHistory.length === 0 ||
+          (stepHistory.length === 1 && stepHistory[0].role === "assistant")
+        ) {
+          stepsToUpdate[stepId] = true;
+        }
+      });
+
+      // If no steps need updating, exit early
+      if (Object.keys(stepsToUpdate).length === 0) {
+        console.log("No welcome messages need refreshing");
+        return;
+      }
+
+      const updatePromises = Object.keys(stepsToUpdate).map(async (stepId) => {
+        try {
+          const welcomeResponse = await fetch(
+            `${BASE_URL}${welcomeEndpoint}/${stepId}?role=${newRole}`,
+          );
+
+          if (welcomeResponse.ok) {
+            const welcomeData = await welcomeResponse.json();
+            console.log(`Updated welcome message for step ${stepId} with role: ${newRole}`);
+
+            // Return the step ID and new welcome message
+            return {
+              stepId,
+              message: welcomeData.message,
+              success: true,
+            };
+          } else {
+            console.error(`Failed to update welcome for step ${stepId}: ${welcomeResponse.status}`);
+            return { stepId, success: false };
+          }
+        } catch (error) {
+          console.error(`Error updating welcome for step ${stepId}:`, error);
+          return { stepId, success: false };
+        }
+      });
+
+      // Wait for all fetches to complete
+      const results = await Promise.all(updatePromises);
+
+      // Filter successful updates and create update object
+      const successfulUpdates = results.filter((result) => result.success);
+
+      if (successfulUpdates.length > 0) {
+        // Use functional update to ensure we have latest state
+        setChatHistories((prevHistories) => {
+          // Create a new object to avoid mutations
+          const newHistories = { ...prevHistories };
+
+          // Apply each successful update
+          successfulUpdates.forEach(({ stepId, message }) => {
+            newHistories[stepId] = [{ role: "assistant", text: message }];
+          });
+
+          return newHistories;
+        });
+
+        console.log(`Successfully refreshed ${successfulUpdates.length} welcome messages`);
+      } else {
+        console.log("No welcome messages were successfully updated");
+      }
+    } catch (error) {
+      console.error("Error in refreshWelcomeMessagesWithRole:", error);
     }
   }
 
@@ -481,6 +720,11 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
             completeCurrentStep={completeCurrentStep}
             steps={stepsId}
           />
+
+          {/* Role Indicator */}
+          <div className="mx-auto max-w-3xl px-3">
+            <RoleIndicator detectedRole={detectedUserRole} />
+          </div>
 
           {/* Chat Messages */}
           <div className="mx-auto max-w-3xl px-3">
@@ -541,10 +785,10 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
 
         {/* Textarea  */}
         <div
-          className={` ${isMobile ? "fixed" : "absolute"} ${cookieConsent ? "bottom-0" : "bottom-10"} z-30 h-[22%] w-full transition-all duration-300 ease-in-out md:bottom-0`}
+          className={` ${isMobile ? "fixed" : "absolute"} bottom-10 z-30 h-[22%] w-full transition-all duration-300 ease-in-out md:bottom-0`}
         >
           <div className="absolute right-0 bottom-0 left-0 mx-auto w-full max-w-4xl">
-            <div className="relative mx-3 h-48 pt-12">
+            <div className="relative h-48 pt-12">
               {/* Scroll back to bottom button */}
               <BackToBottomBtn containerRef={messageContainerRef} threshold={30} className="" />
               <div className="bg-background h-full">
