@@ -13,7 +13,7 @@ const faqs = [
     id: 1,
     question: "Kostar det något att använda Ansökshjälpen?",
     answer:
-      "Basversionen av vår tjänst är kostnadsfri för alla användare. Vi erbjuder även en premiumversion med utökad personlig rådgivning och prioriterad support för 295 kr per månad. Du kan använda tjänsten så länge du behöver och avsluta när din ansökan är klar.",
+      "Nej, Ansökshjälpen är helt kostnadsfri att använda. Tjänsten är framtagen för att hjälpa dig genom din ansökan utan kostnad, och du kan använda den så länge du behöver.",
   },
   {
     id: 2,

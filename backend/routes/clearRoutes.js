@@ -12,7 +12,7 @@ router.delete("/application/:userId", async (req, res) => {
     if (!userId) {
       return res.status(400).json({error: "Missing userId parameter"});
     }
-
+    w;
     // Delete all history for this user from application table
     const result = await query(
       "DELETE FROM chat_histories_application_test WHERE user_id = $1",

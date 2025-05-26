@@ -22,7 +22,7 @@ const steps = [
   {
     title: "Inlämning av ansökan",
     description:
-      "Efter att alla dokument är samlade och formulär ifyllda, lämnas ansökan in till relevant myndighet eller organisation. Vi guidar dig till rätt instans.",
+      "Efter att alla dokument är samlade och formulär ifyllda, lämnas ansökan in till Försäkringskassan.",
   },
   {
     title: "Uppföljning under handläggning",

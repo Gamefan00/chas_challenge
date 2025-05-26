@@ -1,6 +1,7 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { motion } from "framer-motion";
+import Link from "next/link";
 
 export default function AboutSection() {
   return (
@@ -40,16 +41,16 @@ export default function AboutSection() {
       >
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg font-semibold">Vem kan ansöka?</CardTitle>
+            <CardTitle className="font-semibold">Vem kan ansöka?</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="mb-4 font-medium">Du kan ansöka om arbetshjälpmedel om du:</p>
+            <p className="mb-4 font-semibold">Du kan ansöka om arbetshjälpmedel om du:</p>
             <div className="grid gap-4 md:grid-cols-2">
               {[
-                "Har en dokumenterad funktionsnedsättning eller arbetsskada",
-                "Har varit anställd eller egenföretagare i minst 12 månader",
-                "Behöver hjälpmedel för att kunna utföra ditt arbete",
-                "Är mellan 18 och 67 år",
+                "Behöver hjälpmedlet på grund av en sjukdom eller funktionsnedsättning",
+                "Har varit anställd hos din arbetsgivare i mer än 12 månader, eller drivit ett eget företag i 12 månader",
+                "Är mellan 18 och 69 år",
+                "Är försäkrad i Sverige",
               ].map((item, index) => (
                 <motion.div
                   key={index}
@@ -77,26 +78,32 @@ export default function AboutSection() {
       >
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg font-semibold">Vilka typer av stöd finns?</CardTitle>
+            <CardTitle className="font-semibold">Vilka typer av stöd finns?</CardTitle>
           </CardHeader>
           <CardContent>
+            <p className="mb-4 font-semibold">
+              Vår tjänst är specifikt anpassad för ansökningar hos Försäkringskassan*
+            </p>
             <div className="grid gap-6 md:grid-cols-2">
               {[
                 {
-                  title: "Fysiska hjälpmedel",
-                  description: "Specialanpassade möbler, verktyg och utrustning",
+                  title: "Anpassade specialhjälpmedel",
+                  description:
+                    "Hjälpmedel anpassade för just din funktionsnedsättning, t.ex. hörseltekniska eller syntekniska hjälpmedel",
                 },
                 {
-                  title: "Digitala hjälpmedel",
-                  description: "Programvara, datorutrustning, skärmläsare etc.",
+                  title: "Individanpassad utrustning",
+                  description:
+                    "Specialanpassad utrustning som går utöver arbetsgivarens arbetsmiljöansvar",
                 },
                 {
                   title: "Personligt stöd",
-                  description: "Arbetsbiträde eller personlig assistent",
+                  description: "Arbetsbiträde eller personlig assistent på arbetsplatsen",
                 },
                 {
-                  title: "Anpassningar på arbetsplatsen",
-                  description: "Strukturella förändringar för att förbättra tillgänglighet",
+                  title: "OBS: Begränsningar",
+                  description:
+                    "Bidrag ges ej för hjälpmedel som behövs även utanför arbetet eller för standardutrustning/ergonomiska hjälpmedel",
                 },
               ].map((support, index) => (
                 <motion.div
@@ -104,12 +111,25 @@ export default function AboutSection() {
                   initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: 0.5 + index * 0.1 }}
-                  className="rounded-lg border p-4"
+                  className="rounded-lg border p-4 shadow-lg"
                 >
                   <h4 className="mb-2 font-semibold">{support.title}</h4>
                   <p>{support.description}</p>
                 </motion.div>
               ))}
+            </div>
+            <div className="mt-6 flex items-center justify-start">
+              <small className="">
+                *Om du är osäker på vilken typ av stöd du kan få, kontakta{" "}
+                <Link
+                  className="text-primary hover:underline"
+                  href="https://www.lidol.se/"
+                  target="_blank"
+                >
+                  Lidol{" "}
+                </Link>
+                så hjälper vi dig att hitta rätt lösning.
+              </small>
             </div>
           </CardContent>
         </Card>

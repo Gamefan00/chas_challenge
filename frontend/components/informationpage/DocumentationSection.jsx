@@ -36,7 +36,7 @@ export default function DocumentationSection() {
     >
       <Card className="mb-8">
         <CardHeader>
-          <CardTitle>Nödvändig dokumentation</CardTitle>
+          <CardTitle>Nödvändig dokumentation till Försäkringskassan</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
