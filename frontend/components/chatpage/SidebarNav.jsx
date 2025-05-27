@@ -332,7 +332,7 @@ export default function SidebarNav({
             <SidebarTrigger onClick={() => handleSidebarToggle(false)} className="toggle-button" />
           </div>
 
-          <SidebarContent className="flex h-full flex-col justify-between lg:h-[90%]">
+          <SidebarContent className="flex h-full flex-col justify-between md:h-[90%]">
             <SidebarGroup>
               <SidebarGroupContent>
                 <div className="">
