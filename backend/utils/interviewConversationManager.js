@@ -197,6 +197,23 @@ export async function refreshInterviewConversationSettings() {
   );
 }
 
+// Reset conversation state only for a specific user
+export async function resetInterviewConversation(userId) {
+  console.log(`Resetting interview conversations for user ${userId}`);
+
+  // Delete all user-specific conversation keys
+  for (const key in stepConversations) {
+    if (key.startsWith(`${userId}-`)) {
+      console.log(`Deleting conversation for key: ${key}`);
+      delete stepConversations[key];
+    }
+  }
+
+  return {
+    success: true,
+    message: `Interview conversations reset for user ${userId}`,
+  };
+}
 export { defaultSystemMessageInterview };
 
 // Initialize on module load

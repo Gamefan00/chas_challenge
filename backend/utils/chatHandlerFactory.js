@@ -87,57 +87,49 @@ function safelyDecryptHistory(historyData, stepId, botType = "application") {
 }
 
 // Helper function to extract AI-detected role from response
-// Improve the extractRoleFromAIResponse function to be more robust
 function extractRoleFromAIResponse(text) {
   if (!text) return null;
 
   const lowerText = text.toLowerCase();
 
-  // Only extract role if AI explicitly confirms it with specific phrases
+  // only when AI explicitly confirms user's role
   const arbetstagareConfirmations = [
-    /tack för att du bekräftade att du är arbetstagare/i,
-    /jag förstår att du är arbetstagare/i,
-    /som arbetstagare kommer vi att hjälpa dig/i,
-    /du har angett att du är arbetstagare/i,
-    /eftersom du är arbetstagare/i,
-    /du är arbetstagare och kommer att/i,
-    /för dig som arbetstagare/i,
+    /tack.*bekräfta.*arbetstagare/i,
+    /förstår att du är arbetstagare/i,
+    /eftersom du sa.*arbetstagare/i,
+    /du har berättat.*arbetstagare/i,
+    /som arbetstagare.*kommer vi att använda.*fk 7545/i,
   ];
 
   const arbetsgivareConfirmations = [
-    /tack för att du bekräftade att du är arbetsgivare/i,
-    /jag förstår att du är arbetsgivare/i,
-    /som arbetsgivare kommer vi att hjälpa dig/i,
-    /du har angett att du är arbetsgivare/i,
-    /eftersom du är arbetsgivare/i,
-    /du är arbetsgivare och kommer att/i,
-    /för dig som arbetsgivare/i,
+    /tack.*bekräfta.*arbetsgivare/i,
+    /förstår att du är arbetsgivare/i,
+    /eftersom du sa.*arbetsgivare/i,
+    /du har berättat.*arbetsgivare/i,
+    /som arbetsgivare.*kommer vi att använda.*fk 7546/i,
   ];
 
-  // Check for explicit arbetstagare confirmations
+  // Only detect role when AI is clearly confirming what user said
   for (const pattern of arbetstagareConfirmations) {
     if (pattern.test(lowerText)) {
-      console.log("AI explicitly confirmed arbetstagare role");
       return "arbetstagare";
     }
   }
 
-  // Check for explicit arbetsgivare confirmations
   for (const pattern of arbetsgivareConfirmations) {
     if (pattern.test(lowerText)) {
-      console.log("AI explicitly confirmed arbetsgivare role");
       return "arbetsgivare";
     }
   }
 
-  // Don't detect role from casual mentions - only from explicit confirmations
+  // Don't detect role from general explanations or questions
   return null;
 }
 
 // Create a chat handler factory
 export function createChatHandler(config) {
   const {
-    botType, // 'application' or 'interview'
+    botType,
     fetchSystemMessage,
     stepConversations,
     getStepDescription,
@@ -146,28 +138,14 @@ export function createChatHandler(config) {
     getWelcomeMessageForRole,
   } = config;
 
-  // Return the actual handler function
   return async (req, res) => {
     try {
-      // Always fetch fresh system message on each request
       const systemMessage = await fetchSystemMessage();
-      if (
-        !systemMessage ||
-        !systemMessage.content ||
-        systemMessage.content.length === 0
-      ) {
-        throw new Error("Invalid system message format");
-      }
-
       const { message, currentStep = "step-1", userId, detectRole } = req.body;
-
-      // Get AI settings with fallback values
       const { model, temperature, maxTokens } = await getAISettings();
-
-      // Fetch steps
       const steps = await fetchSteps();
 
-      // Get conversation history for role detection
+      // Get conversation history
       let conversationHistory = [];
       if (userId) {
         try {
@@ -184,257 +162,85 @@ export function createChatHandler(config) {
             );
           }
         } catch (error) {
-          console.error(
-            `Error getting conversation history for role detection:`,
-            error
-          );
+          console.error(`Error getting conversation history:`, error);
         }
       }
 
       let detectedRole = req.body.existingRole || "unknown";
 
-      // Only attempt detection if explicitly requested by the frontend
-      if (detectRole === true) {
-        const roleFromPatterns = detectUserRole([
-          ...conversationHistory,
-          { role: "user", text: message },
-        ]);
-
-        // Only update the role if the detection is confident
-        if (roleFromPatterns && roleFromPatterns !== "unknown") {
-          detectedRole = roleFromPatterns;
-          console.log(`Role detected from patterns: ${detectedRole}`);
+      // Role detection logic - simplified
+      if (detectRole === true && currentStep === "step-1") {
+        // First try pattern detection on user message
+        const roleFromUser = detectUserRole([{ role: "user", text: message }]);
+        if (roleFromUser && roleFromUser !== "unknown") {
+          detectedRole = roleFromUser;
         }
       }
 
-      // Get the step description freshly for this request
+      // Build system message - don't assume role until confirmed
       const stepDescription = await getStepDescription(currentStep);
-
-      // Build the step system message with fresh data and role information
       const stepSystemMessage = {
         role: "system",
         content: [
-          {
-            type: "input_text",
-            text: systemMessage.content[0].text,
-          },
-          {
-            type: "input_text",
-            text: `Step instructions: ${stepDescription}`,
-          },
-          {
-            type: "input_text",
-            text: `DETEKTERAD ANVÄNDARROLL: ${detectedRole}. Anpassa dina ${
-              botType === "interview" ? "intervjufrågor och " : ""
-            }svar efter denna roll.`,
-          },
+          { type: "input_text", text: systemMessage.content[0].text },
+          { type: "input_text", text: `Step instructions: ${stepDescription}` },
         ],
       };
 
-      // If detectRole flag is set or no role detected yet, modify the system message
-      if (detectRole || !detectedRole || detectedRole === "unknown") {
+      // Only add role info if we actually have a confirmed role
+      if (detectedRole && detectedRole !== "unknown") {
         stepSystemMessage.content.push({
           type: "input_text",
-          text: "PRIORITET: Det är mycket viktigt att identifiera om användaren är arbetstagare eller arbetsgivare. Var extra uppmärksam på alla indikationer i användarens meddelande som kan avslöja deras roll. Om användaren skriver 'arbetstagare', 'anställd', eller liknande, anta att de är arbetstagare. Om de skriver 'arbetsgivare', 'chef', 'företag', eller liknande, anta att de är arbetsgivare. Om det fortfarande är oklart, börja ditt svar med en direkt fråga om de är arbetstagare eller arbetsgivare.",
+          text: `BEKRÄFTAD ANVÄNDARROLL: ${detectedRole}. Anpassa dina svar efter denna roll.`,
         });
       }
 
-      // Initialize or update the conversation for this step
+      // Add role detection instructions only if we need to detect role
+      if (
+        (detectRole || detectedRole === "unknown") &&
+        currentStep === "step-1"
+      ) {
+        stepSystemMessage.content.push({
+          type: "input_text",
+          text: "VIKTIGT: Användaren har inte angivit sin roll än. Fråga tydligt om de är arbetstagare eller arbetsgivare. När de svarar, bekräfta deras roll med fraser som 'Tack för att du bekräftade att du är arbetstagare/arbetsgivare.'",
+        });
+      }
+
+      // Get context from other steps (simplified)
+      let previousStepsContext = [];
+      if (userId) {
+        // Add minimal context to avoid token limits
+        // You can expand this if needed
+      }
+
+      // Build conversation
       if (
         !stepConversations[currentStep] ||
         stepConversations[currentStep].length === 0
       ) {
-        // Use role-appropriate welcome message
         const roleBasedWelcome = getWelcomeMessageForRole(
           currentStep,
           detectedRole,
           steps
         );
-
         const welcomeMessage = {
           role: "assistant",
-          content: [
-            {
-              type: "output_text",
-              text: roleBasedWelcome,
-            },
-          ],
+          content: [{ type: "output_text", text: roleBasedWelcome }],
         };
-
         stepConversations[currentStep] = [stepSystemMessage, welcomeMessage];
       } else {
-        // Update the system message to reflect any changes in settings and role detection
         stepConversations[currentStep][0] = stepSystemMessage;
       }
 
       const stepHistory = stepConversations[currentStep];
-
-      // Get full step history to send to bot as context
-      let previousStepsContext = [];
-      if (userId) {
-        try {
-          console.log(
-            `Building context for ${botType} bot with userId:`,
-            userId
-          );
-
-          // Define all steps
-          const allSteps = [
-            "step-1",
-            "step-2",
-            "step-3",
-            "step-4",
-            "step-5",
-            "step-6",
-          ];
-          const otherSteps = allSteps.filter(
-            (stepId) => stepId !== currentStep
-          );
-
-          // For each step in the current bot type, get its history from the database
-          for (const stepId of otherSteps) {
-            const historyResult = await query(
-              `SELECT history FROM chat_histories_${botType}_new WHERE user_id = $1 AND step_id = $2`,
-              [userId, stepId]
-            );
-
-            if (historyResult.length > 0 && historyResult[0].history) {
-              const stepHistory = safelyDecryptHistory(
-                historyResult[0].history,
-                stepId,
-                botType
-              );
-
-              // Only add if there's actual conversation (more than just the welcome message)
-              if (Array.isArray(stepHistory) && stepHistory.length > 1) {
-                // Add a separator to clearly mark different steps
-                previousStepsContext.push({
-                  role: "system",
-                  content: [
-                    {
-                      type: "input_text",
-                      text: `--- History from ${botType} ${stepId} ---`,
-                    },
-                  ],
-                });
-
-                // Add the conversation history from this step
-                previousStepsContext.push(
-                  ...stepHistory.map((msg) => ({
-                    role: msg.role || "assistant",
-                    content: [
-                      {
-                        type:
-                          msg.role === "user" ? "input_text" : "output_text",
-                        text: msg.text || msg.content || "",
-                      },
-                    ],
-                  }))
-                );
-              }
-            }
-          }
-
-          // Get cross-context from the other bot type
-          const otherBotType =
-            botType === "application" ? "interview" : "application";
-          for (const stepId of allSteps) {
-            const historyResult = await query(
-              `SELECT history FROM chat_histories_${otherBotType}_new WHERE user_id = $1 AND step_id = $2`,
-              [userId, stepId]
-            );
-
-            if (historyResult.length > 0 && historyResult[0].history) {
-              const stepHistory = safelyDecryptHistory(
-                historyResult[0].history,
-                stepId,
-                otherBotType
-              );
-
-              // Only add if there's actual conversation
-              if (Array.isArray(stepHistory) && stepHistory.length > 1) {
-                // Add a separator
-                previousStepsContext.push({
-                  role: "system",
-                  content: [
-                    {
-                      type: "input_text",
-                      text: `--- History from ${otherBotType} ${stepId} ---`,
-                    },
-                  ],
-                });
-
-                // Add the conversation history
-                previousStepsContext.push(
-                  ...stepHistory.map((msg) => ({
-                    role: msg.role || "assistant",
-                    content: [
-                      {
-                        type:
-                          msg.role === "user" ? "input_text" : "output_text",
-                        text: msg.text || msg.content || "",
-                      },
-                    ],
-                  }))
-                );
-              }
-            }
-          }
-
-          // Prevent token limit issues
-          const MAX_CONTEXT_MESSAGES = 100;
-          if (previousStepsContext.length > MAX_CONTEXT_MESSAGES) {
-            console.log(
-              `Truncating context from ${previousStepsContext.length} to ${MAX_CONTEXT_MESSAGES} messages`
-            );
-            previousStepsContext = previousStepsContext.slice(
-              -MAX_CONTEXT_MESSAGES
-            );
-          }
-
-          console.log(
-            `Added context from ${previousStepsContext.length} messages from other steps for ${botType} bot`
-          );
-        } catch (error) {
-          console.error(
-            `Error getting step history for ${botType} bot:`,
-            error
-          );
-        }
-      } else {
-        console.log(`No userId provided for ${botType} bot context`);
-      }
-
-      const stepContext = {
-        role: "system",
-        content: [
-          {
-            type: "input_text",
-            text: `User is currently on step "${currentStep}": ${getStepDescription(
-              currentStep
-            )}. Detected role: ${detectedRole}`,
-          },
-        ],
-      };
-
       const userMessage = {
         role: "user",
-        content: [
-          {
-            type: "input_text",
-            text: message,
-          },
-        ],
+        content: [{ type: "input_text", text: message }],
       };
 
-      const input = [
-        stepContext,
-        ...previousStepsContext,
-        ...stepHistory,
-        userMessage,
-      ];
+      const input = [...previousStepsContext, ...stepHistory, userMessage];
 
-      console.log(model);
+      // Call OpenAI
       const response = await openai.responses.create({
         model: model,
         input,
@@ -452,14 +258,10 @@ export function createChatHandler(config) {
         store: true,
       });
 
+      // Update conversation
       const assistantMessage = {
         role: "assistant",
-        content: [
-          {
-            type: "output_text",
-            text: response.output_text,
-          },
-        ],
+        content: [{ type: "output_text", text: response.output_text }],
       };
 
       stepConversations[currentStep] = [
@@ -468,6 +270,7 @@ export function createChatHandler(config) {
         assistantMessage,
       ];
 
+      // Trim conversation if too long
       if (stepConversations[currentStep].length > 20) {
         const welcomeMessage = stepConversations[currentStep][1];
         stepConversations[currentStep] = [
@@ -477,26 +280,22 @@ export function createChatHandler(config) {
         ];
       }
 
-      // Check if AI's response indicates a role when our pattern detection didn't find one
+      // SIMPLIFIED ROLE DETECTION FROM AI RESPONSE
+      let roleFromAI = null;
       if (
         currentStep === "step-1" &&
-        detectedRole === "unknown" &&
-        response.output_text
+        (detectedRole === "unknown" || detectRole)
       ) {
-        const aiDetectedRole = extractRoleFromAIResponse(response.output_text);
-        if (aiDetectedRole) {
-          console.log(`Role detected from AI response: ${aiDetectedRole}`);
-          detectedRole = aiDetectedRole;
-        }
+        roleFromAI = extractRoleFromAIResponse(response.output_text);
       }
 
-      // Only return a detected role if it's actually known
-      const roleToReturn =
-        detectedRole && detectedRole !== "unknown" ? detectedRole : null;
+      // Return the detected role (either from user input or AI confirmation)
+      const finalDetectedRole =
+        roleFromAI || (detectedRole !== "unknown" ? detectedRole : null);
 
       res.json({
         message: response.output_text,
-        detectedRole: roleToReturn,
+        detectedRole: finalDetectedRole,
       });
     } catch (error) {
       console.error(`${botType} chat error:`, error);

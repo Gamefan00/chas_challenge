@@ -240,14 +240,13 @@ export default function SidebarNav({
     console.log("Reset chat initiated for type:", type);
 
     try {
-      // Get userId from localStorage
+      // Get userId from localStorage (preserve it)
       const userId = localStorage.getItem("userId");
-      console.log("Retrieved userId:", userId);
+      console.log("Using userId for reset:", userId);
 
       const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-      console.log("Using BASE_URL:", BASE_URL);
 
-      // Step 1: Server-side cleanup FIRST (before localStorage)
+      // Step 1: Server-side cleanup for the specific chat type
       if (userId) {
         try {
           const endpoint =
@@ -274,7 +273,7 @@ export default function SidebarNav({
         }
       }
 
-      // Step 2: Clear localStorage keys based on type
+      // Step 2: Reset ONLY the type-specific localStorage values
       if (type === "interview") {
         localStorage.removeItem("interviewCurrentStep");
         localStorage.removeItem("interviewCompletedSteps");
@@ -284,28 +283,30 @@ export default function SidebarNav({
         localStorage.removeItem("applicationCompletedSteps");
         localStorage.setItem("applicationCurrentStep", "step-1");
       }
-      localStorage.removeItem("userRole");
 
-      // Remove legacy keys
+      // Important: ONLY reset userRole if they're in step-1 of the first chat type
+      // This ensures we don't lose role detection between chats
+      if (currentStep === "step-1") {
+        localStorage.setItem("userRole", "unknown");
+      }
+
+      // Remove any legacy keys
       localStorage.removeItem("completedSteps");
       localStorage.removeItem("currentStep");
 
       // Step 3: Reset local state
       setLocalCompletedSteps([]);
 
-      // Step 4: Set a flag in localStorage to indicate we're in a reset state
-      // This will help the ChatComponent know it should reload fresh content
+      // Step 4: Set a flag to indicate that we've done a reset
       localStorage.setItem(`${type}ChatReset`, "true");
 
-      // Step 5: Reload the page with a longer delay
+      // Step 5: Reload the page to get a fresh start
       setTimeout(() => {
         window.location.reload();
       }, 500);
     } catch (error) {
       console.error("Error in handleResetChat:", error);
-      alert(
-        "Det uppstod ett fel när chatten skulle återställas. Försök igen eller ladda om sidan manuellt.",
-      );
+      alert("Det gick inte att återställa chatten. Var god försök igen eller kontakta support.");
     }
   };
 
@@ -400,7 +401,7 @@ export default function SidebarNav({
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <div className="p-4">
-                    <Button variant="ghost" className="w-full justify-start hover:shadow-md">
+                    <Button variant="ghost" className="mb-4 w-full justify-start hover:shadow-md">
                       <Trash2 className="mr-2 h-5 w-5" />
                       <span> Återställ chatt</span>
                     </Button>

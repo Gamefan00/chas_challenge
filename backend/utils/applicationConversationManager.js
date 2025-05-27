@@ -192,6 +192,24 @@ export async function refreshApplicationConversationSettings() {
   );
 }
 
+// Reset conversation state only for a specific user
+export async function resetApplicationConversation(userId) {
+  console.log(`Resetting application conversations for user ${userId}`);
+
+  // Delete all user-specific conversation keys
+  for (const key in stepConversations) {
+    if (key.startsWith(`${userId}-`)) {
+      console.log(`Deleting conversation for key: ${key}`);
+      delete stepConversations[key];
+    }
+  }
+
+  return {
+    success: true,
+    message: `Application conversations reset for user ${userId}`,
+  };
+}
+
 export { defaultSystemMessageApplication };
 
 // Initialize on module load

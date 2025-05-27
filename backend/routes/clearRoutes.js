@@ -1,5 +1,7 @@
 import express from "express";
 import query from "../utils/supabaseQuery.js";
+import { resetApplicationConversation } from "../utils/applicationConversationManager.js";
+import { resetInterviewConversation } from "../utils/interviewConversationManager.js";
 
 const router = express.Router();
 
@@ -17,6 +19,9 @@ router.delete("/application/:userId", async (req, res) => {
       "DELETE FROM chat_histories_application_new WHERE user_id = $1",
       [userId]
     );
+
+    // Reset ONLY the application conversation state for this user
+    await resetApplicationConversation(userId);
 
     console.log("Application delete result:", result);
     console.log(
@@ -53,6 +58,9 @@ router.delete("/interview/:userId", async (req, res) => {
       "DELETE FROM chat_histories_interview_new WHERE user_id = $1",
       [userId]
     );
+
+    // Reset ONLY the interview conversation state for this user
+    await resetInterviewConversation(userId);
 
     console.log("Interview delete result:", result);
     console.log(

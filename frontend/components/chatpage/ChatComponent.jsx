@@ -126,31 +126,6 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
       };
     }
   };
-  async function handleRoleDetection(newRole, message) {
-    console.log(`Handling role detection: ${newRole}`);
-
-    try {
-      // First update the current step with the AI's response
-      setChatHistories((prevHistories) => {
-        const updatedHistory = [
-          ...prevHistories[currentStep],
-          { role: "assistant", text: message },
-        ];
-
-        return {
-          ...prevHistories,
-          [currentStep]: updatedHistory,
-        };
-      });
-
-      // Then refresh welcome messages for other steps with the new role
-      await refreshWelcomeMessagesWithRole(newRole);
-
-      console.log(`Role detection handled successfully: ${newRole}`);
-    } catch (error) {
-      console.error("Error in handleRoleDetection:", error);
-    }
-  }
   // Determine which state to use based on type
   const currentStep = type === "interview" ? interviewCurrentStep : applicationCurrentStep;
   const setCurrentStep = type === "interview" ? setInterviewCurrentStep : setApplicationCurrentStep;
@@ -197,7 +172,11 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
       // Load detected role from localStorage
       const savedRole = localStorage.getItem(userRoleKey);
       if (savedRole) {
-        setDetectedUserRole(savedRole);
+        if (savedRole !== "unknown") {
+          setDetectedUserRole(savedRole);
+        } else {
+          setDetectedUserRole(null);
+        }
       }
       setIsHydrated(true);
     }
@@ -230,6 +209,34 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
       localStorage.setItem(userRoleKey, detectedUserRole);
     }
   }, [detectedUserRole, isHydrated, type]);
+
+  // Handle chat reset flag
+  useEffect(() => {
+    if (isHydrated && typeof window !== "undefined") {
+      const resetFlag = localStorage.getItem(`${type}ChatReset`);
+
+      if (resetFlag === "true") {
+        console.log(`Detected ${type} chat reset flag, rehydrating component`);
+
+        // Clear histories for this chat type
+        const resetHistories = { ...chatHistories };
+        for (const stepId in resetHistories) {
+          resetHistories[stepId] = [];
+        }
+        setChatHistories(resetHistories);
+
+        // Reset to step 1
+        setCurrentStep("step-1");
+        setCompletedSteps([]);
+
+        // Remove the flag so we don't repeat this on next render
+        localStorage.removeItem(`${type}ChatReset`);
+
+        // Force refresh of welcome messages
+        setHistoriesLoaded(false);
+      }
+    }
+  }, [isHydrated, type]);
 
   const currentStepData = steps.find((step) => step.id === currentStep);
   const heading = currentStepData?.heading || "Chat";
@@ -498,11 +505,10 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
     if (!message.trim()) return;
 
     setIsLoading(true);
-    let roleWasDetected = false; // Flag to track if role detection occurred
 
     const updatedHistory = [...currentChatHistory, { role: "user", text: message }];
 
-    // Set initial state with user message
+    // Update chat immediately with user message
     setChatHistories((prevHistories) => ({
       ...prevHistories,
       [currentStep]: updatedHistory,
@@ -512,7 +518,7 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
 
     try {
       const userId = localStorage.getItem("userId");
-      const userRole = detectedUserRole;
+      const userRole = localStorage.getItem("userRole") || detectedUserRole;
 
       const isFirstUserMessage =
         currentChatHistory.length === 1 && currentChatHistory[0].role === "assistant";
@@ -520,7 +526,7 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
       const shouldDetectRole =
         currentStep === "step-1" && (!userRole || userRole === "unknown") && !isFirstUserMessage;
 
-      // Get previous context from earlier steps (maximum 5 messages)
+      // Get previous context from earlier steps
       let previousContext = [];
       try {
         const allUserHistory = await getUserHistory(userId);
@@ -529,7 +535,6 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
         console.error("Could not fetch previous context:", err);
       }
 
-      // Use the correct endpoint based on bot type
       const chatEndpoint =
         type === "interview" ? `${BASE_URL}/chat/interview/` : `${BASE_URL}/chat`;
 
@@ -537,9 +542,8 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
         message,
         currentStep,
         userId: userId || null,
-        // Only request detection after first exchange
         detectRole: shouldDetectRole,
-        existingRole: detectedUserRole || "unknown",
+        existingRole: userRole || "unknown",
         previousContext,
       };
 
@@ -555,41 +559,75 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
 
       const data = await response.json();
 
-      // First check if the AI detected a role in its response
-      if (data.detectedRole && data.detectedRole !== "unknown") {
-        // Check if this is a new role or different from current
-        if (
-          !detectedUserRole ||
-          detectedUserRole === "unknown" ||
-          detectedUserRole !== data.detectedRole
-        ) {
-          console.log(`User role detected by AI: ${data.detectedRole}`);
+      // SIMPLIFIED ROLE HANDLING - Only update if role is actually detected
+      let finalRole = detectedUserRole;
 
-          // Update localStorage and state with the AI-detected role
-          localStorage.setItem("userRole", data.detectedRole);
-          setDetectedUserRole(data.detectedRole);
+      // Only update role if we have a clear detection AND we're in step-1
+      if (data.detectedRole && data.detectedRole !== "unknown" && currentStep === "step-1") {
+        finalRole = data.detectedRole;
 
-          // If role changed, update welcome messages
-          roleWasDetected = true;
-          await handleRoleDetection(data.detectedRole, data.message);
-          return; // Let handleRoleDetection handle the message update
-        }
+        // Update localStorage immediately
+        localStorage.setItem("userRole", finalRole);
+        setDetectedUserRole(finalRole);
+
+        console.log(`Role confirmed and updated to: ${finalRole}`);
+
+        // Refresh other step welcome messages in background (non-blocking)
+        refreshWelcomeMessagesWithRole(finalRole).catch((error) => {
+          console.error("Error refreshing welcome messages:", error);
+        });
       }
 
-      // ONLY update with the standard approach if NO role was detected
-      if (!roleWasDetected) {
-        // Use functional update to ensure we're working with latest state
-        setChatHistories((prevHistories) => ({
-          ...prevHistories,
-          [currentStep]: [...updatedHistory, { role: "assistant", text: data.message }],
-        }));
-      }
+      // Update chat with AI response
+      setChatHistories((prevHistories) => ({
+        ...prevHistories,
+        [currentStep]: [...updatedHistory, { role: "assistant", text: data.message }],
+      }));
     } catch (error) {
       console.error("Error sending message:", error);
+      // Show error message to user
+      setChatHistories((prevHistories) => ({
+        ...prevHistories,
+        [currentStep]: [
+          ...updatedHistory,
+          {
+            role: "assistant",
+            text: "Ett fel uppstod. Försök igen.",
+          },
+        ],
+      }));
     } finally {
       setIsLoading(false);
     }
   }
+
+  // // Utility function to check AI response for role change confirmation
+  // const checkLatestResponseForRoleChange = () => {
+  //   if (!currentChatHistory || currentChatHistory.length < 2) return false;
+
+  //   // Get the latest AI response
+  //   const latestAIMessage = [...currentChatHistory]
+  //     .reverse()
+  //     .find((msg) => msg.role === "assistant");
+
+  //   if (!latestAIMessage) return false;
+
+  //   // Look for role change confirmation patterns in the AI's message
+  //   const message = latestAIMessage.text.toLowerCase();
+  //   const isRoleChangeConfirmation =
+  //     message.includes("tack för att du klargjorde") ||
+  //     message.includes("uppdaterat din roll") ||
+  //     (message.includes("arbetsgivare") && message.includes("eftersom du är")) ||
+  //     (message.includes("arbetstagare") && message.includes("Eftersom du är"));
+  //   (message.includes("arbetsgivare") && message.includes("berättade")) ||
+  //     (message.includes("arbetstagare") && message.includes("berättade"));
+  //   (message.includes("arbetsgivare") && message.includes("bekräft")) ||
+  //     (message.includes("arbetstagare") && message.includes("bekräft"));
+
+  //   console.log("AI response checked for role change:", isRoleChangeConfirmation);
+  //   return isRoleChangeConfirmation;
+  // };
+
   // Function to refresh welcome messages when role changes
   async function refreshWelcomeMessagesWithRole(newRole) {
     try {
