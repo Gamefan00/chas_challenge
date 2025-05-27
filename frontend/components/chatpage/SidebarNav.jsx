@@ -33,7 +33,7 @@ const steps = [
   { id: "step-3", label: "Grundläggande behov" },
   { id: "step-4", label: "Andra behov" },
   { id: "step-5", label: "Nuvarande stöd" },
-  { id: "step-6", label: "Granska och skicka" },
+  { id: "step-6", label: "Sammanfattning" },
 ];
 
 const interviewSteps = [
@@ -284,6 +284,7 @@ export default function SidebarNav({
         localStorage.removeItem("applicationCompletedSteps");
         localStorage.setItem("applicationCurrentStep", "step-1");
       }
+      localStorage.removeItem("userRole");
 
       // Remove legacy keys
       localStorage.removeItem("completedSteps");

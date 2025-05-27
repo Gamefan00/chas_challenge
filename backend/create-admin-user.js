@@ -9,8 +9,8 @@ dotenv.config();
 
 async function createAdmin() {
   try {
-    const email = "test@chaschallenge.com";
-    const password = "1234";
+    const email = "";
+    const password = "";
     const saltRounds = 10;
     const hash = await bcrypt.hash(password, saltRounds);
 

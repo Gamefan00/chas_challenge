@@ -62,7 +62,7 @@ router.post("/", async (req, res) => {
     ];
     for (const { key, value, description } of settings) {
       await query(
-        `INSERT INTO admin_settings (key, value, category, description)
+        `INSERT INTO admin_settings(key, value, category, description)
          VALUES ($1, $2, $3, $4)
          ON CONFLICT (key)
          DO UPDATE SET value = EXCLUDED.value`,

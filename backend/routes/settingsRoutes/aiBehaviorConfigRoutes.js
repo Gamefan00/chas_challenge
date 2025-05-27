@@ -52,7 +52,7 @@ router.get("/", async (req, res) => {
               "step-5":
                 "Nuvarande stöd - Hjälp användaren att beskriva vilket stöd de får idag och från vilka aktörer.",
               "step-6":
-                "Granska och skicka - Hjälp användaren att sammanfatta sin ansökan och kontrollera att all nödvändig information finns med.",
+                "Sammanfattning - Hjälp användaren att sammanfatta sin ansökan och kontrollera att all nödvändig information finns med.",
             },
           },
         },
@@ -143,7 +143,7 @@ router.post("/", async (req, res) => {
               "step-5":
                 "Nuvarande stöd - Hjälp användaren att beskriva vilket stöd de får idag och från vilka aktörer.",
               "step-6":
-                "Granska och skicka - Hjälp användaren att sammanfatta sin ansökan och kontrollera att all nödvändig information finns med.",
+                "Sammanfattning - Hjälp användaren att sammanfatta sin ansökan och kontrollera att all nödvändig information finns med.",
             },
           }
         ),
@@ -154,7 +154,7 @@ router.post("/", async (req, res) => {
 
     for (const { key, value, description } of settings) {
       await query(
-        `INSERT INTO admin_settings (key, value, category, description)
+        `INSERT INTO admin_settings(key, value, category, description)
          VALUES ($1, $2, $3, $4)
          ON CONFLICT (key)
          DO UPDATE SET value = EXCLUDED.value`,

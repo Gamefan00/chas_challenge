@@ -107,10 +107,13 @@ const CookieSettingsPage = () => {
       }
 
       // Remove the type-specific localStorage items
-      localStorage.removeItem("currentInterviewStep");
-      localStorage.removeItem("currentapplicationStep");
       localStorage.removeItem("interviewCompletedSteps");
+      localStorage.removeItem("interviewCurrentStep");
       localStorage.removeItem("applicationCompletedSteps");
+      localStorage.removeItem("applicationCurrentStep");
+
+      localStorage.removeItem("userRole");
+      localStorage.removeItem("userId");
 
       localStorage.removeItem("completedSteps");
       localStorage.removeItem("currentStep");

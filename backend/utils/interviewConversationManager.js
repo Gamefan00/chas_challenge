@@ -1,228 +1,203 @@
-import query from "./supabaseQuery.js";
+import {
+  detectUserRole,
+  fetchSystemMessageFromDB,
+  fetchSteps,
+  getStepDescription,
+  getWelcomeMessageForRole as baseGetWelcomeMessageForRole,
+  initializeConversations,
+  refreshConversationSettings,
+} from "./baseConversationManager.js";
 
-// Define a default system message as fallback
+// Interview specific constants
 const defaultSystemMessageInterview = {
   role: "system",
   content: [
     {
       type: "input_text",
-      text: "Du är expert på arbetshjälpmedel.\n\nRegler:\nDu vägleder användaren (individer eller arbetsgivare) genom processen att ansöka om arbetshjälpmedel från Försäkringskassan, inklusive:\nVal av rätt blankett (FK 7545 eller FK 7546)\nStöd med svar vid utredningssamtal\nFörklaringar av regler och lagar (t.ex. AML, HSL, Diskrimineringslagen)\nTextförslag för fritextfält\nSekretesskyddad hantering av konversationer och dokument",
+      text: `Du är en intervjuassistent för arbetshjälpmedel som hjälper till att samla information systematiskt.
+
+VIKTIGT: Identifiera först om användaren är Arbetstagare eller Arbetsgivare baserat på deras svar.
+Var uppmärksam på att användaren kan stava fel, använda synonymer eller beskriva sin roll indirekt.
+
+Om användaren skriver något som antyder att de är en arbetstagare, exempelvis att de:
+- Är anställda eller skriver "arbetstagare" (även med stavfel som "arbetstakare" eller liknande)
+- Söker för sig själva
+- Beskriver sin egen arbetssituation eller funktionsnedsättning
+Då ska du behandla dem som ARBETSTAGARE.
+
+Om användaren skriver något som antyder att de är en arbetsgivare, exempelvis att de:
+- Är chef eller skriver "arbetsgivare" (även med stavfel som "arbetgivare" eller liknande)
+- Representerar ett företag
+- Ansöker för en anställd
+- Beskriver en anställds situation
+Då ska du behandla dem som ARBETSGIVARE.
+
+Förtydliga alltid vilken roll du har uppfattat genom att säga "Som arbetstagare..." eller "Som arbetsgivare..." i början av ditt svar.
+
+=== ARBETSTAGARE INSTRUKTIONER ===
+Om användaren är en arbetstagare (anställd som behöver hjälp):
+- Ställ personliga frågor om funktionsnedsättning
+- Fokusera på individuella behov och utmaningar
+- Fråga om personliga erfarenheter av arbetet
+- Hjälp att formulera egna behov
+
+=== ARBETSGIVARE INSTRUKTIONER ===
+Om användaren är en arbetsgivare (som intervjuar för en anställd):
+- Ställ frågor om den anställdas situation
+- Fokusera på arbetsmiljöanpassningar
+- Fråga om organisatoriska förändringar
+- Hjälp att identifiera stödbehov för den anställda
+
+=== ALLMÄNNA REGLER ===
+- Använd en strukturerad intervjuprocess
+- Ställ följdfrågor för att få djupare förståelse
+- Dokumentera svar systematiskt
+- Var empatisk och professionell`,
     },
   ],
 };
-export { defaultSystemMessageInterview };
+
+// Default step welcome messages for different roles
 const defaultStepWelcomeMessagesInterview = {
-  "step-1":
-    "Välkommen till processen för att ansöka om arbetshjälpmedel! I detta första steg behöver vi bestämma vilken typ av ärende du har. \n\nÄr du en arbetstagare som behöver hjälpmedel för att kunna arbeta, eller representerar du en arbetsgivare som ansöker för en anställds räkning? Detta avgör vilken blankett som ska användas (FK 7545 eller FK 7546).",
-
-  "step-2":
-    "Nu ska vi beskriva din funktionsnedsättning och hur den påverkar ditt arbete. \n\nBerätta om din funktionsnedsättning, diagnos (om du har en) och vilka begränsningar den medför i arbetslivet. Detaljerad information här hjälper Försäkringskassan att förstå dina behov bättre.",
-
-  "step-3":
-    "I detta steg ska vi identifiera dina grundläggande behov för att kunna utföra ditt arbete. \n\nVilka arbetsuppgifter har du svårt att utföra på grund av din funktionsnedsättning? Vilka specifika hinder möter du i arbetet? Konkreta exempel hjälper till att bygga din ansökan.",
-
-  "step-4":
-    "Nu ska vi undersöka andra behov som kan finnas för att du ska kunna utföra ditt arbete. \n\nDetta kan handla om behov som inte är direkt kopplade till din funktionsnedsättning men som ändå påverkar din arbetsförmåga. Det kan också innefatta sociala eller organisatoriska aspekter av arbetet.",
-
-  "step-5":
-    "I detta steg ska vi gå igenom vilket stöd du redan får idag. \n\nBerätta om du har några hjälpmedel eller anpassningar på din arbetsplats idag, eller om du får stöd från andra aktörer som kommun, region, eller Arbetsförmedlingen. Detta är viktigt för att undvika dubbla insatser.",
-
-  "step-6":
-    "Nu är det dags att granska och sammanfatta din ansökan. \n\nLåt oss gå igenom den information du har delat och se till att din ansökan är komplett innan den skickas in. Jag kan hjälpa dig att formulera texten för fritextfälten i blanketten.",
+  "step-1": {
+    arbetstagare:
+      "Välkommen till intervjun om arbetshjälpmedel! Kan du kort berätta om dig själv och din nuvarande arbetssituation? Vad arbetar du med och vilka utmaningar upplever du?",
+    arbetsgivare:
+      "Välkommen till intervjun om arbetshjälpmedel! Kan du berätta om den anställda som ni vill ansöka hjälpmedel för? Vad arbetar personen med och vilka utmaningar har ni observerat?",
+  },
+  "step-2": {
+    arbetstagare:
+      "Nu vill jag höra mer om din funktionsnedsättning. Kan du berätta om din diagnos eller funktionsnedsättning och hur den påverkar dig i arbetslivet? Vad blir svårast för dig?",
+    arbetsgivare:
+      "Nu vill jag höra mer om den anställdas funktionsnedsättning. Vad vet ni om personens diagnos eller funktionsnedsättning? Hur påverkar det deras arbete enligt vad ni har observerat?",
+  },
+  "step-3": {
+    arbetstagare:
+      "Låt oss fokusera på dina specifika arbetsuppgifter. Vilka arbetsuppgifter har du svårast med på grund av din funktionsnedsättning? Kan du ge konkreta exempel?",
+    arbetsgivare:
+      "Låt oss fokusera på den anställdas specifika arbetsuppgifter. Vilka arbetsuppgifter har personen svårast med? Vilka konkreta hinder har ni observerat i deras dagliga arbete?",
+  },
+  "step-4": {
+    arbetstagare:
+      "Har du använt några hjälpmedel eller fått anpassningar tidigare? Vad har fungerat bra och vad har varit mindre bra? Finns det något du har testat på egen hand?",
+    arbetsgivare:
+      "Har ni provat några hjälpmedel eller anpassningar för den anställda tidigare? Vad har fungerat bra på arbetsplatsen och vad behöver förbättras?",
+  },
+  "step-5": {
+    arbetstagare:
+      "Berätta om din arbetsmiljö. Hur ser din arbetsplats ut fysiskt? Hur fungerar samarbetet med kollegor och chefer? Finns det miljöfaktorer som påverkar dig?",
+    arbetsgivare:
+      "Berätta om arbetsmiljön för den anställda. Hur ser arbetsplatsen ut fysiskt? Hur fungerar samarbetet i teamet? Finns det miljöfaktorer som påverkar personens arbetsförmåga?",
+  },
+  "step-6": {
+    arbetstagare:
+      "Avslutningsvis, hur fungerar kommunikation och samspel med dina kollegor och kunder? Finns det situationer där du behöver extra stöd för att kommunicera effektivt?",
+    arbetsgivare:
+      "Avslutningsvis, hur fungerar kommunikation och samspel för den anställda med kollegor och kunder? Finns det situationer där personen behöver extra stöd för att kommunicera effektivt?",
+  },
 };
+
 const defaultStepDescriptionsInterview = {
   "step-1":
-    "Välj ärendetyp - Hjälp användaren att bestämma om de ska använda blankett FK 7545 eller FK 7546 baserat på om de är arbetstagare eller arbetsgivare.",
+    "Förberedelse - Hjälp användaren att berätta om sig själv och sin arbetssituation.",
   "step-2":
-    "Funktionsnedsättning - Hjälp användaren att beskriva sin funktionsnedsättning och hur den påverkar arbetsförmågan.",
+    "Funktionsnedsättning - Hjälp användaren att beskriva funktionsnedsättning och dess påverkan.",
   "step-3":
-    "Grundläggande behov - Hjälp användaren att identifiera vilka behov som finns för att kunna utföra arbetet.",
+    "Arbetsuppgifter - Hjälp användaren att identifiera specifika utmaningar i arbetsuppgifter.",
   "step-4":
-    "Andra behov - Hjälp användaren att identifiera andra behov som kan finnas för att utföra arbetet, som inte är direkt kopplade till funktionsnedsättningen.",
+    "Tidigare erfarenheter - Hjälp användaren att beskriva tidigare hjälpmedel och anpassningar.",
   "step-5":
-    "Nuvarande stöd - Hjälp användaren att beskriva vilket stöd de får idag och från vilka aktörer.",
+    "Arbetsmiljö - Hjälp användaren att beskriva sin arbetsmiljö och samarbete.",
   "step-6":
-    "Granska och skicka - Hjälp användaren att sammanfatta sin ansökan och kontrollera att all nödvändig information finns med.",
+    "Kommunikation - Hjälp användaren att beskriva kommunikationsbehov och samspel.",
 };
 
-// Welcome messages for each step
-// Query to fetch InterviewSteps from admin_setting
-export async function fetchInterviewSteps() {
-  let formattedInterviewSteps = {};
-  try {
-    const interviewStepsResult = await query(
-      "SELECT value FROM admin_settings WHERE key = $1",
-      ["interviewSteps"]
-    );
+// Interview-specific neutral messages
+const interviewNeutralWelcomes = {
+  "step-1":
+    "Välkommen till utredningssamtalsverktyget! För att ge dig bästa möjliga hjälp, behöver jag veta om du är arbetstagare eller arbetsgivare?",
+  "step-2":
+    "I detta steg ska vi förbereda för utredningssamtalet. För att anpassa mina råd, kan du berätta om du är arbetstagare eller arbetsgivare?",
+  "step-3":
+    "Välkommen till steg 3! För att ge dig rätt stöd, behöver jag veta om du är arbetstagare eller arbetsgivare?",
+  "step-4":
+    "I detta steg ska vi diskutera specifika frågor. För att anpassa mina råd, är du arbetstagare eller arbetsgivare?",
+  "step-5":
+    "Välkommen till steg 5! För bästa möjliga hjälp, kan du berätta om du är arbetstagare eller arbetsgivare?",
+  "step-6":
+    "Välkommen till sista steget! För att anpassa mina råd, är du arbetstagare eller arbetsgivare?",
+};
 
-    if (interviewStepsResult && interviewStepsResult.length > 0) {
-      // Parse the JSON value from the database
-      const stepsData = interviewStepsResult[0].value;
-
-      // Build an object with the required structure
-      for (const [step, content] of Object.entries(stepsData)) {
-        if (content && content.welcome) {
-          formattedInterviewSteps[step] = content.welcome;
-        }
-      }
-
-      console.log("Interview steps loaded from database");
-      return formattedInterviewSteps;
-    }
-  } catch (error) {
-    console.error("Error fetching interviewSteps from database:", error);
-  }
-
-  // Return default steps if database fetch fails
-  console.log("Using default interview steps");
-  return defaultStepWelcomeMessagesInterview;
-}
-
-let systemMessage = defaultSystemMessageInterview;
+// Interview conversation state
+export let systemMessage = defaultSystemMessageInterview;
 export let stepConversations = {};
+export let interviewSteps = defaultStepWelcomeMessagesInterview;
 
-// Fetch system message from database
+// Export interview-specific versions of utility functions
+export { detectUserRole };
+
+export async function fetchInterviewSteps() {
+  interviewSteps = await fetchSteps(
+    "interviewSteps",
+    defaultStepWelcomeMessagesInterview
+  );
+  return interviewSteps;
+}
 
 export async function fetchInterviewSystemMessageFromDB() {
-  try {
-    // Get interview system message from database
-    const appSystemResult = await query(
-      "SELECT value FROM admin_settings WHERE key = $1 AND category = $2",
-      ["interviewSystemMessage", "AI-Behavior Configuration"]
-    );
-
-    if (appSystemResult && appSystemResult.length > 0) {
-      // Use the value directly without JSON.parse if it's already a string
-      const systemMessageText = appSystemResult[0].value;
-      if (systemMessageText) {
-        systemMessage = {
-          role: "system",
-          content: [
-            {
-              type: "input_text",
-              text: systemMessageText,
-            },
-          ],
-        };
-        console.log("System message loaded from database");
-      }
-    }
-  } catch (error) {
-    console.error("Error fetching system message from database:", error);
-    console.log("Using default system message");
-  }
+  systemMessage = await fetchSystemMessageFromDB(
+    "interviewSystemMessage",
+    "AI-Behavior Configuration",
+    defaultSystemMessageInterview
+  );
+  return systemMessage;
 }
 
-export async function initializeInterviewConversations() {
-  // First fetch the system message
-  await fetchInterviewSystemMessageFromDB();
-
-  // Then fetch interview steps
-  const interviewSteps = await fetchInterviewSteps();
-
-  stepConversations = {
-    "step-1": [systemMessage],
-    "step-2": [systemMessage],
-    "step-3": [systemMessage],
-    "step-4": [systemMessage],
-    "step-5": [systemMessage],
-    "step-6": [systemMessage],
-
-  };
-
-  for (const step in stepConversations) {
-    const stepDescription = await getInterviewStepsDescription(step);
-
-    const stepSystemMessage = {
-      ...systemMessage,
-      content: [
-        ...systemMessage.content,
-        {
-          type: "input_text",
-          text: `Step instructions: ${stepDescription}`,
-        },
-      ],
-    };
-
-    const welcomeMessage = {
-      role: "assistant",
-      content: [
-        {
-          type: "output_text",
-          text:
-            interviewSteps[step] || defaultStepWelcomeMessagesInterview[step],
-        },
-      ],
-    };
-    stepConversations[step] = [stepSystemMessage, welcomeMessage];
-  }
-}
-
-// Helper function to get step descriptions
 export async function getInterviewStepsDescription(step) {
-  try {
-    // Always fetch fresh data from database
-    const interviewStepsDescriptionResult = await query(
-      "SELECT value FROM admin_settings WHERE key = $1",
-      ["interviewSteps"]
-    );
-
-    if (
-      interviewStepsDescriptionResult &&
-      interviewStepsDescriptionResult.length > 0
-    ) {
-      // Always parse the JSON value to ensure we have the freshest data
-      const stepsData = interviewStepsDescriptionResult[0].value;
-
-      // Check if the step exists and has a description property
-      if (stepsData && stepsData[step] && stepsData[step].description) {
-        console.log(
-          `Interview description for ${step} loaded from database:`,
-          stepsData[step].description
-        );
-        return stepsData[step].description;
-      }
-    }
-  } catch (error) {
-    console.error("Error fetching step descriptions from database:", error);
-  }
-
-  // If we reach here, either there was an error or no valid description was found
-  console.log(`Using default description for ${step}`);
-  return (
-    defaultStepDescriptionsInterview[step] ||
-    "Hjälp användaren med intervjun om arbetshjälpmedel."
+  return getStepDescription(
+    "interviewSteps",
+    step,
+    defaultStepDescriptionsInterview
   );
 }
 
-export async function refreshInterviewConversationSettings() {
-  // Fetch fresh system message
-  await fetchInterviewSystemMessageFromDB();
-
-  // Refresh step conversations with new system message
-  for (const step in stepConversations) {
-    if (stepConversations[step] && stepConversations[step].length > 0) {
-      // Get fresh step description
-      const stepDescription = await getInterviewStepsDescription(step);
-
-      // Update the system message in the conversation
-      const updatedSystemMessage = {
-        role: "system",
-        content: [
-          ...systemMessage.content,
-          {
-            type: "input_text",
-            text: `Step instructions: ${stepDescription}`,
-          },
-        ],
-      };
-
-      // Replace the system message in the conversation
-      stepConversations[step][0] = updatedSystemMessage;
-    }
-  }
-  console.log("Interview conversation settings refreshed");
+export function getInterviewWelcomeMessageForRole(stepId, userRole = null) {
+  return baseGetWelcomeMessageForRole(
+    stepId,
+    userRole,
+    interviewSteps,
+    interviewNeutralWelcomes
+  );
 }
 
-// Initialize conversations on startup
+export async function initializeInterviewConversations() {
+  const result = await initializeConversations(
+    "interviewSystemMessage",
+    "AI-Behavior Configuration",
+    defaultSystemMessageInterview,
+    "interviewSteps",
+    defaultStepWelcomeMessagesInterview,
+    "interviewSteps",
+    defaultStepDescriptionsInterview
+  );
+
+  stepConversations = result.stepConversations;
+  systemMessage = result.systemMessage;
+  interviewSteps = result.steps;
+}
+
+export async function refreshInterviewConversationSettings() {
+  systemMessage = await refreshConversationSettings(
+    stepConversations,
+    "interviewSystemMessage",
+    "AI-Behavior Configuration",
+    defaultSystemMessageInterview,
+    "interviewSteps",
+    defaultStepDescriptionsInterview
+  );
+}
+
+export { defaultSystemMessageInterview };
+
+// Initialize on module load
 initializeInterviewConversations();

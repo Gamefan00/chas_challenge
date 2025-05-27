@@ -9,7 +9,7 @@ const steps = [
   { id: "step-3", label: "Grundläggande behov", heading: "Dina arbetsrelaterade behov" },
   { id: "step-4", label: "Andra behov", heading: "Övriga behov i arbetet" },
   { id: "step-5", label: "Nuvarande stöd", heading: "Stöd du redan får" },
-  { id: "step-6", label: "Granska och skicka", heading: "Sammanfatta och ladda ner" },
+  { id: "step-6", label: "Sammanfattning", heading: "Sammanfattning av ansökan" },
 ];
 
 export default function ApplicationChat() {

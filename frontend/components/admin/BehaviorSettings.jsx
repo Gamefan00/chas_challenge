@@ -9,7 +9,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { AlertCircle, Loader2, Settings, ListChecks } from "lucide-react";
+import { AlertCircle, Loader2, Settings, ListChecks, Users, UserCheck } from "lucide-react";
 import SaveBtn from "@/components/admin/SaveBtn";
 import { StatusMessage } from "@/components/admin/StatusMessage";
 
@@ -21,26 +21,74 @@ export default function BehaviorSettings() {
   const [openSections, setOpenSections] = useState(["system-instructions"]);
   const [activeBot, setActiveBot] = useState("application");
 
-  // Application bot settings
+  // Application bot settings with role-based messages
   const [applicationSystemMessage, setApplicationSystemMessage] = useState("");
   const [applicationStepMessages, setApplicationStepMessages] = useState({
-    "step-1": { welcome: "", description: "" },
-    "step-2": { welcome: "", description: "" },
-    "step-3": { welcome: "", description: "" },
-    "step-4": { welcome: "", description: "" },
-    "step-5": { welcome: "", description: "" },
-    "step-6": { welcome: "", description: "" },
+    "step-1": {
+      welcomeArbetstagare: "",
+      welcomeArbetsgivare: "",
+      description: "",
+    },
+    "step-2": {
+      welcomeArbetstagare: "",
+      welcomeArbetsgivare: "",
+      description: "",
+    },
+    "step-3": {
+      welcomeArbetstagare: "",
+      welcomeArbetsgivare: "",
+      description: "",
+    },
+    "step-4": {
+      welcomeArbetstagare: "",
+      welcomeArbetsgivare: "",
+      description: "",
+    },
+    "step-5": {
+      welcomeArbetstagare: "",
+      welcomeArbetsgivare: "",
+      description: "",
+    },
+    "step-6": {
+      welcomeArbetstagare: "",
+      welcomeArbetsgivare: "",
+      description: "",
+    },
   });
 
-  // Interview bot settings
+  // Interview bot settings with role-based messages
   const [interviewSystemMessage, setInterviewSystemMessage] = useState("");
   const [interviewStepMessages, setInterviewStepMessages] = useState({
-    "step-1": { welcome: "", description: "" },
-    "step-2": { welcome: "", description: "" },
-    "step-3": { welcome: "", description: "" },
-    "step-4": { welcome: "", description: "" },
-    "step-5": { welcome: "", description: "" },
-    "step-6": { welcome: "", description: "" },
+    "step-1": {
+      welcomeArbetstagare: "",
+      welcomeArbetsgivare: "",
+      description: "",
+    },
+    "step-2": {
+      welcomeArbetstagare: "",
+      welcomeArbetsgivare: "",
+      description: "",
+    },
+    "step-3": {
+      welcomeArbetstagare: "",
+      welcomeArbetsgivare: "",
+      description: "",
+    },
+    "step-4": {
+      welcomeArbetstagare: "",
+      welcomeArbetsgivare: "",
+      description: "",
+    },
+    "step-5": {
+      welcomeArbetstagare: "",
+      welcomeArbetsgivare: "",
+      description: "",
+    },
+    "step-6": {
+      welcomeArbetstagare: "",
+      welcomeArbetsgivare: "",
+      description: "",
+    },
   });
 
   // Load settings from database on component mount
@@ -62,7 +110,6 @@ export default function BehaviorSettings() {
         }
 
         const data = await response.json();
-        // console.log("Received behavior settings:", data);
 
         if (data && data.behaviorConfig) {
           // Set application system message
@@ -71,14 +118,32 @@ export default function BehaviorSettings() {
           // Set interview system message
           setInterviewSystemMessage(data.behaviorConfig.interviewSystemMessage || "");
 
-          // Set application step messages
+          // Set application step messages with role support
           if (data.behaviorConfig.applicationSteps) {
-            setApplicationStepMessages(data.behaviorConfig.applicationSteps);
+            const updatedAppSteps = {};
+            Object.keys(applicationStepMessages).forEach((stepKey) => {
+              const stepData = data.behaviorConfig.applicationSteps[stepKey] || {};
+              updatedAppSteps[stepKey] = {
+                welcomeArbetstagare: stepData.welcomeArbetstagare || stepData.welcome || "",
+                welcomeArbetsgivare: stepData.welcomeArbetsgivare || stepData.welcome || "",
+                description: stepData.description || "",
+              };
+            });
+            setApplicationStepMessages(updatedAppSteps);
           }
 
-          // Set interview step messages
+          // Set interview step messages with role support
           if (data.behaviorConfig.interviewSteps) {
-            setInterviewStepMessages(data.behaviorConfig.interviewSteps);
+            const updatedInterviewSteps = {};
+            Object.keys(interviewStepMessages).forEach((stepKey) => {
+              const stepData = data.behaviorConfig.interviewSteps[stepKey] || {};
+              updatedInterviewSteps[stepKey] = {
+                welcomeArbetstagare: stepData.welcomeArbetstagare || stepData.welcome || "",
+                welcomeArbetsgivare: stepData.welcomeArbetsgivare || stepData.welcome || "",
+                description: stepData.description || "",
+              };
+            });
+            setInterviewStepMessages(updatedInterviewSteps);
           }
         }
       } catch (err) {
@@ -128,11 +193,19 @@ export default function BehaviorSettings() {
     }
   };
 
-  // Handle changes to application step welcome messages
-  const handleAppWelcomeChange = (step, value) => {
+  // Handle changes to application step welcome messages for Arbetstagare
+  const handleAppWelcomeArbetstagareChange = (step, value) => {
     setApplicationStepMessages((prev) => ({
       ...prev,
-      [step]: { ...prev[step], welcome: value },
+      [step]: { ...prev[step], welcomeArbetstagare: value },
+    }));
+  };
+
+  // Handle changes to application step welcome messages for Arbetsgivare
+  const handleAppWelcomeArbetsgivareChange = (step, value) => {
+    setApplicationStepMessages((prev) => ({
+      ...prev,
+      [step]: { ...prev[step], welcomeArbetsgivare: value },
     }));
   };
 
@@ -144,15 +217,23 @@ export default function BehaviorSettings() {
     }));
   };
 
-  // Handle changes to interview step welcomes
-  const handleInterviewWelcomeChange = (step, value) => {
+  // Handle changes to interview step welcome messages for Arbetstagare
+  const handleInterviewWelcomeArbetstagareChange = (step, value) => {
     setInterviewStepMessages((prev) => ({
       ...prev,
-      [step]: { ...prev[step], welcome: value },
+      [step]: { ...prev[step], welcomeArbetstagare: value },
     }));
   };
 
-  // Handle changes to interview description welcomes
+  // Handle changes to interview step welcome messages for Arbetsgivare
+  const handleInterviewWelcomeArbetsgivareChange = (step, value) => {
+    setInterviewStepMessages((prev) => ({
+      ...prev,
+      [step]: { ...prev[step], welcomeArbetsgivare: value },
+    }));
+  };
+
+  // Handle changes to interview step descriptions
   const handleInterviewDescriptionChange = (step, value) => {
     setInterviewStepMessages((prev) => ({
       ...prev,
@@ -173,25 +254,26 @@ export default function BehaviorSettings() {
       case "step-5":
         return "Steg 5: Nuvarande stöd";
       case "step-6":
-        return "Steg 6: Granska och skicka";
+        return "Steg 6: Sammanfattning";
       default:
         return step;
     }
   };
+
   const getInterviewStepName = (step) => {
     switch (step) {
       case "step-1":
         return "Steg 1: Förberedelse av intervju";
       case "step-2":
-        return "Steg 2: Placeholder";
+        return "Steg 2: Funktionsnedsättning och påverkan";
       case "step-3":
-        return "Steg 3: Placeholder";
+        return "Steg 3: Utmaningar i arbetet";
       case "step-4":
-        return "Steg 4: Placeholder";
+        return "Steg 4: Tidigare hjälpmedel";
       case "step-5":
-        return "Steg 5: Placeholder";
+        return "Steg 5: Arbetsmiljö";
       case "step-6":
-        return "Steg 6: Placeholder";
+        return "Steg 6: Kommunikation och samspel";
       default:
         return step;
     }
@@ -219,7 +301,8 @@ export default function BehaviorSettings() {
         <div>
           <CardTitle className="text-foreground">AI-beteende</CardTitle>
           <CardDescription className="text-muted-foreground">
-            Anpassa AI-assistentens instruktioner, välkomstmeddelanden och steg.
+            Anpassa AI-assistentens instruktioner, välkomstmeddelanden och steg för både
+            Arbetstagare och Arbetsgivare.
           </CardDescription>
         </div>
         <SaveBtn onClick={handleSave} status={saveStatus} />
@@ -271,18 +354,33 @@ export default function BehaviorSettings() {
                 <AccordionContent className="px-4 pt-2 pb-4">
                   <div className="space-y-2">
                     <Label htmlFor="app-system-message" className="text-foreground">
-                      System Instruktioner
+                      System Instruktioner (inkluderar rollbaserade instruktioner)
                     </Label>
                     <textarea
                       id="app-system-message"
                       value={applicationSystemMessage}
                       onChange={(e) => setApplicationSystemMessage(e.target.value)}
-                      rows={10}
+                      rows={12}
                       className={textareaClasses}
+                      placeholder="Exempel: Du är expert på arbetshjälpmedel.
+
+VIKTIGT: Identifiera först om användaren är Arbetstagare eller Arbetsgivare baserat på deras svar.
+
+=== ARBETSTAGARE INSTRUKTIONER ===
+Om användaren är en arbetstagare (anställd som ansöker för sig själv):
+- Använd blankett FK 7545
+- Fokusera på personliga behov och funktionsnedsättning
+...
+
+=== ARBETSGIVARE INSTRUKTIONER ===  
+Om användaren är en arbetsgivare (ansöker för en anställd):
+- Använd blankett FK 7546
+- Fokusera på anpassningar av arbetsplatsen
+..."
                     />
                     <p className="text-muted-foreground text-xs">
-                      Dessa instruktioner styr hur ansökningsboten beter sig och vilken information
-                      den har tillgång till.
+                      Dessa instruktioner styr hur ansökningsboten beter sig och inkluderar
+                      automatisk rolldetektering för Arbetstagare vs Arbetsgivare.
                     </p>
                   </div>
                 </AccordionContent>
@@ -293,7 +391,7 @@ export default function BehaviorSettings() {
                 <AccordionTrigger className="hover:bg-accent hover:text-accent-foreground rounded-md px-4 py-4">
                   <div className="flex items-center gap-2">
                     <ListChecks className="h-5 w-5" />
-                    <span>Ansökningssteg</span>
+                    <span>Ansökningssteg (Rollbaserade meddelanden)</span>
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="px-0 pb-2">
@@ -309,25 +407,59 @@ export default function BehaviorSettings() {
                           {getApplicationStepName(step)}
                         </AccordionTrigger>
                         <AccordionContent className="px-6 pt-2 pb-4">
-                          <div className="space-y-4">
+                          <div className="space-y-6">
+                            {/* Arbetstagare Welcome Message */}
                             <div className="space-y-2">
-                              <Label htmlFor={`${step}-welcome`} className="text-foreground">
-                                Välkomstmeddelande
-                              </Label>
+                              <div className="flex items-center gap-2">
+                                <UserCheck className="h-4 w-4 text-blue-600" />
+                                <Label
+                                  htmlFor={`${step}-welcome-arbetstagare`}
+                                  className="text-foreground font-medium"
+                                >
+                                  Välkomstmeddelande för Arbetstagare
+                                </Label>
+                              </div>
                               <textarea
-                                id={`${step}-welcome`}
-                                value={data.welcome}
-                                onChange={(e) => handleAppWelcomeChange(step, e.target.value)}
-                                rows={6}
+                                id={`${step}-welcome-arbetstagare`}
+                                value={data.welcomeArbetstagare}
+                                onChange={(e) =>
+                                  handleAppWelcomeArbetstagareChange(step, e.target.value)
+                                }
+                                rows={4}
                                 className={textareaClasses}
+                                placeholder="Meddelande som visas för arbetstagare (anställda som ansöker för sig själva)..."
                               />
-                              <p className="text-muted-foreground text-xs">
-                                Detta meddelande visas för användaren när de börjar detta steg.
-                              </p>
                             </div>
 
+                            {/* Arbetsgivare Welcome Message */}
                             <div className="space-y-2">
-                              <Label htmlFor={`${step}-description`} className="text-foreground">
+                              <div className="flex items-center gap-2">
+                                <Users className="h-4 w-4 text-green-600" />
+                                <Label
+                                  htmlFor={`${step}-welcome-arbetsgivare`}
+                                  className="text-foreground font-medium"
+                                >
+                                  Välkomstmeddelande för Arbetsgivare
+                                </Label>
+                              </div>
+                              <textarea
+                                id={`${step}-welcome-arbetsgivare`}
+                                value={data.welcomeArbetsgivare}
+                                onChange={(e) =>
+                                  handleAppWelcomeArbetsgivareChange(step, e.target.value)
+                                }
+                                rows={4}
+                                className={textareaClasses}
+                                placeholder="Meddelande som visas för arbetsgivare (som ansöker för sina anställda)..."
+                              />
+                            </div>
+
+                            {/* AI Instructions */}
+                            <div className="space-y-2">
+                              <Label
+                                htmlFor={`${step}-description`}
+                                className="text-foreground font-medium"
+                              >
                                 AI-instruktion för detta steg
                               </Label>
                               <textarea
@@ -336,10 +468,10 @@ export default function BehaviorSettings() {
                                 onChange={(e) => handleAppDescriptionChange(step, e.target.value)}
                                 rows={3}
                                 className={textareaClasses}
+                                placeholder="Ange hur AI:n ska bete sig i detta steg och vad den ska guida användaren genom..."
                               />
                               <p className="text-muted-foreground text-xs">
-                                Ange hur AI:n ska bete sig i detta steg och vad den ska guida
-                                användaren genom.
+                                Instruktioner som gäller för båda rollerna i detta specifika steg.
                               </p>
                             </div>
                           </div>
@@ -361,28 +493,43 @@ export default function BehaviorSettings() {
               className="w-full"
             >
               {/* System Instructions */}
-              <AccordionItem value="app-system-instructions" className="border-border">
+              <AccordionItem value="interview-system-instructions" className="border-border">
                 <AccordionTrigger className="hover:bg-accent hover:text-accent-foreground rounded-md px-4 py-4">
                   <div className="flex items-center gap-2">
                     <Settings className="h-5 w-5" />
-                    <span>System Instruktioner - Intervjusbot</span>
+                    <span>System Instruktioner - Intervjubot</span>
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="px-4 pt-2 pb-4">
                   <div className="space-y-2">
-                    <Label htmlFor="app-system-message" className="text-foreground">
-                      System Instruktioner
+                    <Label htmlFor="interview-system-message" className="text-foreground">
+                      System Instruktioner (inkluderar rollbaserade instruktioner)
                     </Label>
                     <textarea
-                      id="app-system-message"
+                      id="interview-system-message"
                       value={interviewSystemMessage}
                       onChange={(e) => setInterviewSystemMessage(e.target.value)}
-                      rows={10}
+                      rows={12}
                       className={textareaClasses}
+                      placeholder="Exempel: Du är en intervjuassistent för arbetshjälpmedel.
+
+VIKTIGT: Identifiera först om användaren är Arbetstagare eller Arbetsgivare baserat på deras svar.
+
+=== ARBETSTAGARE INSTRUKTIONER ===
+Om användaren är en arbetstagare:
+- Ställ personliga frågor om funktionsnedsättning
+- Fokusera på individuella behov
+...
+
+=== ARBETSGIVARE INSTRUKTIONER ===  
+Om användaren är en arbetsgivare:
+- Ställ frågor om den anställdas situation
+- Fokusera på arbetsmiljöanpassningar
+..."
                     />
                     <p className="text-muted-foreground text-xs">
-                      Dessa instruktioner styr hur intervjusboten beter sig och vilken information
-                      den har tillgång till.
+                      Dessa instruktioner styr hur intervjuboten beter sig och inkluderar automatisk
+                      rolldetektering för Arbetstagare vs Arbetsgivare.
                     </p>
                   </div>
                 </AccordionContent>
@@ -393,7 +540,7 @@ export default function BehaviorSettings() {
                 <AccordionTrigger className="hover:bg-accent hover:text-accent-foreground rounded-md px-4 py-4">
                   <div className="flex items-center gap-2">
                     <ListChecks className="h-5 w-5" />
-                    <span>Intervjussteg</span>
+                    <span>Intervjusteg (Rollbaserade meddelanden)</span>
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="px-0 pb-2">
@@ -409,39 +556,74 @@ export default function BehaviorSettings() {
                           {getInterviewStepName(step)}
                         </AccordionTrigger>
                         <AccordionContent className="px-6 pt-2 pb-4">
-                          <div className="space-y-4">
+                          <div className="space-y-6">
+                            {/* Arbetstagare Welcome Message */}
                             <div className="space-y-2">
-                              <Label htmlFor={`${step}-welcome`} className="text-foreground">
-                                Välkomstmeddelande
-                              </Label>
+                              <div className="flex items-center gap-2">
+                                <UserCheck className="h-4 w-4 text-blue-600" />
+                                <Label
+                                  htmlFor={`${step}-interview-welcome-arbetstagare`}
+                                  className="text-foreground font-medium"
+                                >
+                                  Välkomstmeddelande för Arbetstagare
+                                </Label>
+                              </div>
                               <textarea
-                                id={`${step}-welcome`}
-                                value={data.welcome}
-                                onChange={(e) => handleInterviewWelcomeChange(step, e.target.value)}
-                                rows={6}
+                                id={`${step}-interview-welcome-arbetstagare`}
+                                value={data.welcomeArbetstagare}
+                                onChange={(e) =>
+                                  handleInterviewWelcomeArbetstagareChange(step, e.target.value)
+                                }
+                                rows={4}
                                 className={textareaClasses}
+                                placeholder="Meddelande som visas för arbetstagare under intervjun..."
                               />
-                              <p className="text-muted-foreground text-xs">
-                                Detta meddelande visas för användaren när de börjar detta steg.
-                              </p>
                             </div>
 
+                            {/* Arbetsgivare Welcome Message */}
                             <div className="space-y-2">
-                              <Label htmlFor={`${step}-description`} className="text-foreground">
+                              <div className="flex items-center gap-2">
+                                <Users className="h-4 w-4 text-green-600" />
+                                <Label
+                                  htmlFor={`${step}-interview-welcome-arbetsgivare`}
+                                  className="text-foreground font-medium"
+                                >
+                                  Välkomstmeddelande för Arbetsgivare
+                                </Label>
+                              </div>
+                              <textarea
+                                id={`${step}-interview-welcome-arbetsgivare`}
+                                value={data.welcomeArbetsgivare}
+                                onChange={(e) =>
+                                  handleInterviewWelcomeArbetsgivareChange(step, e.target.value)
+                                }
+                                rows={4}
+                                className={textareaClasses}
+                                placeholder="Meddelande som visas för arbetsgivare under intervjun..."
+                              />
+                            </div>
+
+                            {/* AI Instructions */}
+                            <div className="space-y-2">
+                              <Label
+                                htmlFor={`${step}-interview-description`}
+                                className="text-foreground font-medium"
+                              >
                                 AI-instruktion för detta steg
                               </Label>
                               <textarea
-                                id={`${step}-description`}
+                                id={`${step}-interview-description`}
                                 value={data.description}
                                 onChange={(e) =>
                                   handleInterviewDescriptionChange(step, e.target.value)
                                 }
                                 rows={3}
                                 className={textareaClasses}
+                                placeholder="Ange hur AI:n ska bete sig i detta intervjusteg..."
                               />
                               <p className="text-muted-foreground text-xs">
-                                Ange hur AI:n ska bete sig i detta steg och vad den ska guida
-                                användaren genom.
+                                Instruktioner som gäller för båda rollerna i detta specifika
+                                intervjusteg.
                               </p>
                             </div>
                           </div>
