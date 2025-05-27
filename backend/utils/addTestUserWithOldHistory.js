@@ -28,7 +28,7 @@ async function addTestUserWithOldHistory(daysOld = 101) {
     for (let i = 0; i < 3; i++) {
       const randomText = `App-${Math.random().toString(36).substring(2, 15)}`;
       await query(
-        `INSERT INTO chat_histories_application_test (user_id, history, created_at, step_id)
+        `INSERT INTO chat_histories_application_new (user_id, history, created_at, step_id)
          VALUES ($1, $2, $3, $4)`,
         [userId, randomText, timestamps[i], `step-${i + 1}`]
       );
@@ -38,7 +38,7 @@ async function addTestUserWithOldHistory(daysOld = 101) {
     for (let i = 0; i < 3; i++) {
       const randomText = `Int-${Math.random().toString(36).substring(2, 15)}`;
       await query(
-        `INSERT INTO chat_histories_interview_test (user_id, history, created_at, step_id)
+        `INSERT INTO chat_histories_interview_new (user_id, history, created_at, step_id)
          VALUES ($1, $2, $3, $4)`,
         [userId, randomText, timestamps[i + 3], `step-${i + 1}`]
       );

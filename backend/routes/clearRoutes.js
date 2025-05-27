@@ -14,7 +14,7 @@ router.delete("/application/:userId", async (req, res) => {
     }
     // Delete all history for this user from application table
     const result = await query(
-      "DELETE FROM chat_histories_application_test WHERE user_id = $1",
+      "DELETE FROM chat_histories_application_new WHERE user_id = $1",
       [userId]
     );
 
@@ -50,7 +50,7 @@ router.delete("/interview/:userId", async (req, res) => {
 
     // Delete all history for this user from interview table
     const result = await query(
-      "DELETE FROM chat_histories_interview_test WHERE user_id = $1",
+      "DELETE FROM chat_histories_interview_new WHERE user_id = $1",
       [userId]
     );
 

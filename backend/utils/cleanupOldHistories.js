@@ -19,9 +19,9 @@ export async function cleanupOldUserHistories(daysThreshold = 100) {
     // Get all distinct user IDs from both tables
     const userIdsResult = await query(`
       SELECT DISTINCT user_id FROM (
-        SELECT user_id FROM chat_histories_application_test
+        SELECT user_id FROM chat_histories_application_new
         UNION
-        SELECT user_id FROM chat_histories_interview_test
+        SELECT user_id FROM chat_histories_interview_new
       ) AS combined_users`);
 
     const userIds = userIdsResult.map((row) => row.user_id);
@@ -34,14 +34,14 @@ export async function cleanupOldUserHistories(daysThreshold = 100) {
       // Check if all application history entries are older than the threshold
       const appStepCountResult = await query(
         `
-        SELECT COUNT(*) as total_steps FROM chat_histories_application_test
+        SELECT COUNT(*) as total_steps FROM chat_histories_application_new
         WHERE user_id = $1`,
         [userId]
       );
 
       const appOldStepCountResult = await query(
         `
-        SELECT COUNT(*) as old_steps FROM chat_histories_application_test
+        SELECT COUNT(*) as old_steps FROM chat_histories_application_new
         WHERE user_id = $1 AND created_at < $2`,
         [userId, cutoffDateString]
       );
@@ -49,14 +49,14 @@ export async function cleanupOldUserHistories(daysThreshold = 100) {
       // Check if all interview history entries are older than the threshold
       const intStepCountResult = await query(
         `
-        SELECT COUNT(*) as total_steps FROM chat_histories_interview_test
+        SELECT COUNT(*) as total_steps FROM chat_histories_interview_new
         WHERE user_id = $1`,
         [userId]
       );
 
       const intOldStepCountResult = await query(
         `
-        SELECT COUNT(*) as old_steps FROM chat_histories_interview_test
+        SELECT COUNT(*) as old_steps FROM chat_histories_interview
         WHERE user_id = $1 AND created_at < $2`,
         [userId, cutoffDateString]
       );
@@ -80,7 +80,7 @@ export async function cleanupOldUserHistories(daysThreshold = 100) {
           // Delete from application history
           if (appTotalSteps > 0) {
             await query(
-              `DELETE FROM chat_histories_application_test WHERE user_id = $1`,
+              `DELETE FROM chat_histories_application_new WHERE user_id = $1`,
               [userId]
             );
           }
@@ -88,7 +88,7 @@ export async function cleanupOldUserHistories(daysThreshold = 100) {
           // Delete from interview history
           if (intTotalSteps > 0) {
             await query(
-              `DELETE FROM chat_histories_interview_test WHERE user_id = $1`,
+              `DELETE FROM chat_histories_interview_new WHERE user_id = $1`,
               [userId]
             );
           }

@@ -172,7 +172,7 @@ export function createChatHandler(config) {
       if (userId) {
         try {
           const historyResult = await query(
-            `SELECT history FROM chat_histories_${botType}_test WHERE user_id = $1 AND step_id = $2`,
+            `SELECT history FROM chat_histories_${botType}_new WHERE user_id = $1 AND step_id = $2`,
             [userId, currentStep]
           );
 
@@ -294,7 +294,7 @@ export function createChatHandler(config) {
           // For each step in the current bot type, get its history from the database
           for (const stepId of otherSteps) {
             const historyResult = await query(
-              `SELECT history FROM chat_histories_${botType}_test WHERE user_id = $1 AND step_id = $2`,
+              `SELECT history FROM chat_histories_${botType}_new WHERE user_id = $1 AND step_id = $2`,
               [userId, stepId]
             );
 
@@ -340,7 +340,7 @@ export function createChatHandler(config) {
             botType === "application" ? "interview" : "application";
           for (const stepId of allSteps) {
             const historyResult = await query(
-              `SELECT history FROM chat_histories_${otherBotType}_test WHERE user_id = $1 AND step_id = $2`,
+              `SELECT history FROM chat_histories_${otherBotType}_new WHERE user_id = $1 AND step_id = $2`,
               [userId, stepId]
             );
 

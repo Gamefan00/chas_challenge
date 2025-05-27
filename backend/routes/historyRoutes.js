@@ -143,7 +143,7 @@ const getStepHistory = async (req, res, tableName, chatType) => {
         const decryptedHistory = decrypt(historyResult[0].history);
         console.log("decryptedHistory " + stepId + "\n", decryptedHistory);
 
-        // Format history for client 
+        // Format history for client
         const formattedHistory = Array.isArray(decryptedHistory)
           ? decryptedHistory.map((msg) => {
               // Handle different message structures consistently
@@ -158,7 +158,7 @@ const getStepHistory = async (req, res, tableName, chatType) => {
 
               return {
                 role: msg.role || "assistant",
-                text: content, 
+                text: content,
               };
             })
           : [];
@@ -180,33 +180,28 @@ const getStepHistory = async (req, res, tableName, chatType) => {
 
 // Application chat history routes
 router.post("/", async (req, res) => {
-  await saveHistory(req, res, "chat_histories_application_test", "Application");
+  await saveHistory(req, res, "chat_histories_application_new", "Application");
 });
 
 router.get("/user/:userId", async (req, res) => {
-  await getUserHistory(req, res, "chat_histories_application_test");
+  await getUserHistory(req, res, "chat_histories_application_new");
 });
 
 router.get("/:stepId", async (req, res) => {
-  await getStepHistory(
-    req,
-    res,
-    "chat_histories_application_test",
-    "application"
-  );
+  await getStepHistory(req, res, "chat_histories_application_new", "application");
 });
 
 // Interview chat history routes
 router.post("/interview", async (req, res) => {
-  await saveHistory(req, res, "chat_histories_interview_test", "Interview");
+  await saveHistory(req, res, "chat_histories_interview_new", "Interview");
 });
 
 router.get("/interview/user/:userId", async (req, res) => {
-  await getUserHistory(req, res, "chat_histories_interview_test");
+  await getUserHistory(req, res, "chat_histories_interview_new");
 });
 
 router.get("/interview/:stepId", async (req, res) => {
-  await getStepHistory(req, res, "chat_histories_interview_test", "interview");
+  await getStepHistory(req, res, "chat_histories_interview_new", "interview");
 });
 
 export default router;
