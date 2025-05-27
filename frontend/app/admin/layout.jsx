@@ -6,7 +6,7 @@ export default function AdminLayout({ children }) {
     <AdminProtectedPage>
       <div className="flex">
         <AdminSidebar />
-        <main className="flex-1 p-4">
+        <main className="flex-1">
           <SidebarProvider>
             <SidebarInset>{children}</SidebarInset>
           </SidebarProvider>
