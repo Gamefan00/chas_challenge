@@ -39,8 +39,8 @@ export default function StepsSection() {
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.3 }}
+      animate={{ y: 0, opacity: 100 }}
+      transition={{ duration: 0.5 }}
     >
       <Card className="mb-8">
         <CardHeader>

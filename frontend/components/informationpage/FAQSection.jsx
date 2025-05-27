@@ -45,8 +45,8 @@ export default function FAQSection() {
   return (
     <motion.section
       className="mb-8 w-full"
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ y: 0, opacity: 100 }}
       transition={{ duration: 0.5 }}
     >
       <Card>
@@ -54,9 +54,9 @@ export default function FAQSection() {
           <CardTitle>
             <motion.h2
               className="my-8 text-center"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
+              initial={{ opacity: 0, y: 10 }}
+      animate={{ y: 0, opacity: 100 }}
+      transition={{ duration: 0.5 }}
             >
               Vanliga frågor
             </motion.h2>
@@ -66,8 +66,8 @@ export default function FAQSection() {
           <motion.div
             className="w-full"
             initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+      animate={{ y: 0, opacity: 100 }}
+      transition={{ duration: 0.5 }}
           >
             <Accordion type="single" className="w-full" collapsible>
               {faqs.map((faq) => (

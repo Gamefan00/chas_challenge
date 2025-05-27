@@ -8,12 +8,12 @@ export default function AboutSection() {
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.2 }}
+      animate={{ y: 0, opacity: 100 }}
+      transition={{ duration: 0.5 }}
       className="mb-8 space-y-8"
     >
       {/* Main information card */}
-      <Card className="border-t-primary mb-8 overflow-hidden border-t-4">
+      <Card className="mb-8 overflow-hidden">
         <CardHeader className="bg-muted/20">
           <CardTitle id="om" className="pb-2 text-center">
             Om ansökningsprocessen
@@ -21,9 +21,9 @@ export default function AboutSection() {
         </CardHeader>
         <CardContent className="">
           <motion.p
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.3 }}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ y: 0, opacity: 100 }}
+            transition={{ duration: 0.5 }}
             className="leading-relaxed font-medium"
           >
             Att ansöka om arbetshjälpmedel kan vara en komplicerad process med många steg och krav
@@ -37,8 +37,8 @@ export default function AboutSection() {
       {/* Eligibility section */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.3 }}
+        animate={{ y: 0, opacity: 100 }}
+        transition={{ duration: 0.5 }}
       >
         <Card>
           <CardHeader>
@@ -73,8 +73,8 @@ export default function AboutSection() {
       {/* Types of support section */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.4 }}
+        animate={{ y: 0, opacity: 100 }}
+        transition={{ duration: 0.5 }}
       >
         <Card>
           <CardHeader>

@@ -53,8 +53,8 @@ export default function DocumentationSection() {
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.4 }}
+      animate={{ y: 0, opacity: 100 }}
+      transition={{ duration: 0.5 }}
     >
       <Card className="overflow-hiddens mb-8">
         <CardHeader>
@@ -68,11 +68,11 @@ export default function DocumentationSection() {
           <div className="grid gap-4 md:grid-cols-2">
             {documents.map((doc, index) => (
               <motion.div
-                key={index}
+              key={index}
+                 initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.4 + index * 0.1 }}
                 className="rounded-lg border p-4 shadow-md transition-all"
-                initial={{ opacity: 0, x: -5 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3, delay: 0.5 + index * 0.1 }}
               >
                 <div className="flex items-start gap-4">
                   <div className="mt-1 flex-shrink-0">{doc.icon}</div>

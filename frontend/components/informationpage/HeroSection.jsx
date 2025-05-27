@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-
+import Link from "next/link";
 const HeroSection = () => {
   return (
     <motion.section
@@ -42,7 +42,10 @@ const HeroSection = () => {
               animate={{ y: 0, opacity: 100 }}
               transition={{ duration: 0.9 }}
             >
-              <Button className="cursor-pointer">Starta formulärguide</Button>
+              <Button>
+                {" "}
+                <Link href={"/applicationChat"}>Starta formulärguide</Link>{" "}
+              </Button>
             </motion.div>
           </CardFooter>
         </div>
