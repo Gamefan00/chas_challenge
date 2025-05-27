@@ -723,21 +723,20 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
         }}
       >
         {/* Scrollable chat area */}
+        <div className="progress-container">
+          <TopTrackingbar
+            heading={heading}
+            currentStep={currentStep}
+            navigateToStep={navigateToStep}
+            completedSteps={completedSteps}
+            completeCurrentStep={completeCurrentStep}
+            steps={stepsId}
+          />
+        </div>
         <div
           className="darkScroll chat-messages relative w-full flex-1 overflow-y-auto pb-50"
           ref={messageContainerRef}
         >
-          <div className="progress-container">
-            <TopTrackingbar
-              heading={heading}
-              currentStep={currentStep}
-              navigateToStep={navigateToStep}
-              completedSteps={completedSteps}
-              completeCurrentStep={completeCurrentStep}
-              steps={stepsId}
-            />
-          </div>
-
           {/* Role Indicator */}
           <div className="mx-auto max-w-3xl px-3">
             <RoleIndicator detectedRole={detectedUserRole} />
@@ -802,7 +801,13 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
 
         {/* Textarea  */}
         <div
-          className={` ${isMobile ? "fixed" : "absolute"} bottom-10 z-30 h-[22%] w-full transition-all duration-300 ease-in-out md:bottom-0`}
+          className={`${
+            isMobile
+              ? cookieConsent === false
+                ? "fixed bottom-10"
+                : "fixed bottom-0"
+              : "absolute bottom-0"
+          } z-30 h-[22%] w-full transition-all duration-300 ease-in-out`}
         >
           <div className="absolute right-0 bottom-0 left-0 mx-auto w-full max-w-4xl">
             <div className="relative h-48 pt-12">
@@ -831,7 +836,7 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
                 </div>
               </div>
             </div>
-            <div className="absolute right-0 bottom-0 left-0 flex justify-center">
+            <div className={`absolute right-0 bottom-0 left-0 flex justify-center`}>
               {!cookieConsent && (
                 <div className="text-foreground/50 absolute -top-1 flex w-full justify-center text-center md:-top-8">
                   <small className="bg-background md:bg-background/90 border-border/50 rounded border-1 px-2 py-1">
