@@ -67,12 +67,9 @@ const CookieSettingsPage = () => {
     router.back();
   };
 
-  // const deleteUserData = async () => {
-  //   // Ta bort användardata från servern
-  // };
-
   // RESET BTN function
-  const handleResetChat = async () => {
+  const handleResetUser = async () => {
+    setIsDeleting(true);
     try {
       // Get userId from localStorage or your auth system
       const userId = localStorage.getItem("userId");
@@ -81,6 +78,7 @@ const CookieSettingsPage = () => {
 
       if (!userId) {
         console.error("No userId found");
+        setIsDeleting(false);
         return;
       }
 
@@ -97,7 +95,7 @@ const CookieSettingsPage = () => {
       });
 
       if (!applicationResponse.ok) {
-        console.error("Failed to reset chat history:", response.statusText);
+        console.error("Failed to reset chat history:", applicationResponse.statusText);
         throw new Error("Failed to reset chat history");
       }
 
@@ -118,17 +116,26 @@ const CookieSettingsPage = () => {
       localStorage.removeItem("completedSteps");
       localStorage.removeItem("currentStep");
 
-      // // Update local state
-      // setLocalCompletedSteps([]);
+      // Get a new user ID from the backend
+      const userIdResponse = await fetch(`${BASE_URL}/getUserId`, {
+        method: "GET",
+      });
 
-      // Optional: Show success notification
-      // alert("Chatthistoriken har återställts");
+      if (!userIdResponse.ok) {
+        throw new Error("Failed to get new user ID");
+      }
 
-      // Reload the page to refresh the UI state
-      window.location.reload();
+      const { userId: newUserId } = await userIdResponse.json();
+      localStorage.setItem("userId", newUserId);
+
+      setDeleteDialogOpen(false);
+      setIsDeleting(false);
+
+      // Redirect to home page
+      router.push("/");
     } catch (error) {
-      console.error("Error resetting chat history:", error);
-      // alert("Ett fel uppstod vid återställning av chatt-historiken");
+      console.error("Error resetting user data:", error);
+      setIsDeleting(false);
     }
   };
 
@@ -214,7 +221,7 @@ const CookieSettingsPage = () => {
                       </DialogDescription>
                     </DialogHeader>
                     <DialogFooter className="flex gap-2 sm:justify-start">
-                      <Button onClick={handleResetChat} variant="destructive" disabled={isDeleting}>
+                      <Button onClick={handleResetUser} variant="destructive" disabled={isDeleting}>
                         {isDeleting ? "Tar bort..." : "Ja, ta bort min data"}
                       </Button>
                       <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
