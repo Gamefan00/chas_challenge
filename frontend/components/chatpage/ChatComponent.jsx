@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Send, Copy } from "lucide-react";
+import { Loader2, Send, Copy, ArrowUp, ArrowDown } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 
@@ -12,6 +12,8 @@ import MessageLoading from "@/components/ui/message-loading";
 import TopTrackingbar from "@/components/chatpage/TopTrackingBar";
 import Sidebar from "@/components/chatpage/SidebarNav";
 import BackToBottomBtn from "@/components/chatpage/BackToBottomBtn";
+import MobileTutorial from "@/components/chatpage/MobileTutorial";
+import TutorialHelper from "@/components/chatpage/TutorialHelper";
 
 import Markdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
@@ -78,6 +80,7 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
   const [historiesLoaded, setHistoriesLoaded] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
 
   // Check for mobile and sidebar state
   useEffect(() => {
@@ -91,6 +94,22 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  // Tutorial handlers
+  const handleRestartTutorial = () => {
+    setShowTutorial(true);
+  };
+
+  // Check if we should show tutorial on mobile
+  useEffect(() => {
+    const hasSeenTutorial = localStorage.getItem("hasSeenMobileTutorial");
+    if (!hasSeenTutorial && isMobile && isHydrated) {
+      // Small delay to ensure components are rendered
+      setTimeout(() => {
+        setShowTutorial(true);
+      }, 1000);
+    }
+  }, [isMobile, isHydrated]);
 
   const getLocalStorageKeys = (type) => {
     if (type === "interview") {
@@ -679,6 +698,14 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
 
   return (
     <div className="bg-background relative flex h-[calc(100vh-64px)] overflow-hidden">
+      {/* Mobile Tutorial */}
+      {showTutorial && (
+        <MobileTutorial
+          onComplete={() => {
+            setShowTutorial(false);
+          }}
+        />
+      )}
       {/* Interactive Sidebar */}
       <Sidebar
         currentStep={currentStep}
@@ -697,17 +724,19 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
       >
         {/* Scrollable chat area */}
         <div
-          className="darkScroll relative w-full flex-1 overflow-y-auto pb-50"
+          className="darkScroll chat-messages relative w-full flex-1 overflow-y-auto pb-50"
           ref={messageContainerRef}
         >
-          <TopTrackingbar
-            heading={heading}
-            currentStep={currentStep}
-            navigateToStep={navigateToStep}
-            completedSteps={completedSteps}
-            completeCurrentStep={completeCurrentStep}
-            steps={stepsId}
-          />
+          <div className="progress-container">
+            <TopTrackingbar
+              heading={heading}
+              currentStep={currentStep}
+              navigateToStep={navigateToStep}
+              completedSteps={completedSteps}
+              completeCurrentStep={completeCurrentStep}
+              steps={stepsId}
+            />
+          </div>
 
           {/* Role Indicator */}
           <div className="mx-auto max-w-3xl px-3">
@@ -814,6 +843,8 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
                 </div>
               )}
             </div>
+            {/* Tutorial Helper - floating help button */}
+            <TutorialHelper onRestartTutorial={handleRestartTutorial} />
           </div>
         </div>
       </main>
