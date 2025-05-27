@@ -3,6 +3,8 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
+import schedule from 'node-schedule';
+
 import chatRoutes from "./routes/chatRoutes.js";
 import historyRoutes from "./routes/historyRoutes.js";
 import clearRoutes from "./routes/clearRoutes.js";
@@ -10,7 +12,9 @@ import getUserIdRoutes from "./routes/getUserIdRoute.js";
 import authRoutes from "./routes/authRoutes.js";
 import aiModelConfigRoutes from "./routes/settingsRoutes/aiModelConfigRoutes.js";
 import aiBehaviorConfigRoutes from "./routes/settingsRoutes/aiBehaviorConfigRoutes.js";
-import {initializeConversationSettings} from "./utils/initializeConversationSettings.js";
+
+import { initializeConversationSettings } from "./utils/initializeConversationSettings.js";
+import { cleanupOldUserHistories } from './utils/cleanupOldHistories.js';
 import query from "./utils/supabaseQuery.js";
 
 // Load environment variables
@@ -31,6 +35,17 @@ app.use(
 
 // Initialize conversations
 initializeConversationSettings();
+
+// Schedule cleanup every morning at 9:00 AM
+schedule.scheduleJob('0 9 * * *', async () => {
+  console.log('Running scheduled cleanup of old user histories');
+  try {
+    const result = await cleanupOldUserHistories(100);
+    console.log('Scheduled cleanup completed', result);
+  } catch (error) {
+    console.error('Error in scheduled cleanup:', error);
+  }
+});
 
 // Routes
 app.use("/chat", chatRoutes);
