@@ -125,8 +125,12 @@ const IntegritetPage = () => {
                   <p>
                     <strong>Ansökshjälpen</strong>
                   </p>
-                  <p className="text-muted-foreground">E-post: info@ansokshalpen.se</p>
-                  <p className="text-muted-foreground">Telefon: 070-123 45 67</p>
+                  <p className="text-muted-foreground">
+                    E-post:{" "}
+                    <a href="mailto:info@LIDOL.se" className="hover:text-primary transition-colors">
+                      <span>info@LIDOL.se</span>
+                    </a>
+                  </p>
                 </div>
               </section>
             </CardContent>

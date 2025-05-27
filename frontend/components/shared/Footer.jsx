@@ -103,18 +103,11 @@ const Footer = () => {
             <div className="bg-primary h-[2px] w-[45px]" />
             <div className="flex flex-col gap-3 opacity-90">
               <a
-                href="mailto:info@ansokshalpen.se"
+                href="mailto:info@LIDOL.se"
                 className="hover:text-primary flex items-center gap-2 transition-colors"
               >
                 <Mail size={16} />
                 <span>info@LIDOL.se</span>
-              </a>
-              <a
-                href="tel:+46701234567"
-                className="hover:text-primary flex items-center gap-2 transition-colors"
-              >
-                <Phone size={16} />
-                <span>070-123 45 67</span>
               </a>
             </div>
           </motion.div>
