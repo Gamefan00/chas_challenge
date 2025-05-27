@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-
+import Link from "next/link";
 import { Check, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -395,7 +395,7 @@ export default function SidebarNav({
                 </div>
               </SidebarGroupContent>
             </SidebarGroup>
-            <div className="">
+            <div>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <div className="p-4">
@@ -409,35 +409,57 @@ export default function SidebarNav({
                   <AlertDialogHeader>
                     <AlertDialogTitle>Är du helt säker?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Denna åtgärd kan inte ångras. Detta kommer att permanent radera din
-                      chatthistorik från våra servrar.
+                      Denna åtgärd går inte att ångra. Detta kommer att permanent radera din
+                      chatthistorik från våra servrar för denna chatt.
+                      <br />
+                      Du kan också välja att ta bort all din sparade data.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Ensure sidebar stays open in mobile view
-                        if (isMobile) {
-                          setIsSidebarOpen(true);
-                        }
-                      }}
+                  <AlertDialogFooter className="flex flex-col !justify-between">
+                    <Link href="/cookies" passHref>
+                      <Button
+                        className="bg-muted-foreground hover:bg-muted-foreground/80 w-full text-white"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (isMobile) {
+                            setIsSidebarOpen(true);
+                          }
+                        }}
+                      >
+                        Gå till dataradering
+                      </Button>
+                    </Link>
+                    <div
+                      className={cn(
+                        "flex justify-end gap-2",
+                        isMobile && "mt-2 w-full flex-col-reverse",
+                      )}
                     >
-                      Avbryt
-                    </AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Call the reset function
-                        handleResetChat();
-                        // Ensure sidebar stays open in mobile view
-                        if (isMobile) {
-                          setIsSidebarOpen(true);
-                        }
-                      }}
-                    >
-                      Fortsätt
-                    </AlertDialogAction>
+                      <AlertDialogCancel
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (isMobile) {
+                            setIsSidebarOpen(true);
+                          }
+                        }}
+                        className={cn(isMobile && "mb-2 w-full")}
+                      >
+                        Avbryt
+                      </AlertDialogCancel>
+
+                      <AlertDialogAction
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleResetChat();
+                          if (isMobile) {
+                            setIsSidebarOpen(true);
+                          }
+                        }}
+                        className={cn(isMobile && "w-full")}
+                      >
+                        Återställ chatt
+                      </AlertDialogAction>
+                    </div>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>

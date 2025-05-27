@@ -231,13 +231,13 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
         const stepId = step.id;
         try {
           const url = `${BASE_URL}${historyEndpoint}/${stepId}?userId=${userId}`;
-          console.log(`Loading history for step ${stepId}:`, url);
+          // console.log(`Loading history for step ${stepId}:`, url);
 
           const response = await fetch(url);
 
           if (response.ok) {
             const data = await response.json();
-            console.log(`Step ${stepId} data:`, data);
+            // console.log(`Step ${stepId} data:`, data);
 
             if (Array.isArray(data) && data.length > 0) {
               // Check if the data contains actual conversation or just welcome message
@@ -250,15 +250,15 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
                   role: msg.role || "assistant",
                   text: msg.text || msg.content || "",
                 }));
-                console.log(`Loaded ${data.length} messages for step ${stepId}`);
+                // console.log(`Loaded ${data.length} messages for step ${stepId}`);
               } else {
                 // Only welcome message or empty, fetch fresh welcome
-                console.log(`Step ${stepId} has only welcome message, fetching fresh welcome`);
+                // console.log(`Step ${stepId} has only welcome message, fetching fresh welcome`);
                 await loadWelcomeMessage(stepId, newHistories);
               }
             } else {
               // Empty history, fetch welcome message
-              console.log(`Step ${stepId} has no history, fetching welcome message`);
+              // console.log(`Step ${stepId} has no history, fetching welcome message`);
               await loadWelcomeMessage(stepId, newHistories);
             }
           } else {
@@ -273,7 +273,7 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
         }
       }
 
-      console.log("Final newHistories:", newHistories);
+      // console.log("Final newHistories:", newHistories);
       setChatHistories(newHistories);
       setHistoriesLoaded(true);
     }
@@ -285,7 +285,7 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
         if (welcomeResponse.ok) {
           const welcomeData = await welcomeResponse.json();
           newHistories[stepId] = [{ role: "assistant", text: welcomeData.message }];
-          console.log(`Loaded welcome message for step ${stepId}`);
+          // console.log(`Loaded welcome message for step ${stepId}`);
         } else {
           console.error(`Failed to fetch welcome for step ${stepId}: ${welcomeResponse.status}`);
           newHistories[stepId] = [

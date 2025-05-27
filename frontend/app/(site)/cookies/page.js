@@ -186,10 +186,10 @@ const CookieSettingsPage = () => {
               </div>
 
               <div className="mt-6 border-t pt-4">
-                <h3 className="mb-2 text-base font-medium">Hantera min data</h3>
+                <h3 className="mb-2 text-base font-medium">Radera all min data</h3>
                 <p className="text-muted-foreground mb-4 text-sm">
                   Du kan när som helst välja att ta bort all din data från våra servrar. Detta
-                  kommer att radera all personlig information och sessioner permanent.
+                  kommer att radera all information och sessioner permanent.
                 </p>
 
                 <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
@@ -207,7 +207,7 @@ const CookieSettingsPage = () => {
                       <DialogTitle>Är du säker?</DialogTitle>
                       <DialogDescription>
                         Detta kommer permanent att ta bort all din data från våra servrar. Denna
-                        åtgärd kan inte ångras och du kommer att loggas ut.
+                        åtgärd kan inte ångras.
                       </DialogDescription>
                     </DialogHeader>
                     <DialogFooter className="flex gap-2 sm:justify-start">
