@@ -6,13 +6,12 @@ const router = express.Router();
 // Delete application chat history
 router.delete("/application/:userId", async (req, res) => {
   try {
-    const {userId} = req.params;
+    const { userId } = req.params;
     console.log("Clearing application history for userId:", userId);
 
     if (!userId) {
-      return res.status(400).json({error: "Missing userId parameter"});
+      return res.status(400).json({ error: "Missing userId parameter" });
     }
-    w;
     // Delete all history for this user from application table
     const result = await query(
       "DELETE FROM chat_histories_application_test WHERE user_id = $1",
@@ -42,11 +41,11 @@ router.delete("/application/:userId", async (req, res) => {
 // Delete interview chat history
 router.delete("/interview/:userId", async (req, res) => {
   try {
-    const {userId} = req.params;
+    const { userId } = req.params;
     console.log("Clearing interview history for userId:", userId);
 
     if (!userId) {
-      return res.status(400).json({error: "Missing userId parameter"});
+      return res.status(400).json({ error: "Missing userId parameter" });
     }
 
     // Delete all history for this user from interview table
