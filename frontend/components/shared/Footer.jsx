@@ -50,18 +50,10 @@ const Footer = () => {
                 Om oss
               </Link>
 
-              <Link
-                href="/integrity"
-                className="hover:text-primary transition-colors"
-                target="_blank"
-              >
+              <Link href="/integrity" className="hover:text-primary transition-colors">
                 Integritetspolicy
               </Link>
-              <Link
-                href="/cookies"
-                className="hover:text-primary transition-colors"
-                target="_blank"
-              >
+              <Link href="/cookies" className="hover:text-primary transition-colors">
                 Cookie-inställningar
               </Link>
             </div>
