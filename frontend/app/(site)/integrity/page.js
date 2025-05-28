@@ -30,7 +30,7 @@ const IntegritetPage = () => {
             <CardContent className="space-y-6">
               <section>
                 <h2 className="mb-3 text-xl font-semibold">1. Inledning</h2>
-                <p className="text-muted-foreground">
+                <p className="">
                   Vi på Ansökshjälpen värnar om din personliga integritet. Denna integritetspolicy
                   förklarar hur vi samlar in, använder, lagrar och skyddar dina personuppgifter när
                   du använder vår tjänst för att söka arbetshjälpmedel via Försäkringskassan.
@@ -39,11 +39,11 @@ const IntegritetPage = () => {
 
               <section>
                 <h2 className="mb-3 text-xl font-semibold">2. Personuppgifter vi samlar in</h2>
-                <p className="text-muted-foreground mb-2">
+                <p className="mb-2">
                   När du använder vår tjänst för att skapa en ansökan om arbetshjälpmedel kan vi
                   samla in följande uppgifter:
                 </p>
-                <ul className="text-muted-foreground list-disc space-y-1 pl-6">
+                <ul className="list-disc space-y-1 pl-6">
                   <li>
                     Personuppgifter som du aktivt lämnar när du använder vår chatt (namn,
                     kontaktuppgifter)
@@ -55,8 +55,8 @@ const IntegritetPage = () => {
 
               <section>
                 <h2 className="mb-3 text-xl font-semibold">3. Hur vi använder dina uppgifter</h2>
-                <p className="text-muted-foreground mb-2">Dina uppgifter används endast för att:</p>
-                <ul className="text-muted-foreground list-disc space-y-1 pl-6">
+                <p className="mb-2">Dina uppgifter används endast för att:</p>
+                <ul className="list-disc space-y-1 pl-6">
                   <li>Hjälpa dig att skapa och slutföra en ansökan om arbetshjälpmedel</li>
                   <li>Spara din påbörjade ansökan så att du kan fortsätta senare</li>
                 </ul>
@@ -64,16 +64,16 @@ const IntegritetPage = () => {
 
               <section>
                 <h2 className="mb-3 text-xl font-semibold">4. Datalagring och säkerhet</h2>
-                <p className="text-muted-foreground mb-2">
+                <p className="mb-2">
                   Alla konversationer och uppgifter som du lämnar i vår tjänst:
                 </p>
-                <ul className="text-muted-foreground list-disc space-y-1 pl-6">
+                <ul className="list-disc space-y-1 pl-6">
                   <li>Lagras krypterat i en säker databas</li>
                   <li>Sparas endast i 100 dagar, därefter raderas de automatiskt</li>
                   <li>Skyddas med stark kryptering för att förhindra obehörig åtkomst</li>
                   <li>Delas aldrig med tredje part</li>
                 </ul>
-                <p className="text-muted-foreground mt-2">
+                <p className="mt-2">
                   Vi använder cookies och lokalt lagringsutrymme i din webbläsare för att spara din
                   sessionstoken och dina preferenser. Detta gör att du kan fortsätta en påbörjad
                   ansökan utan att behöva logga in.
@@ -82,10 +82,8 @@ const IntegritetPage = () => {
 
               <section>
                 <h2 className="mb-3 text-xl font-semibold">5. Dina rättigheter</h2>
-                <p className="text-muted-foreground mb-2">
-                  Enligt GDPR (Dataskyddsförordningen) har du rätt att:
-                </p>
-                <ul className="text-muted-foreground list-disc space-y-1 pl-6">
+                <p className="mb-2">Enligt GDPR (Dataskyddsförordningen) har du rätt att:</p>
+                <ul className="list-disc space-y-1 pl-6">
                   <li>Begära tillgång till dina personuppgifter</li>
                   <li>Begära rättelse av felaktiga uppgifter</li>
                   <li>Begära radering av dina uppgifter</li>
@@ -93,20 +91,11 @@ const IntegritetPage = () => {
                   <li>Invända mot viss behandling</li>
                   <li>Få dina uppgifter överförda till annan tjänst (dataportabilitet)</li>
                 </ul>
-                <p className="text-muted-foreground mt-2">
-                  För att utöva dina rättigheter eller om du har frågor, kontakta oss på
-                  <a
-                    href="mailto:dataskydd@ansokshalpen.se"
-                    className="text-primary ml-1 hover:underline"
-                  >
-                    dataskydd@ansokshalpen.se
-                  </a>
-                </p>
               </section>
 
               <section>
                 <h2 className="mb-3 text-xl font-semibold">6. Cookies och sessionsspårning</h2>
-                <p className="text-muted-foreground">
+                <p className="">
                   Vi använder cookies för att lagra din sessionstoken och dina inställningar. Dessa
                   cookies är nödvändiga för att tjänsten ska fungera och för att du ska kunna
                   fortsätta en påbörjad ansökan vid ett senare tillfälle. Du kan när som helst rensa
@@ -117,7 +106,7 @@ const IntegritetPage = () => {
 
               <section>
                 <h2 className="mb-3 text-xl font-semibold">7. Kontaktuppgifter</h2>
-                <p className="text-muted-foreground">
+                <p className="">
                   Om du har frågor om vår integritetspolicy eller hur vi hanterar dina uppgifter,
                   vänligen kontakta oss på:
                 </p>
@@ -125,7 +114,7 @@ const IntegritetPage = () => {
                   <p>
                     <strong>Ansökshjälpen</strong>
                   </p>
-                  <p className="text-muted-foreground">
+                  <p className="">
                     E-post:{" "}
                     <a href="mailto:info@LIDOL.se" className="hover:text-primary transition-colors">
                       <span>info@LIDOL.se</span>

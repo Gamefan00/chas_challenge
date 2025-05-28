@@ -64,7 +64,7 @@ const interviewSteps = [
   },
   {
     id: "step-6",
-    label: "Kommunikation och samspel",
+    label: "Kommunikation ",
     heading: "Finns det behov av stöd i kommunikation eller samspel med kollegor eller kunder?",
   },
 ];

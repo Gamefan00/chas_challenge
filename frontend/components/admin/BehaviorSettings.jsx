@@ -273,7 +273,7 @@ export default function BehaviorSettings() {
       case "step-5":
         return "Steg 5: Arbetsmiljö";
       case "step-6":
-        return "Steg 6: Kommunikation och samspel";
+        return "Steg 6: Kommunikation";
       default:
         return step;
     }
