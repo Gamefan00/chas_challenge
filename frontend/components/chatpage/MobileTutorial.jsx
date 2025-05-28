@@ -16,7 +16,7 @@ export default function MobileTutorial({ onComplete }) {
       id: "welcome",
       title: "Välkommen!",
       description:
-        "Låt oss visa dig hur du navigerar i appen på mobilen. Detta tar bara 30 sekunder!",
+        "Låt oss visa dig hur du navigerar i appen på mobilen. Detta tar bara några sekunder!",
       highlight: null,
     },
     {
