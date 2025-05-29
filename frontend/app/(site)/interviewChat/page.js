@@ -49,6 +49,11 @@ const steps = [
     label: "Ekonomi och ansvar",
     heading: "Finns ekonomiskt stöd eller andra möjligheter för hjälpmedlet?",
   },
+  {
+    id: "step-10",
+    label: "Sammanfattning",
+    heading: "Sammanfattning av intervjun",
+  },
 ];
 
 export default function InterviewChat() {

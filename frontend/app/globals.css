@@ -357,6 +357,11 @@ body {
   scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
 }
 
+.admin-layout body,
+body:has(.admin-layout) {
+  padding-top: 0 !important;
+}
+
 /* WebKit scrollbar styling (Chrome, Safari, Edge) */
 html::-webkit-scrollbar,
 body::-webkit-scrollbar,

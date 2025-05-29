@@ -104,6 +104,11 @@ export default function BehaviorSettings() {
       welcomeArbetsgivare: "",
       description: "",
     },
+    "step-10": {
+      welcomeArbetstagare: "",
+      welcomeArbetsgivare: "",
+      description: "",
+    },
   });
 
   // Load settings from database on component mount
@@ -295,6 +300,8 @@ export default function BehaviorSettings() {
         return "Steg 8: Användning av hjälpmedel";
       case "step-9":
         return "Steg 9: Ekonomi och ansvar";
+      case "step-10":
+        return "Steg 10: Sammanfattning";
       default:
         return step;
     }

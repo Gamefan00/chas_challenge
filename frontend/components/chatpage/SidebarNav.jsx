@@ -82,6 +82,11 @@ const interviewSteps = [
     label: "Ekonomi och ansvar",
     heading: "Finns ekonomiskt stöd eller andra möjligheter för hjälpmedlet?",
   },
+  {
+    id: "step-10",
+    label: "Sammanfattning",
+    heading: "Sammanfatta inför samtalet",
+  },
 ];
 
 export default function SidebarNav({
@@ -196,8 +201,8 @@ export default function SidebarNav({
   // Handling for last step
   // Handling for last step
   useEffect(() => {
-    const lastStepId = type === "interview" ? "step-9" : "step-6";
-    const secondLastStepId = type === "interview" ? "step-8" : "step-5";
+    const lastStepId = type === "interview" ? "step-10" : "step-6";
+    const secondLastStepId = type === "interview" ? "step-9" : "step-5";
 
     const isLastStepActive = currentStep === lastStepId;
 

@@ -111,6 +111,12 @@ const defaultStepWelcomeMessagesInterview = {
     arbetsgivare:
       "Finns det ekonomiskt stöd eller andra möjligheter för finansiering av hjälpmedlet?",
   },
+  "step-10": {
+    arbetstagare:
+      "Låt oss sammanfatta informationen du delat inför ditt utredningssamtal. Jag kan hjälpa dig att strukturera all viktig information som du behöver ta med till mötet med Försäkringskassan.",
+    arbetsgivare:
+      "Nu sammanfattar vi all information inför utredningssamtalet. Jag hjälper dig att strukturera de viktigaste punkterna som ni behöver ta med till mötet med Försäkringskassan.",
+  },
 };
 
 const defaultStepDescriptionsInterview = {
@@ -132,6 +138,8 @@ const defaultStepDescriptionsInterview = {
     "Användning av hjälpmedel – Hjälp användaren att förklara hur hjälpmedlet kommer att användas i arbetet och vilka arbetsuppgifter det underlättar.",
   "step-9":
     "Finansiering – Hjälp användaren att beskriva om det finns ekonomiskt stöd eller andra resurser för att finansiera hjälpmedlet.",
+  "step-10":
+    "Slutligen sammanfattar vi informationen inför ditt utredningssamtal med Försäkringskassan.",
 };
 
 // Interview-specific neutral messages
@@ -154,6 +162,8 @@ const interviewNeutralWelcomes = {
     "Nu ska vi prata om användningen av hjälpmedel i arbetet. Är du arbetstagare eller arbetsgivare?",
   "step-9":
     "Avslutningsvis diskuterar vi ekonomi och ansvar kring hjälpmedel. Är du arbetstagare eller arbetsgivare?",
+  "step-10":
+    "Här sammanfatta vi sen all information, vänligen svara på om du är arbetstagare eller arbetsgivare?",
 };
 
 export let systemMessage = defaultSystemMessageInterview;
