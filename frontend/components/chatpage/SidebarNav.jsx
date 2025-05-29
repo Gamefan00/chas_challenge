@@ -39,33 +39,53 @@ const steps = [
 const interviewSteps = [
   {
     id: "step-1",
-    label: "Grundläggande info",
-    heading: "Kan du kort berätta om arbetssituationen och bakgrunden?",
+    label: "Arbetsuppgifter",
+    heading: "Kan du beskriva vilka arbetsuppgifter som ingår i rollen?",
   },
   {
     id: "step-2",
-    label: "Funktionsnedsättning",
-    heading: "Vilken funktionsnedsättning gäller, och hur påverkar den arbetet?",
+    label: "Svårigheter i arbetet",
+    heading: "Finns det arbetsuppgifter som är svåra att utföra eller problematiska?",
   },
   {
     id: "step-3",
-    label: "Arbetsutmaningar",
-    heading: "Vilka arbetsuppgifter är mest utmanande på grund av funktionsnedsättningen?",
+    label: "Tidigare lösningar",
+    heading: "Har ni försökt lösa eller anpassa arbetsuppgifterna tidigare?",
   },
   {
     id: "step-4",
-    label: "Tidigare erfarenheter",
-    heading: "Har det använts några hjälpmedel tidigare? Vad fungerade bra/dåligt?",
+    label: "Arbetsmiljö",
+    heading: "Hur ser arbetsmiljön och förutsättningarna på arbetsplatsen ut?",
   },
   {
     id: "step-5",
-    label: "Arbetsmiljö",
-    heading: "Hur ser den fysiska och sociala arbetsmiljön ut idag?",
+    label: "Gjorda åtgärder",
+    heading: "Vilka åtgärder har redan gjorts för att underlätta arbetet?",
   },
   {
     id: "step-6",
-    label: "Kommunikation ",
-    heading: "Finns det behov av stöd i kommunikation eller samspel med kollegor eller kunder?",
+    label: "Stöd utanför arbetet",
+    heading: "Finns det stöd eller hjälpmedel från hälso- och sjukvården?",
+  },
+  {
+    id: "step-7",
+    label: "Arbete vs Fritid",
+    heading: "Hur skiljer sig behoven på arbetet jämfört med fritiden?",
+  },
+  {
+    id: "step-8",
+    label: "Användning av hjälpmedel",
+    heading: "Vem ska använda hjälpmedlet och hur i arbetet?",
+  },
+  {
+    id: "step-9",
+    label: "Ekonomi och ansvar",
+    heading: "Finns ekonomiskt stöd eller andra möjligheter för hjälpmedlet?",
+  },
+  {
+    id: "step-10",
+    label: "Sammanfattning",
+    heading: "Sammanfatta inför samtalet",
   },
 ];
 
@@ -179,13 +199,18 @@ export default function SidebarNav({
   }, [localCompletedSteps, type]);
 
   // Handling for last step
+  // Handling for last step
   useEffect(() => {
-    const isLastStepActive = currentStep === "step-6";
-    if (isLastStepActive) {
-      const isPreviousStepCompleted = localCompletedSteps.includes("step-5");
+    const lastStepId = type === "interview" ? "step-10" : "step-6";
+    const secondLastStepId = type === "interview" ? "step-9" : "step-5";
 
-      if (isPreviousStepCompleted && !localCompletedSteps.includes("step-6")) {
-        const updatedSteps = [...localCompletedSteps, "step-6"];
+    const isLastStepActive = currentStep === lastStepId;
+
+    if (isLastStepActive) {
+      const isPreviousStepCompleted = localCompletedSteps.includes(secondLastStepId);
+
+      if (isPreviousStepCompleted && !localCompletedSteps.includes(lastStepId)) {
+        const updatedSteps = [...localCompletedSteps, lastStepId];
         setLocalCompletedSteps(updatedSteps);
 
         if (typeof window !== "undefined") {
@@ -193,7 +218,7 @@ export default function SidebarNav({
           localStorage.setItem(completedStepsKey, JSON.stringify(updatedSteps));
         }
 
-        const event = new CustomEvent("stepCompleted", { detail: { step: "step-6" } });
+        const event = new CustomEvent("stepCompleted", { detail: { step: lastStepId } });
         window.dispatchEvent(event);
       }
     }
@@ -284,11 +309,7 @@ export default function SidebarNav({
         localStorage.setItem("applicationCurrentStep", "step-1");
       }
 
-      // Important: ONLY reset userRole if they're in step-1 of the first chat type
-      // This ensures we don't lose role detection between chats
-      if (currentStep === "step-1") {
-        localStorage.setItem("userRole", "unknown");
-      }
+      localStorage.setItem("userRole", "unknown");
 
       // Remove any legacy keys
       localStorage.removeItem("completedSteps");
@@ -317,19 +338,27 @@ export default function SidebarNav({
         <SidebarTrigger onClick={() => handleSidebarToggle(true)} className="toggle-button" />
       </div>
 
-      {/* Sidebar with conditional rendering for width */}
+      {/* Mobile Backdrop - Only show on mobile when sidebar is open */}
+      {isMobile && isSidebarOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/50"
+          onClick={() => handleSidebarToggle(false)}
+        />
+      )}
+
+      {/* Sidebar */}
       <div
         className={cn(
-          "sidebar-container sticky top-0 h-[100vh] flex-1 overflow-hidden",
-          // Add transition classes for smooth animation
-          "transition-all duration-500 ease-in-out",
-          // Width transitions
-          isSidebarOpen ? "w-64" : "w-0",
-          // Mobile overlay behavior with backdrop
-          isMobile && isSidebarOpen ? "absolute top-0 left-0 z-40" : "",
+          "sidebar-container h-[100vh] overflow-hidden transition-all duration-500 ease-in-out",
+          // DESKTOP: Normal sidebar behavior that affects layout
+          !isMobile && "sticky top-0 flex-1",
+          !isMobile && (isSidebarOpen ? "w-64" : "w-0"),
+          // MOBILE: Fixed overlay that doesn't affect layout
+          isMobile && "fixed top-0 left-0 z-40",
+          isMobile && (isSidebarOpen ? "w-64" : "w-0"),
         )}
       >
-        <Sidebar className="relative flex w-64 flex-col transition-opacity duration-500">
+        <Sidebar className="bg-background relative flex w-64 flex-col shadow-xl transition-opacity duration-500">
           <div className="relative z-10 mt-2 ml-2">
             <SidebarTrigger onClick={() => handleSidebarToggle(false)} className="toggle-button" />
           </div>
@@ -424,7 +453,7 @@ export default function SidebarNav({
                         onClick={(e) => {
                           e.stopPropagation();
                           if (isMobile) {
-                            setIsSidebarOpen(true);
+                            setIsSidebarOpen(false);
                           }
                         }}
                       >
@@ -441,7 +470,7 @@ export default function SidebarNav({
                         onClick={(e) => {
                           e.stopPropagation();
                           if (isMobile) {
-                            setIsSidebarOpen(true);
+                            setIsSidebarOpen(false);
                           }
                         }}
                         className={cn(isMobile && "mb-2 w-full")}
@@ -454,7 +483,7 @@ export default function SidebarNav({
                           e.stopPropagation();
                           handleResetChat();
                           if (isMobile) {
-                            setIsSidebarOpen(true);
+                            setIsSidebarOpen(false);
                           }
                         }}
                         className={cn(isMobile && "w-full")}

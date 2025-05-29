@@ -4,8 +4,6 @@ import {
   fetchSteps,
   getStepDescription,
   getWelcomeMessageForRole as baseGetWelcomeMessageForRole,
-  initializeConversations,
-  refreshConversationSettings,
 } from "./baseConversationManager.js";
 
 // Application specific constants
@@ -123,9 +121,7 @@ const applicationNeutralWelcomes = {
   // Add similar neutral messages for all steps
 };
 
-// Application conversation state
 export let systemMessage = defaultSystemMessageApplication;
-export let stepConversations = {};
 export let applicationSteps = defaultStepWelcomeMessagesApplication;
 
 // Export application-specific versions of utility functions
@@ -166,48 +162,18 @@ export function getApplicationWelcomeMessageForRole(stepId, userRole = null) {
 }
 
 export async function initializeApplicationConversations() {
-  const result = await initializeConversations(
-    "applicationSystemMessage",
-    "AI-Behavior Configuration",
-    defaultSystemMessageApplication,
-    "applicationSteps",
-    defaultStepWelcomeMessagesApplication,
-    "applicationSteps",
-    defaultStepDescriptionsApplication
-  );
+  // Just load system message and steps
+  systemMessage = await fetchApplicationSystemMessageFromDB();
+  applicationSteps = await fetchApplicationSteps();
 
-  stepConversations = result.stepConversations;
-  systemMessage = result.systemMessage;
-  applicationSteps = result.steps;
+  console.log("Application conversation manager initialized (stateless)");
 }
 
 export async function refreshApplicationConversationSettings() {
-  systemMessage = await refreshConversationSettings(
-    stepConversations,
-    "applicationSystemMessage",
-    "AI-Behavior Configuration",
-    defaultSystemMessageApplication,
-    "applicationSteps",
-    defaultStepDescriptionsApplication
-  );
-}
+  systemMessage = await fetchApplicationSystemMessageFromDB();
+  applicationSteps = await fetchApplicationSteps();
 
-// Reset conversation state only for a specific user
-export async function resetApplicationConversation(userId) {
-  console.log(`Resetting application conversations for user ${userId}`);
-
-  // Delete all user-specific conversation keys
-  for (const key in stepConversations) {
-    if (key.startsWith(`${userId}-`)) {
-      console.log(`Deleting conversation for key: ${key}`);
-      delete stepConversations[key];
-    }
-  }
-
-  return {
-    success: true,
-    message: `Application conversations reset for user ${userId}`,
-  };
+  console.log("Application conversation settings refreshed (stateless)");
 }
 
 export { defaultSystemMessageApplication };

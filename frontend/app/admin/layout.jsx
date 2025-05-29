@@ -4,7 +4,7 @@ import AdminProtectedPage from "@/components/admin/AdminProtectedPage";
 export default function AdminLayout({ children }) {
   return (
     <AdminProtectedPage>
-      <div className="flex">
+      <div className="admin-layout flex">
         <AdminSidebar />
         <main className="flex-1 p-4">
           <SidebarProvider>

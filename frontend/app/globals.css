@@ -360,10 +360,15 @@ html {
 }
 
 body {
-  padding-top: 64px;
+  padding-top: 64px !important;
   /* Firefox scrollbar styling */
   scrollbar-width: thin;
   scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
+}
+
+.admin-layout body,
+body:has(.admin-layout) {
+  padding-top: 0 !important;
 }
 
 /* WebKit scrollbar styling (Chrome, Safari, Edge) */

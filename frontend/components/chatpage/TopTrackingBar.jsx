@@ -1,5 +1,5 @@
 import { Progress } from "@/components/ui/progress";
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 
 const TopTrackingBar = ({
@@ -10,7 +10,6 @@ const TopTrackingBar = ({
   completeCurrentStep,
   steps,
 }) => {
-  // const [steps, setSteps] = useState(["step-1", "step-2", "step-3", "step-4", "step-5", "step-6"]);
   const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
   // Use a ref to track if we've already triggered the last step completion
@@ -65,7 +64,7 @@ const TopTrackingBar = ({
   return (
     <div className="bg-background sticky top-0 z-10 w-full pt-4 pb-5">
       <div className="mx-auto max-w-4xl px-4 pt-5 lg:pt-0">
-        <div className="mb-2 flex flex-col space-y-2 md:flex-row md:items-center md:justify-between md:space-y-5">
+        <div className="mb-2 flex flex-col space-y-2 md:flex-row md:items-start md:justify-between md:space-y-5 md:space-x-4">
           <h3>{heading}</h3>
           <div className="flex max-w-3xl justify-start space-x-2">
             <Button

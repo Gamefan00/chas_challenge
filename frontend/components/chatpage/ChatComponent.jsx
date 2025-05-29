@@ -319,13 +319,10 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
         const stepId = step.id;
         try {
           const url = `${BASE_URL}${historyEndpoint}/${stepId}?userId=${userId}`;
-          // console.log(`Loading history for step ${stepId}:`, url);
-
           const response = await fetch(url);
 
           if (response.ok) {
             const data = await response.json();
-            // console.log(`Step ${stepId} data:`, data);
 
             if (Array.isArray(data) && data.length > 0) {
               // Check if the data contains actual conversation or just welcome message
@@ -338,10 +335,8 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
                   role: msg.role || "assistant",
                   text: msg.text || msg.content || "",
                 }));
-                // console.log(`Loaded ${data.length} messages for step ${stepId}`);
               } else {
                 // Only welcome message or empty, fetch fresh welcome
-                // console.log(`Step ${stepId} has only welcome message, fetching fresh welcome`);
                 await loadWelcomeMessage(stepId, newHistories);
               }
             } else {
@@ -500,6 +495,63 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
       }
     }
   };
+  useEffect(() => {
+    // Detect iOS
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+    if (isIOS) {
+      const styleEl = document.createElement("style");
+      styleEl.innerHTML = `
+      /* iOS WebKit specific fixes */
+      body {
+        -webkit-overflow-scrolling: touch;
+      }
+      
+      /* Prevent iOS from shifting fixed elements */
+      .ios-fixed-container {
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        transform: translateZ(0) !important;
+        -webkit-transform: translateZ(0) !important;
+        -webkit-backface-visibility: hidden !important;
+        backface-visibility: hidden !important;
+      }
+      
+      /* Ensure iOS respects centering */
+      .ios-center-content {
+        position: relative !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        -webkit-transform: translateX(-50%) !important;
+      }
+      
+      /* Prevent iOS viewport issues */
+      .ios-textarea-container {
+        position: relative !important;
+        width: 100% !important;
+        max-width: 100% !important;
+      }
+      
+      /* iOS Safari viewport height fix */
+      @supports (-webkit-touch-callout: none) {
+        .ios-fixed-container {
+          height: 22vh !important;
+          min-height: 22vh !important;
+        }
+      }
+    `;
+
+      document.head.appendChild(styleEl);
+
+      return () => {
+        if (document.head.contains(styleEl)) {
+          document.head.removeChild(styleEl);
+        }
+      };
+    }
+  }, []);
 
   // Send user message for current step with role detection support
   async function handleSendMessage() {
@@ -560,7 +612,7 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
 
       const data = await response.json();
 
-      // SIMPLIFIED ROLE HANDLING - Only update if role is actually detected
+      // Only update if role is actually detected
       let finalRole = detectedUserRole;
 
       // Only update role if we have a clear detection AND we're in step-1
@@ -601,33 +653,6 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
       setIsLoading(false);
     }
   }
-
-  // // Utility function to check AI response for role change confirmation
-  // const checkLatestResponseForRoleChange = () => {
-  //   if (!currentChatHistory || currentChatHistory.length < 2) return false;
-
-  //   // Get the latest AI response
-  //   const latestAIMessage = [...currentChatHistory]
-  //     .reverse()
-  //     .find((msg) => msg.role === "assistant");
-
-  //   if (!latestAIMessage) return false;
-
-  //   // Look for role change confirmation patterns in the AI's message
-  //   const message = latestAIMessage.text.toLowerCase();
-  //   const isRoleChangeConfirmation =
-  //     message.includes("tack för att du klargjorde") ||
-  //     message.includes("uppdaterat din roll") ||
-  //     (message.includes("arbetsgivare") && message.includes("eftersom du är")) ||
-  //     (message.includes("arbetstagare") && message.includes("Eftersom du är"));
-  //   (message.includes("arbetsgivare") && message.includes("berättade")) ||
-  //     (message.includes("arbetstagare") && message.includes("berättade"));
-  //   (message.includes("arbetsgivare") && message.includes("bekräft")) ||
-  //     (message.includes("arbetstagare") && message.includes("bekräft"));
-
-  //   console.log("AI response checked for role change:", isRoleChangeConfirmation);
-  //   return isRoleChangeConfirmation;
-  // };
 
   // Function to refresh welcome messages when role changes
   async function refreshWelcomeMessagesWithRole(newRole) {
@@ -733,7 +758,7 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
   }
 
   // Calculate sidebar width for positioning
-  const toAddMovement = isSidebarOpen ? (isMobile ? 0 : 50) : 0;
+  const sidebarOffset = !isMobile && isSidebarOpen ? 5 : 0;
 
   return (
     <div className="bg-background relative flex h-[calc(100vh-64px)] overflow-hidden">
@@ -745,6 +770,7 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
           }}
         />
       )}
+
       {/* Interactive Sidebar */}
       <Sidebar
         currentStep={currentStep}
@@ -753,12 +779,14 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
         type={type}
         onSidebarToggle={setIsSidebarOpen}
       />
-      {/* Main content area */}
+
+      {/* Main content area  */}
       <main
-        className="relative flex w-full flex-col transition-all duration-300 ease-in-out"
+        className="relative flex w-full flex-col"
         style={{
-          marginLeft: isMobile ? "0px" : `${toAddMovement}px`,
-          width: isMobile ? "100%" : `calc(100% - ${toAddMovement}px)`,
+          // DESKTOP: Adjust for sidebar
+          marginLeft: !isMobile ? `${sidebarOffset}px` : "0px",
+          width: !isMobile ? `calc(100% - ${sidebarOffset}px)` : "100%",
         }}
       >
         {/* Scrollable chat area */}
@@ -772,6 +800,7 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
             steps={stepsId}
           />
         </div>
+
         <div
           className="darkScroll chat-messages relative w-full flex-1 overflow-y-auto pb-50"
           ref={messageContainerRef}
@@ -838,36 +867,29 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
           </div>
         </div>
 
-        {/* Textarea  */}
+        {/* Textarea */}
         <div
           className={`${
-            isMobile
-              ? cookieConsent === false
-                ? "fixed bottom-10"
-                : "fixed bottom-0"
-              : "absolute bottom-0"
-          } z-30 h-[22%] w-full transition-all duration-300 ease-in-out`}
+            isMobile ? "ios-fixed-container" : "absolute bottom-0"
+          } z-30 h-[22%] w-full`}
         >
-          <div className="absolute right-0 bottom-0 left-0 mx-auto w-full max-w-4xl">
-            <div className="relative h-48 pt-12">
-              {/* Scroll back to bottom button */}
+          <div className="ios-center-content mx-auto w-full max-w-4xl px-3">
+            <div className="ios-textarea-container relative h-48 pt-12">
               <BackToBottomBtn containerRef={messageContainerRef} threshold={30} className="" />
               <div className="bg-background h-full">
                 <Textarea
                   value={message}
-                  onChange={(e) => {
-                    setMessage(e.target.value);
-                  }}
+                  onChange={(e) => setMessage(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="Skriv ett meddelande..."
                   className="border-border bg-background darkScroll h-32 w-full resize-none overflow-y-auto rounded-xl p-3 pr-16 shadow-lg"
+                  disabled={showTutorial}
                 />
-
                 <div className="absolute right-2 bottom-6">
                   <Button
                     aria-label="Send Message"
                     onClick={handleSendMessage}
-                    disabled={isLoading || !message.trim()}
+                    disabled={isLoading || !message.trim() || showTutorial}
                     size="icon"
                     className="bg-primary h-10 w-10 rounded-xl"
                   >
@@ -876,7 +898,7 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
                 </div>
               </div>
             </div>
-            <div className={`absolute right-0 bottom-0 left-0 flex justify-center`}>
+            <div className="absolute right-0 bottom-0 left-0 flex justify-center">
               {!cookieConsent && (
                 <div className="text-foreground/50 absolute -top-1 flex w-full justify-center text-center md:-top-8">
                   <small className="bg-background md:bg-background/90 border-border/50 rounded border-1 px-2 py-1">
@@ -888,7 +910,6 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
                 </div>
               )}
             </div>
-            {/* Tutorial Helper - floating help button */}
             <TutorialHelper onRestartTutorial={handleRestartTutorial} />
           </div>
         </div>
