@@ -317,19 +317,27 @@ export default function SidebarNav({
         <SidebarTrigger onClick={() => handleSidebarToggle(true)} className="toggle-button" />
       </div>
 
-      {/* Sidebar with conditional rendering for width */}
+      {/* Mobile Backdrop - Only show on mobile when sidebar is open */}
+      {isMobile && isSidebarOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/50"
+          onClick={() => handleSidebarToggle(false)}
+        />
+      )}
+
+      {/* Sidebar */}
       <div
         className={cn(
-          "sidebar-container sticky top-0 h-[100vh] flex-1 overflow-hidden",
-          // Add transition classes for smooth animation
-          "transition-all duration-500 ease-in-out",
-          // Width transitions
-          isSidebarOpen ? "w-64" : "w-0",
-          // Mobile overlay behavior with backdrop
-          isMobile && isSidebarOpen ? "absolute top-0 left-0 z-40" : "",
+          "sidebar-container h-[100vh] overflow-hidden transition-all duration-500 ease-in-out",
+          // DESKTOP: Normal sidebar behavior that affects layout
+          !isMobile && "sticky top-0 flex-1",
+          !isMobile && (isSidebarOpen ? "w-64" : "w-0"),
+          // MOBILE: Fixed overlay that doesn't affect layout
+          isMobile && "fixed top-0 left-0 z-40",
+          isMobile && (isSidebarOpen ? "w-64" : "w-0"),
         )}
       >
-        <Sidebar className="relative flex w-64 flex-col transition-opacity duration-500">
+        <Sidebar className="bg-background relative flex w-64 flex-col shadow-xl transition-opacity duration-500">
           <div className="relative z-10 mt-2 ml-2">
             <SidebarTrigger onClick={() => handleSidebarToggle(false)} className="toggle-button" />
           </div>
@@ -424,7 +432,7 @@ export default function SidebarNav({
                         onClick={(e) => {
                           e.stopPropagation();
                           if (isMobile) {
-                            setIsSidebarOpen(true);
+                            setIsSidebarOpen(false);
                           }
                         }}
                       >
@@ -441,7 +449,7 @@ export default function SidebarNav({
                         onClick={(e) => {
                           e.stopPropagation();
                           if (isMobile) {
-                            setIsSidebarOpen(true);
+                            setIsSidebarOpen(false);
                           }
                         }}
                         className={cn(isMobile && "mb-2 w-full")}
@@ -454,7 +462,7 @@ export default function SidebarNav({
                           e.stopPropagation();
                           handleResetChat();
                           if (isMobile) {
-                            setIsSidebarOpen(true);
+                            setIsSidebarOpen(false);
                           }
                         }}
                         className={cn(isMobile && "w-full")}
