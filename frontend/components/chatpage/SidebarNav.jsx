@@ -39,33 +39,48 @@ const steps = [
 const interviewSteps = [
   {
     id: "step-1",
-    label: "Grundläggande info",
-    heading: "Kan du kort berätta om arbetssituationen och bakgrunden?",
+    label: "Arbetsuppgifter",
+    heading: "Kan du beskriva vilka arbetsuppgifter som ingår i rollen?",
   },
   {
     id: "step-2",
-    label: "Funktionsnedsättning",
-    heading: "Vilken funktionsnedsättning gäller, och hur påverkar den arbetet?",
+    label: "Svårigheter i arbetet",
+    heading: "Finns det arbetsuppgifter som är svåra att utföra eller problematiska?",
   },
   {
     id: "step-3",
-    label: "Arbetsutmaningar",
-    heading: "Vilka arbetsuppgifter är mest utmanande på grund av funktionsnedsättningen?",
+    label: "Tidigare lösningar",
+    heading: "Har ni försökt lösa eller anpassa arbetsuppgifterna tidigare?",
   },
   {
     id: "step-4",
-    label: "Tidigare erfarenheter",
-    heading: "Har det använts några hjälpmedel tidigare? Vad fungerade bra/dåligt?",
+    label: "Arbetsmiljö",
+    heading: "Hur ser arbetsmiljön och förutsättningarna på arbetsplatsen ut?",
   },
   {
     id: "step-5",
-    label: "Arbetsmiljö",
-    heading: "Hur ser den fysiska och sociala arbetsmiljön ut idag?",
+    label: "Gjorda åtgärder",
+    heading: "Vilka åtgärder har redan gjorts för att underlätta arbetet?",
   },
   {
     id: "step-6",
-    label: "Kommunikation ",
-    heading: "Finns det behov av stöd i kommunikation eller samspel med kollegor eller kunder?",
+    label: "Stöd utanför arbetet",
+    heading: "Finns det stöd eller hjälpmedel från hälso- och sjukvården?",
+  },
+  {
+    id: "step-7",
+    label: "Arbete vs Fritid",
+    heading: "Hur skiljer sig behoven på arbetet jämfört med fritiden?",
+  },
+  {
+    id: "step-8",
+    label: "Användning av hjälpmedel",
+    heading: "Vem ska använda hjälpmedlet och hur i arbetet?",
+  },
+  {
+    id: "step-9",
+    label: "Ekonomi och ansvar",
+    heading: "Finns ekonomiskt stöd eller andra möjligheter för hjälpmedlet?",
   },
 ];
 
@@ -179,13 +194,18 @@ export default function SidebarNav({
   }, [localCompletedSteps, type]);
 
   // Handling for last step
+  // Handling for last step
   useEffect(() => {
-    const isLastStepActive = currentStep === "step-6";
-    if (isLastStepActive) {
-      const isPreviousStepCompleted = localCompletedSteps.includes("step-5");
+    const lastStepId = type === "interview" ? "step-9" : "step-6";
+    const secondLastStepId = type === "interview" ? "step-8" : "step-5";
 
-      if (isPreviousStepCompleted && !localCompletedSteps.includes("step-6")) {
-        const updatedSteps = [...localCompletedSteps, "step-6"];
+    const isLastStepActive = currentStep === lastStepId;
+
+    if (isLastStepActive) {
+      const isPreviousStepCompleted = localCompletedSteps.includes(secondLastStepId);
+
+      if (isPreviousStepCompleted && !localCompletedSteps.includes(lastStepId)) {
+        const updatedSteps = [...localCompletedSteps, lastStepId];
         setLocalCompletedSteps(updatedSteps);
 
         if (typeof window !== "undefined") {
@@ -193,7 +213,7 @@ export default function SidebarNav({
           localStorage.setItem(completedStepsKey, JSON.stringify(updatedSteps));
         }
 
-        const event = new CustomEvent("stepCompleted", { detail: { step: "step-6" } });
+        const event = new CustomEvent("stepCompleted", { detail: { step: lastStepId } });
         window.dispatchEvent(event);
       }
     }
@@ -284,11 +304,7 @@ export default function SidebarNav({
         localStorage.setItem("applicationCurrentStep", "step-1");
       }
 
-      // Important: ONLY reset userRole if they're in step-1 of the first chat type
-      // This ensures we don't lose role detection between chats
-      if (currentStep === "step-1") {
-        localStorage.setItem("userRole", "unknown");
-      }
+      localStorage.setItem("userRole", "unknown");
 
       // Remove any legacy keys
       localStorage.removeItem("completedSteps");

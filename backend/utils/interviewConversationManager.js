@@ -4,7 +4,7 @@ import {
   fetchSteps,
   getStepDescription,
   getWelcomeMessageForRole as baseGetWelcomeMessageForRole,
-  } from "./baseConversationManager.js";
+} from "./baseConversationManager.js";
 
 // Interview specific constants
 const defaultSystemMessageInterview = {
@@ -59,71 +59,101 @@ Om användaren är en arbetsgivare (som intervjuar för en anställd):
 const defaultStepWelcomeMessagesInterview = {
   "step-1": {
     arbetstagare:
-      "Välkommen till intervjun om arbetshjälpmedel! Kan du kort berätta om dig själv och din nuvarande arbetssituation? Vad arbetar du med och vilka utmaningar upplever du?",
+      "Välkommen till intervjun om arbetshjälpmedel! Berätta gärna utförligt om dina arbetsuppgifter, från det att du kommer till jobbet tills du går hem. Fokusera särskilt på moment där din funktionsnedsättning påverkar hur du utför arbetet.",
     arbetsgivare:
-      "Välkommen till intervjun om arbetshjälpmedel! Kan du berätta om den anställda som ni vill ansöka hjälpmedel för? Vad arbetar personen med och vilka utmaningar har ni observerat?",
+      "Välkommen till intervjun om arbetshjälpmedel! Beskriv de huvudsakliga arbetsuppgifterna för den anställde och vilka delar som är särskilt viktiga för bedömning av hjälpmedelsbehovet.",
   },
   "step-2": {
     arbetstagare:
-      "Nu vill jag höra mer om din funktionsnedsättning. Kan du berätta om din diagnos eller funktionsnedsättning och hur den påverkar dig i arbetslivet? Vad blir svårast för dig?",
+      "Beskriv vilka arbetsuppgifter som är svåra för dig och hur din funktionsnedsättning påverkar detta. Fokusera gärna på svårigheter som inte har lösts med enklare anpassningar.",
     arbetsgivare:
-      "Nu vill jag höra mer om den anställdas funktionsnedsättning. Vad vet ni om personens diagnos eller funktionsnedsättning? Hur påverkar det deras arbete enligt vad ni har observerat?",
+      "Ge exempel på arbetsuppgifter där den anställde har svårigheter eller utmaningar. Undvik att säga att allt fungerar om det finns områden med problem.",
   },
   "step-3": {
     arbetstagare:
-      "Låt oss fokusera på dina specifika arbetsuppgifter. Vilka arbetsuppgifter har du svårast med på grund av din funktionsnedsättning? Kan du ge konkreta exempel?",
+      "Berätta om eventuella anpassningar eller lösningar du eller arbetsgivaren har provat för att underlätta arbetet. Även om de inte fungerat visar det att ni försökt hitta lösningar.",
     arbetsgivare:
-      "Låt oss fokusera på den anställdas specifika arbetsuppgifter. Vilka arbetsuppgifter har personen svårast med? Vilka konkreta hinder har ni observerat i deras dagliga arbete?",
+      "Beskriv vilka åtgärder eller anpassningar ni har försökt för att underlätta arbetet, såsom ändrade arbetsuppgifter, arbetsplats eller hjälpmedel.",
   },
   "step-4": {
     arbetstagare:
-      "Har du använt några hjälpmedel eller fått anpassningar tidigare? Vad har fungerat bra och vad har varit mindre bra? Finns det något du har testat på egen hand?",
+      "Beskriv din arbetsmiljö, exempelvis ljudnivå, belysning, tekniska hjälpmedel och andra faktorer som påverkar din arbetsförmåga.",
     arbetsgivare:
-      "Har ni provat några hjälpmedel eller anpassningar för den anställda tidigare? Vad har fungerat bra på arbetsplatsen och vad behöver förbättras?",
+      "Hur ser arbetsmiljön ut för den anställde? Finns det faktorer i miljön som påverkar arbetet, och har ni gjort några anpassningar?",
   },
   "step-5": {
     arbetstagare:
-      "Berätta om din arbetsmiljö. Hur ser din arbetsplats ut fysiskt? Hur fungerar samarbetet med kollegor och chefer? Finns det miljöfaktorer som påverkar dig?",
+      "Har du haft egna lösningar eller strategier som tidigare hjälpt dig i arbetet? Berätta gärna om dem och varför de inte längre räcker till.",
     arbetsgivare:
-      "Berätta om arbetsmiljön för den anställda. Hur ser arbetsplatsen ut fysiskt? Hur fungerar samarbetet i teamet? Finns det miljöfaktorer som påverkar personens arbetsförmåga?",
+      "Har ni observerat att den anställde försökt hitta egna lösningar för att klara arbetet? Hur har dessa fungerat?",
   },
   "step-6": {
     arbetstagare:
-      "Avslutningsvis, hur fungerar kommunikation och samspel med dina kollegor och kunder? Finns det situationer där du behöver extra stöd för att kommunicera effektivt?",
+      "Berätta om du har hjälpmedel eller annat stöd från vården, till exempel merkostnadsersättning, och förklara varför detta inte räcker för arbetet.",
     arbetsgivare:
-      "Avslutningsvis, hur fungerar kommunikation och samspel för den anställda med kollegor och kunder? Finns det situationer där personen behöver extra stöd för att kommunicera effektivt?",
+      "Har den anställde stöd eller hjälpmedel från till exempel region eller försäkringsbolag? Hur påverkar detta arbetet?",
+  },
+  "step-7": {
+    arbetstagare:
+      "Beskriv hur du klarar dig utan hjälpmedlet på fritiden eller hemma. Har du andra lösningar där?",
+    arbetsgivare:
+      "Vet ni om den anställde använder hjälpmedlet även privat? Detta kan påverka bedömningen av behovet.",
+  },
+  "step-8": {
+    arbetstagare:
+      "Beskriv hur du kommer att använda hjälpmedlet i arbetet och vilka arbetsuppgifter som blir enklare. Det stärker bedömningen att du kan visa varför just du behöver hjälpmedlet.",
+    arbetsgivare:
+      "Förklara hur hjälpmedlet kommer att användas av den anställde i arbetet och vilka arbetsuppgifter det gör möjliga att utföra.",
+  },
+  "step-9": {
+    arbetstagare:
+      "Vet du om det finns ekonomiskt stöd eller andra resurser som kan hjälpa till att finansiera hjälpmedlet?",
+    arbetsgivare:
+      "Finns det ekonomiskt stöd eller andra möjligheter för finansiering av hjälpmedlet?",
   },
 };
 
 const defaultStepDescriptionsInterview = {
   "step-1":
-    "Förberedelse - Hjälp användaren att berätta om sig själv och sin arbetssituation.",
+    "Arbetssituationen – Hjälp användaren att beskriva en typisk arbetsdag och vilka arbetsuppgifter som är viktiga, särskilt de som påverkas av funktionsnedsättningen.",
   "step-2":
-    "Funktionsnedsättning - Hjälp användaren att beskriva funktionsnedsättning och dess påverkan.",
+    "Svårigheter – Hjälp användaren att konkret beskriva vilka arbetsuppgifter eller moment som är svåra på grund av funktionsnedsättningen.",
   "step-3":
-    "Arbetsuppgifter - Hjälp användaren att identifiera specifika utmaningar i arbetsuppgifter.",
+    "Tidigare anpassningar – Hjälp användaren att berätta om anpassningar eller lösningar som provats för att underlätta arbetet, och hur de fungerat.",
   "step-4":
-    "Tidigare erfarenheter - Hjälp användaren att beskriva tidigare hjälpmedel och anpassningar.",
+    "Arbetsmiljö – Hjälp användaren att beskriva den fysiska arbetsmiljön, såsom ljud, ljus och teknik, och hur den påverkar arbetsförmågan.",
   "step-5":
-    "Arbetsmiljö - Hjälp användaren att beskriva sin arbetsmiljö och samarbete.",
+    "Egna strategier – Hjälp användaren att berätta om egna lösningar eller strategier som tidigare använts och hur effektiva de varit.",
   "step-6":
-    "Kommunikation - Hjälp användaren att beskriva kommunikationsbehov och samspel.",
+    "Hjälpmedel och stöd – Hjälp användaren att beskriva eventuella hjälpmedel eller stöd som erhållits från vården eller andra instanser.",
+  "step-7":
+    "Behov på arbete och fritid – Hjälp användaren att jämföra behovet av hjälpmedel och stöd på arbetsplatsen med behovet i fritid eller hemma.",
+  "step-8":
+    "Användning av hjälpmedel – Hjälp användaren att förklara hur hjälpmedlet kommer att användas i arbetet och vilka arbetsuppgifter det underlättar.",
+  "step-9":
+    "Finansiering – Hjälp användaren att beskriva om det finns ekonomiskt stöd eller andra resurser för att finansiera hjälpmedlet.",
 };
 
 // Interview-specific neutral messages
 const interviewNeutralWelcomes = {
   "step-1":
-    "Välkommen till utredningssamtalsverktyget! För att ge dig bästa möjliga hjälp, behöver jag veta om du är arbetstagare eller arbetsgivare?",
+    "Välkommen till utredningssamtalsverktyget! Vi börjar med att prata om arbetsuppgifterna i rollen. Är du arbetstagare eller arbetsgivare?",
   "step-2":
-    "I detta steg ska vi förbereda för utredningssamtalet. För att anpassa mina råd, kan du berätta om du är arbetstagare eller arbetsgivare?",
+    "Nu fokuserar vi på svårigheter i arbetet. Är du arbetstagare eller arbetsgivare?",
   "step-3":
-    "Välkommen till steg 3! För att ge dig rätt stöd, behöver jag veta om du är arbetstagare eller arbetsgivare?",
+    "Låt oss prata om tidigare anpassningar eller försök att lösa arbetsuppgifterna. Är du arbetstagare eller arbetsgivare?",
   "step-4":
-    "I detta steg ska vi diskutera specifika frågor. För att anpassa mina råd, är du arbetstagare eller arbetsgivare?",
+    "Här diskuterar vi arbetsmiljön och förutsättningarna på arbetsplatsen. Är du arbetstagare eller arbetsgivare?",
   "step-5":
-    "Välkommen till steg 5! För bästa möjliga hjälp, kan du berätta om du är arbetstagare eller arbetsgivare?",
+    "Nu vill jag höra om vilka åtgärder som redan gjorts för att underlätta arbetet. Är du arbetstagare eller arbetsgivare?",
   "step-6":
-    "Välkommen till sista steget! För att anpassa mina råd, är du arbetstagare eller arbetsgivare?",
+    "Vi går vidare till stöd utanför arbetet, som hjälp från vård eller liknande. Är du arbetstagare eller arbetsgivare?",
+  "step-7":
+    "I detta steg jämför vi behov och lösningar mellan arbete och fritid. Är du arbetstagare eller arbetsgivare?",
+  "step-8":
+    "Nu ska vi prata om användningen av hjälpmedel i arbetet. Är du arbetstagare eller arbetsgivare?",
+  "step-9":
+    "Avslutningsvis diskuterar vi ekonomi och ansvar kring hjälpmedel. Är du arbetstagare eller arbetsgivare?",
 };
 
 export let systemMessage = defaultSystemMessageInterview;

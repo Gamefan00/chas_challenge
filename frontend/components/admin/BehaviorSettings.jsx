@@ -89,6 +89,21 @@ export default function BehaviorSettings() {
       welcomeArbetsgivare: "",
       description: "",
     },
+    "step-7": {
+      welcomeArbetstagare: "",
+      welcomeArbetsgivare: "",
+      description: "",
+    },
+    "step-8": {
+      welcomeArbetstagare: "",
+      welcomeArbetsgivare: "",
+      description: "",
+    },
+    "step-9": {
+      welcomeArbetstagare: "",
+      welcomeArbetsgivare: "",
+      description: "",
+    },
   });
 
   // Load settings from database on component mount
@@ -263,17 +278,23 @@ export default function BehaviorSettings() {
   const getInterviewStepName = (step) => {
     switch (step) {
       case "step-1":
-        return "Steg 1: Förberedelse av intervju";
+        return "Steg 1: Arbetsuppgifter";
       case "step-2":
-        return "Steg 2: Funktionsnedsättning och påverkan";
+        return "Steg 2: Svårigheter i arbetet";
       case "step-3":
-        return "Steg 3: Utmaningar i arbetet";
+        return "Steg 3: Tidigare lösningar";
       case "step-4":
-        return "Steg 4: Tidigare hjälpmedel";
+        return "Steg 4: Arbetsmiljö";
       case "step-5":
-        return "Steg 5: Arbetsmiljö";
+        return "Steg 5: Gjorda åtgärder";
       case "step-6":
-        return "Steg 6: Kommunikation";
+        return "Steg 6: Stöd utanför arbetet";
+      case "step-7":
+        return "Steg 7: Arbete VS Fritid";
+      case "step-8":
+        return "Steg 8: Användning av hjälpmedel";
+      case "step-9":
+        return "Steg 9: Ekonomi och ansvar";
       default:
         return step;
     }
