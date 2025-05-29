@@ -4,9 +4,7 @@ import {
   fetchSteps,
   getStepDescription,
   getWelcomeMessageForRole as baseGetWelcomeMessageForRole,
-  initializeConversations,
-  refreshConversationSettings,
-} from "./baseConversationManager.js";
+  } from "./baseConversationManager.js";
 
 // Interview specific constants
 const defaultSystemMessageInterview = {
@@ -128,9 +126,7 @@ const interviewNeutralWelcomes = {
     "Välkommen till sista steget! För att anpassa mina råd, är du arbetstagare eller arbetsgivare?",
 };
 
-// Interview conversation state
 export let systemMessage = defaultSystemMessageInterview;
-export let stepConversations = {};
 export let interviewSteps = defaultStepWelcomeMessagesInterview;
 
 // Export interview-specific versions of utility functions
@@ -171,49 +167,20 @@ export function getInterviewWelcomeMessageForRole(stepId, userRole = null) {
 }
 
 export async function initializeInterviewConversations() {
-  const result = await initializeConversations(
-    "interviewSystemMessage",
-    "AI-Behavior Configuration",
-    defaultSystemMessageInterview,
-    "interviewSteps",
-    defaultStepWelcomeMessagesInterview,
-    "interviewSteps",
-    defaultStepDescriptionsInterview
-  );
+  // Just load system message and steps
+  systemMessage = await fetchInterviewSystemMessageFromDB();
+  interviewSteps = await fetchInterviewSteps();
 
-  stepConversations = result.stepConversations;
-  systemMessage = result.systemMessage;
-  interviewSteps = result.steps;
+  console.log("Interview conversation manager initialized (stateless)");
 }
 
 export async function refreshInterviewConversationSettings() {
-  systemMessage = await refreshConversationSettings(
-    stepConversations,
-    "interviewSystemMessage",
-    "AI-Behavior Configuration",
-    defaultSystemMessageInterview,
-    "interviewSteps",
-    defaultStepDescriptionsInterview
-  );
+  systemMessage = await fetchInterviewSystemMessageFromDB();
+  interviewSteps = await fetchInterviewSteps();
+
+  console.log("Interview conversation settings refreshed (stateless)");
 }
 
-// Reset conversation state only for a specific user
-export async function resetInterviewConversation(userId) {
-  console.log(`Resetting interview conversations for user ${userId}`);
-
-  // Delete all user-specific conversation keys
-  for (const key in stepConversations) {
-    if (key.startsWith(`${userId}-`)) {
-      console.log(`Deleting conversation for key: ${key}`);
-      delete stepConversations[key];
-    }
-  }
-
-  return {
-    success: true,
-    message: `Interview conversations reset for user ${userId}`,
-  };
-}
 export { defaultSystemMessageInterview };
 
 // Initialize on module load

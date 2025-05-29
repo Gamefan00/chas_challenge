@@ -8,7 +8,7 @@ import {
 // Import application conversation manager
 import {
   fetchApplicationSystemMessageFromDB,
-  stepConversations as applicationStepConversations,
+  // stepConversations as applicationStepConversations,
   getApplicationStepsDescription,
   fetchApplicationSteps,
   detectUserRole as detectApplicationUserRole,
@@ -18,7 +18,7 @@ import {
 // Import interview conversation manager
 import {
   fetchInterviewSystemMessageFromDB,
-  stepConversations as interviewStepConversations,
+  // stepConversations as interviewStepConversations,
   getInterviewStepsDescription,
   fetchInterviewSteps,
   detectUserRole as detectInterviewUserRole,
@@ -34,7 +34,7 @@ const router = express.Router();
 const applicationConfig = {
   botType: "application",
   fetchSystemMessage: fetchApplicationSystemMessageFromDB,
-  stepConversations: applicationStepConversations,
+  // stepConversations: applicationStepConversations,
   getStepDescription: getApplicationStepsDescription,
   fetchSteps: fetchApplicationSteps,
   detectUserRole: detectApplicationUserRole,
@@ -45,7 +45,7 @@ const applicationConfig = {
 const interviewConfig = {
   botType: "interview",
   fetchSystemMessage: fetchInterviewSystemMessageFromDB,
-  stepConversations: interviewStepConversations,
+  // stepConversations: interviewStepConversations,
   getStepDescription: getInterviewStepsDescription,
   fetchSteps: fetchInterviewSteps,
   detectUserRole: detectInterviewUserRole,
