@@ -872,7 +872,7 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
             isMobile ? "ios-fixed-container" : "absolute bottom-0"
           } z-30 h-[22%] w-full`}
         >
-          <div className="ios-center-content mx-auto w-full max-w-4xl">
+          <div className="ios-center-content mx-auto w-full max-w-4xl px-3">
             <div className="ios-textarea-container relative h-48 pt-12">
               <BackToBottomBtn containerRef={messageContainerRef} threshold={30} className="" />
               <div className="bg-background h-full">
