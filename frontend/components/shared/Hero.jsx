@@ -4,13 +4,13 @@ import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import Link from "next/link";
 
-const HeroSection = () => {
+const BaseHeroSection = ({ title, description, buttonText, buttonLink, className = "w-full" }) => {
   return (
     <motion.section
       initial={{ opacity: 0, y: 10 }}
       animate={{ y: 0, opacity: 100 }}
       transition={{ duration: 0.5 }}
-      className="w-full"
+      className={className}
     >
       <Card>
         <div className="mx-auto max-w-lg py-8">
@@ -21,8 +21,7 @@ const HeroSection = () => {
                 animate={{ y: 0, opacity: 100 }}
                 transition={{ duration: 0.5 }}
               >
-                {" "}
-                Förenkla din väg till arbetshjälpmedel
+                {title}
               </motion.h1>
             </CardTitle>
           </CardHeader>
@@ -33,8 +32,7 @@ const HeroSection = () => {
               transition={{ duration: 0.6 }}
               className="mx-auto py-2 text-center"
             >
-              Låt vår AI-assistent guida dig genom ansökningsprocessen och maximera dina chanser att
-              få rätt stöd för dina behov.
+              {description}
             </motion.p>
           </CardContent>
           <CardFooter className="flex justify-center pt-6">
@@ -44,7 +42,7 @@ const HeroSection = () => {
               transition={{ duration: 0.9 }}
             >
               <Button asChild>
-                <Link href={"/applicationChat"}>Starta formulärguide</Link>
+                <Link href={buttonLink}>{buttonText}</Link>
               </Button>
             </motion.div>
           </CardFooter>
@@ -54,4 +52,4 @@ const HeroSection = () => {
   );
 };
 
-export default HeroSection;
+export default BaseHeroSection;
