@@ -10,6 +10,7 @@ import {
 
 export default function TutorialHelper({ onRestartTutorial }) {
   const [isMobile, setIsMobile] = useState(false);
+  const [isAndroid, setIsAndroid] = useState(false);
 
   // Check if mobile on mount and when window resizes
   useEffect(() => {
@@ -17,8 +18,15 @@ export default function TutorialHelper({ onRestartTutorial }) {
       setIsMobile(window.innerWidth < 768);
     };
 
-    // Initial check
+    // Check if Android device
+    const checkAndroid = () => {
+      const userAgent = navigator.userAgent.toLowerCase();
+      setIsAndroid(/android/.test(userAgent));
+    };
+
+    // Initial checks
     checkMobile();
+    checkAndroid();
 
     // Add event listener for window resize
     window.addEventListener("resize", checkMobile);
@@ -41,7 +49,9 @@ export default function TutorialHelper({ onRestartTutorial }) {
   if (!isMobile) return null;
 
   return (
-    <div className="absolute top-0 left-1 z-[90] md:hidden">
+    <div
+      className={`fixed z-[90] md:hidden ${isAndroid ? "bottom-[120px] left-3" : "absolute top-0 left-1"}`}
+    >
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
