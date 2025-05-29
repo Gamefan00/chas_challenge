@@ -220,7 +220,7 @@ const CookieSettingsPage = () => {
                         åtgärd kan inte ångras.
                       </DialogDescription>
                     </DialogHeader>
-                    <DialogFooter className="flex gap-2 sm:justify-start">
+                    <DialogFooter className="flex flex-col justify-end gap-2">
                       <Button onClick={handleResetUser} variant="destructive" disabled={isDeleting}>
                         {isDeleting ? "Tar bort..." : "Ja, ta bort min data"}
                       </Button>
