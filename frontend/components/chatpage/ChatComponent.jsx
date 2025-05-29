@@ -318,13 +318,10 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
         const stepId = step.id;
         try {
           const url = `${BASE_URL}${historyEndpoint}/${stepId}?userId=${userId}`;
-          // console.log(`Loading history for step ${stepId}:`, url);
-
           const response = await fetch(url);
 
           if (response.ok) {
             const data = await response.json();
-            // console.log(`Step ${stepId} data:`, data);
 
             if (Array.isArray(data) && data.length > 0) {
               // Check if the data contains actual conversation or just welcome message
@@ -337,10 +334,8 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
                   role: msg.role || "assistant",
                   text: msg.text || msg.content || "",
                 }));
-                // console.log(`Loaded ${data.length} messages for step ${stepId}`);
               } else {
                 // Only welcome message or empty, fetch fresh welcome
-                // console.log(`Step ${stepId} has only welcome message, fetching fresh welcome`);
                 await loadWelcomeMessage(stepId, newHistories);
               }
             } else {
@@ -616,7 +611,7 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
 
       const data = await response.json();
 
-      // SIMPLIFIED ROLE HANDLING - Only update if role is actually detected
+      // Only update if role is actually detected
       let finalRole = detectedUserRole;
 
       // Only update role if we have a clear detection AND we're in step-1
