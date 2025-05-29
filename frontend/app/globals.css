@@ -167,6 +167,15 @@ p {
   }
 }
 
+/* Accessibility  */
+a,
+button {
+  min-height: 44px !important;
+  min-width: 44px !important;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
 /* Enhanced markdown styling */
 .markdown-container {
   font-family: "Inter", sans-serif;

@@ -41,7 +41,7 @@ const Footer = () => {
           <motion.div variants={sectionVariants} className="flex flex-col items-start gap-3">
             <h2 className="text-lg font-semibold">Ansökshjälpen</h2>
             <div className="bg-primary h-[2px] w-[45px]" />
-            <div className="flex flex-col gap-3 opacity-90">
+            <div className="flex flex-col opacity-90">
               <Link
                 href="https://www.lidol.se/om-oss/"
                 className="hover:text-primary transition-colors"
@@ -63,7 +63,7 @@ const Footer = () => {
           <motion.div variants={sectionVariants} className="flex flex-col items-start gap-3">
             <h2 className="text-lg font-semibold">Resurser</h2>
             <div className="bg-primary h-[2px] w-[45px]" />
-            <div className="flex flex-col gap-3 opacity-90">
+            <div className="flex flex-col opacity-90">
               <a
                 href="https://www.forsakringskassan.se"
                 target="_blank"
@@ -93,7 +93,7 @@ const Footer = () => {
           <motion.div variants={sectionVariants} className="flex flex-col items-start gap-3">
             <h2 className="text-lg font-semibold">Kontakt</h2>
             <div className="bg-primary h-[2px] w-[45px]" />
-            <div className="flex flex-col gap-3 opacity-90">
+            <div className="flex flex-col opacity-90">
               <a
                 href="mailto:info@LIDOL.se"
                 className="hover:text-primary flex items-center gap-2 transition-colors"
@@ -114,7 +114,7 @@ const Footer = () => {
                   href="https://www.linkedin.com/company/lidol/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-opacity-20 bg-primary rounded-full p-2 transition-colors hover:opacity-90"
+                  className="bg-opacity-20 bg-primary rounded-full !p-3 transition-colors hover:opacity-90"
                   aria-label="LinkedIn"
                 >
                   <Linkedin size={20} />
@@ -123,7 +123,7 @@ const Footer = () => {
                   href="https://www.facebook.com/lidol.se/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-opacity-20 bg-primary rounded-full p-2 transition-colors hover:opacity-90"
+                  className="bg-opacity-20 bg-primary rounded-full !p-3 transition-colors hover:opacity-90"
                   aria-label="Facebook"
                 >
                   <Facebook size={20} />

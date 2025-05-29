@@ -174,7 +174,13 @@ const CookieSettingsPage = () => {
                       Behövs för att tjänsten ska fungera korrekt. Dessa kan inte stängas av.
                     </p>
                   </div>
-                  <Switch id="necessary-cookies" checked={true} disabled />
+                  <Switch
+                    aria-label="Nödvändiga cookies (Alltid aktiverade)"
+                    className="!min-h-0 !min-w-0"
+                    id="necessary-cookies"
+                    checked={true}
+                    disabled
+                  />
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -187,7 +193,10 @@ const CookieSettingsPage = () => {
                       sparas krypterad i 100 dagar och raderas sedan automatiskt.
                     </p>
                   </div>
+
                   <Switch
+                    aria-label="Sessionslagring (Valfritt)"
+                    className="!min-h-0 !min-w-0"
                     id="session-cookies"
                     checked={cookieConsent}
                     onCheckedChange={handleConsentChange}

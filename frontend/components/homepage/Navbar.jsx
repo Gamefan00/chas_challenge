@@ -25,13 +25,14 @@ const Navbar = ({ position }) => {
     <nav
       className={`bg-background ${position} top-0 z-50 flex h-16 w-full items-center justify-between px-4 shadow-sm`}
     >
+      <h1 className="sr-only">Ansökshjälpen</h1>
       <Logo />
 
       {/* Desktop Navbar */}
       <ul className="hidden items-center gap-6 md:flex">
         {linksData.map((link, index) => (
           <li key={index}>
-            <Link className="font-medium hover:underline" href={link.href}>
+            <Link className="px-2 !py-3.5 font-medium hover:underline" href={link.href}>
               {link.title}
             </Link>
           </li>
@@ -42,7 +43,7 @@ const Navbar = ({ position }) => {
       <div className="md:hidden">
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="outline">
+            <Button aria-label="Open" variant="outline">
               <Menu />
             </Button>
           </SheetTrigger>

@@ -26,6 +26,7 @@ function CopyButton({ message }) {
   return (
     <div className="group relative mt-2 flex justify-end">
       <Button
+        aria-label="Copy Message"
         variant="outline"
         size="sm"
         onClick={() => {
@@ -864,6 +865,7 @@ export default function ChatComponent({ steps, historyEndpoint, welcomeEndpoint,
 
                 <div className="absolute right-2 bottom-6">
                   <Button
+                    aria-label="Send Message"
                     onClick={handleSendMessage}
                     disabled={isLoading || !message.trim()}
                     size="icon"
