@@ -462,7 +462,7 @@ export default function SidebarNav({
                     </Link>
                     <div
                       className={cn(
-                        "flex justify-end gap-2",
+                        "flex items-center justify-end gap-2",
                         isMobile && "mt-2 w-full flex-col-reverse",
                       )}
                     >
