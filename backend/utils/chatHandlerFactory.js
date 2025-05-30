@@ -1,7 +1,7 @@
-import OpenAI from 'openai';
-import query from './supabaseQuery.js';
-import { decrypt } from './encryptionHelper.js';
-import dotenv from 'dotenv';
+import OpenAI from "openai";
+import query from "./supabaseQuery.js";
+import { decrypt } from "./encryptionHelper.js";
+import dotenv from "dotenv";
 
 dotenv.config();
 
@@ -13,46 +13,85 @@ const openai = new OpenAI({
 async function getAISettings() {
   try {
     const defaults = {
-      model: 'gpt-4o-mini',
+      model: "gpt-4o-mini",
       temperature: 1,
       maxTokens: 2048,
+      vectorStoreId: "vs_67ee4b3df0f481918a769c7ee3c61880", // Your vector store ID
     };
 
-    const modelResult = await query('SELECT value FROM admin_settings WHERE key = $1', ['model']);
+    const modelResult = await query(
+      "SELECT value FROM admin_settings WHERE key = $1",
+      ["model"]
+    );
 
-    const temperatureResult = await query('SELECT value FROM admin_settings WHERE key = $1', ['temperature']);
+    const temperatureResult = await query(
+      "SELECT value FROM admin_settings WHERE key = $1",
+      ["temperature"]
+    );
 
-    const maxTokensResult = await query('SELECT value FROM admin_settings WHERE key = $1', ['maxTokens']);
+    const maxTokensResult = await query(
+      "SELECT value FROM admin_settings WHERE key = $1",
+      ["maxTokens"]
+    );
 
-    const model = modelResult.length > 0 ? modelResult[0].value : defaults.model;
-    const temperature = temperatureResult.length > 0 ? temperatureResult[0].value : defaults.temperature;
-    const maxTokens = maxTokensResult.length > 0 ? maxTokensResult[0].value : defaults.maxTokens;
+    // Add vector store ID setting (optional - you can store this in DB too)
+    const vectorStoreResult = await query(
+      "SELECT value FROM admin_settings WHERE key = $1",
+      ["vectorStoreId"]
+    );
 
-    console.log('Using AI settings:', { model, temperature, maxTokens });
-    return { model, temperature, maxTokens };
+    const model =
+      modelResult.length > 0 ? modelResult[0].value : defaults.model;
+    const temperature =
+      temperatureResult.length > 0
+        ? temperatureResult[0].value
+        : defaults.temperature;
+    const maxTokens =
+      maxTokensResult.length > 0
+        ? maxTokensResult[0].value
+        : defaults.maxTokens;
+    const vectorStoreId =
+      vectorStoreResult.length > 0
+        ? vectorStoreResult[0].value
+        : defaults.vectorStoreId;
+
+    console.log("Using AI settings:", {
+      model,
+      temperature,
+      maxTokens,
+      vectorStoreId,
+    });
+    return { model, temperature, maxTokens, vectorStoreId };
   } catch (error) {
-    console.error('Error fetching AI settings:', error);
+    console.error("Error fetching AI settings:", error);
     return {
-      model: 'gpt-4o-mini',
+      model: "gpt-4o-mini",
       temperature: 1,
       maxTokens: 2048,
+      vectorStoreId: "vs_67ee4b3df0f481918a769c7ee3c61880",
     };
   }
 }
 
 // Helper function to safely decrypt history
-function safelyDecryptHistory(historyData, stepId, botType = 'application') {
+function safelyDecryptHistory(historyData, stepId, botType = "application") {
   try {
     const stepHistory = decrypt(historyData);
 
     if (!Array.isArray(stepHistory)) {
-      console.warn(`History for ${botType} step ${stepId} is not an array after decryption:`, typeof stepHistory);
+      console.warn(
+        `History for ${botType} step ${stepId} is not an array after decryption:`,
+        typeof stepHistory
+      );
       return [];
     }
 
     return stepHistory;
   } catch (decryptError) {
-    console.error(`Error decrypting history for ${botType} step ${stepId}:`, decryptError);
+    console.error(
+      `Error decrypting history for ${botType} step ${stepId}:`,
+      decryptError
+    );
     return [];
   }
 }
@@ -62,6 +101,9 @@ function extractRoleFromAIResponse(text) {
   if (!text) return null;
 
   const lowerText = text.toLowerCase();
+  // // Ensure text is a string
+  // const textString = typeof text === "string" ? text : String(text);
+  // const lowerText = textString.toLowerCase();
 
   const arbetstagareConfirmations = [
     /tack.*bekräfta.*arbetstagare/i,
@@ -81,13 +123,13 @@ function extractRoleFromAIResponse(text) {
 
   for (const pattern of arbetstagareConfirmations) {
     if (pattern.test(lowerText)) {
-      return 'arbetstagare';
+      return "arbetstagare";
     }
   }
 
   for (const pattern of arbetsgivareConfirmations) {
     if (pattern.test(lowerText)) {
-      return 'arbetsgivare';
+      return "arbetsgivare";
     }
   }
 
@@ -108,18 +150,26 @@ async function getUserStepHistory(userId, stepId, botType) {
 
     return [];
   } catch (error) {
-    console.error(`Error getting conversation history for user ${userId}, step ${stepId}:`, error);
+    console.error(
+      `Error getting conversation history for user ${userId}, step ${stepId}:`,
+      error
+    );
     return [];
   }
 }
 
 // Get context from previous steps for a user
-async function getPreviousStepsContext(userId, currentStep, botType, maxMessages = 50) {
+async function getPreviousStepsContext(
+  userId,
+  currentStep,
+  botType,
+  maxMessages = 50
+) {
   const previousContext = [];
 
   try {
     // Get the step number (e.g., "step-3" -> 3)
-    const currentStepNum = parseInt(currentStep.split('-')[1]);
+    const currentStepNum = parseInt(currentStep.split("-")[1]);
 
     // Get history from all previous steps
     for (let i = 1; i < currentStepNum; i++) {
@@ -130,7 +180,7 @@ async function getPreviousStepsContext(userId, currentStep, botType, maxMessages
       const userAssistantPairs = [];
       for (let j = stepHistory.length - 1; j >= 0; j--) {
         const msg = stepHistory[j];
-        if (msg.role === 'user' || msg.role === 'assistant') {
+        if (msg.role === "user" || msg.role === "assistant") {
           userAssistantPairs.unshift(msg);
           if (userAssistantPairs.length >= 20) break; // Last 10 exchanges per step
         }
@@ -142,7 +192,7 @@ async function getPreviousStepsContext(userId, currentStep, botType, maxMessages
     // Limit total context to prevent token overflow
     return previousContext.slice(-maxMessages);
   } catch (error) {
-    console.error('Error getting previous steps context:', error);
+    console.error("Error getting previous steps context:", error);
     return [];
   }
 }
@@ -153,9 +203,12 @@ async function getCrossChatContext(userId, currentBotType, maxMessages = 12) {
 
   try {
     // Determine the other chat type
-    const otherBotType = currentBotType === 'application' ? 'interview' : 'application';
+    const otherBotType =
+      currentBotType === "application" ? "interview" : "application";
 
-    console.log(`Getting cross-chat context from ${otherBotType} for user ${userId}`);
+    console.log(
+      `Getting cross-chat context from ${otherBotType} for user ${userId}`
+    );
 
     // Get all history from the other chat type
     const historyResults = await query(
@@ -173,22 +226,26 @@ async function getCrossChatContext(userId, currentBotType, maxMessages = 12) {
 
     // Process and extract relevant information
     for (const historyItem of historyResults) {
-      const decryptedHistory = safelyDecryptHistory(historyItem.history, historyItem.step_id, otherBotType);
+      const decryptedHistory = safelyDecryptHistory(
+        historyItem.history,
+        historyItem.step_id,
+        otherBotType
+      );
 
       if (Array.isArray(decryptedHistory)) {
         // Only take user messages that contain personal information
         const relevantMessages = decryptedHistory.filter((msg) => {
-          if (msg.role === 'user') {
-            const text = (msg.text || msg.content || '').toLowerCase();
+          if (msg.role === "user") {
+            const text = (msg.text || msg.content || "").toLowerCase();
             // Look for personal information patterns
             return (
-              text.includes('heter') ||
-              text.includes('namn') ||
-              text.includes('arbetar') ||
-              text.includes('jobbar') ||
-              text.includes('företag') ||
-              text.includes('diagnos') ||
-              text.includes('funktionsnedsättning') ||
+              text.includes("heter") ||
+              text.includes("namn") ||
+              text.includes("arbetar") ||
+              text.includes("jobbar") ||
+              text.includes("företag") ||
+              text.includes("diagnos") ||
+              text.includes("funktionsnedsättning") ||
               text.length > 20 // Substantial messages
             );
           }
@@ -205,37 +262,50 @@ async function getCrossChatContext(userId, currentBotType, maxMessages = 12) {
 
     return limitedContext;
   } catch (error) {
-    console.error('Error getting cross-chat context:', error);
+    console.error("Error getting cross-chat context:", error);
     return [];
   }
 }
 
 // Create a chat handler factory
 export function createChatHandler(config) {
-  const { botType, fetchSystemMessage, getStepDescription, fetchSteps, detectUserRole, getWelcomeMessageForRole } =
-    config;
+  const {
+    botType,
+    fetchSystemMessage,
+    getStepDescription,
+    fetchSteps,
+    detectUserRole,
+    getWelcomeMessageForRole,
+  } = config;
 
   return async (req, res) => {
     try {
       const systemMessage = await fetchSystemMessage();
-      const { message, currentStep = 'step-1', userId, detectRole } = req.body;
-      const { model, temperature, maxTokens } = await getAISettings();
+      const { message, currentStep = "step-1", userId, detectRole } = req.body;
+      const { model, temperature, maxTokens, vectorStoreId } =
+        await getAISettings();
       const steps = await fetchSteps();
 
-      console.log(`Processing ${botType} chat for user ${userId}, step ${currentStep}`);
+      console.log(
+        `Processing ${botType} chat for user ${userId}, step ${currentStep}`
+      );
 
       // Get ONLY this user's conversation history for the current step
       let conversationHistory = [];
       if (userId) {
-        conversationHistory = await getUserStepHistory(userId, currentStep, botType);
+        conversationHistory = await getUserStepHistory(
+          userId,
+          currentStep,
+          botType
+        );
       }
 
-      let detectedRole = req.body.existingRole || 'unknown';
+      let detectedRole = req.body.existingRole || "unknown";
 
       // Role detection logic
-      if (detectRole === true && currentStep === 'step-1') {
-        const roleFromUser = detectUserRole([{ role: 'user', text: message }]);
-        if (roleFromUser && roleFromUser !== 'unknown') {
+      if (detectRole === true && currentStep === "step-1") {
+        const roleFromUser = detectUserRole([{ role: "user", text: message }]);
+        if (roleFromUser && roleFromUser !== "unknown") {
           detectedRole = roleFromUser;
         }
       }
@@ -243,25 +313,28 @@ export function createChatHandler(config) {
       // Build system message - don't assume role until confirmed
       const stepDescription = await getStepDescription(currentStep);
       const stepSystemMessage = {
-        role: 'system',
+        role: "system",
         content: [
-          { type: 'input_text', text: systemMessage.content[0].text },
-          { type: 'input_text', text: `Step instructions: ${stepDescription}` },
+          { type: "input_text", text: systemMessage.content[0].text },
+          { type: "input_text", text: `Step instructions: ${stepDescription}` },
         ],
       };
 
       // Only add role info if we actually have a confirmed role
-      if (detectedRole && detectedRole !== 'unknown') {
+      if (detectedRole && detectedRole !== "unknown") {
         stepSystemMessage.content.push({
-          type: 'input_text',
+          type: "input_text",
           text: `BEKRÄFTAD ANVÄNDARROLL: ${detectedRole}. Anpassa dina svar efter denna roll.`,
         });
       }
 
       // Add role detection instructions only if we need to detect role
-      if ((detectRole || detectedRole === 'unknown') && currentStep === 'step-1') {
+      if (
+        (detectRole || detectedRole === "unknown") &&
+        currentStep === "step-1"
+      ) {
         stepSystemMessage.content.push({
-          type: 'input_text',
+          type: "input_text",
           text: "VIKTIGT: Användaren har inte angivit sin roll än. Fråga tydligt om de är arbetstagare eller arbetsgivare. När de svarar, bekräfta deras roll med fraser som 'Tack för att du bekräftade att du är arbetstagare/arbetsgivare.'",
         });
       }
@@ -278,12 +351,12 @@ export function createChatHandler(config) {
 
         if (crossChatContext.length > 0) {
           userSpecificConversation.push({
-            role: 'system',
+            role: "system",
             content: [
               {
-                type: 'input_text',
+                type: "input_text",
                 text: `Tidigare konversationskontext från ${
-                  botType === 'application' ? 'intervju' : 'ansökan'
+                  botType === "application" ? "intervju" : "ansökan"
                 }: Användaren har tidigare delat följande information som kan vara relevant:`,
               },
             ],
@@ -292,22 +365,22 @@ export function createChatHandler(config) {
           // Add cross-chat context messages
           crossChatContext.forEach((msg) => {
             userSpecificConversation.push({
-              role: 'user',
+              role: "user",
               content: [
                 {
-                  type: 'input_text',
-                  text: `[Tidigare: ${msg.text || msg.content || ''}]`,
+                  type: "input_text",
+                  text: `[Tidigare: ${msg.text || msg.content || ""}]`,
                 },
               ],
             });
           });
 
           userSpecificConversation.push({
-            role: 'system',
+            role: "system",
             content: [
               {
-                type: 'input_text',
-                text: 'Använd denna tidigare information om det är relevant för den aktuella konversationen, men fråga om förtydliganden vid behov.',
+                type: "input_text",
+                text: "Använd denna tidigare information om det är relevant för den aktuella konversationen, men fråga om förtydliganden vid behov.",
               },
             ],
           });
@@ -315,42 +388,50 @@ export function createChatHandler(config) {
       }
 
       // Add previous context from other steps BEFORE current step conversation
-      if (userId && currentStep !== 'step-1') {
-        const previousContext = await getPreviousStepsContext(userId, currentStep, botType);
+      if (userId && currentStep !== "step-1") {
+        const previousContext = await getPreviousStepsContext(
+          userId,
+          currentStep,
+          botType
+        );
 
         if (previousContext.length > 0) {
           // Add a context separator
           userSpecificConversation.push({
-            role: 'system',
+            role: "system",
             content: [
               {
-                type: 'input_text',
-                text: 'Previous conversation context from earlier steps:',
+                type: "input_text",
+                text: "Previous conversation context from earlier steps:",
               },
             ],
           });
 
           // Add context messages
           previousContext.forEach((msg) => {
-            if (msg.role === 'user') {
+            if (msg.role === "user") {
               userSpecificConversation.push({
-                role: 'user',
-                content: [{ type: 'input_text', text: msg.text || msg.content || '' }],
+                role: "user",
+                content: [
+                  { type: "input_text", text: msg.text || msg.content || "" },
+                ],
               });
-            } else if (msg.role === 'assistant') {
+            } else if (msg.role === "assistant") {
               userSpecificConversation.push({
-                role: 'assistant',
-                content: [{ type: 'output_text', text: msg.text || msg.content || '' }],
+                role: "assistant",
+                content: [
+                  { type: "output_text", text: msg.text || msg.content || "" },
+                ],
               });
             }
           });
 
           // Add separator for current step
           userSpecificConversation.push({
-            role: 'system',
+            role: "system",
             content: [
               {
-                type: 'input_text',
+                type: "input_text",
                 text: `Now continuing conversation for ${currentStep}:`,
               },
             ],
@@ -360,24 +441,32 @@ export function createChatHandler(config) {
 
       // Add welcome message if this is a fresh conversation for current step
       if (conversationHistory.length === 0) {
-        const roleBasedWelcome = getWelcomeMessageForRole(currentStep, detectedRole, steps);
+        const roleBasedWelcome = getWelcomeMessageForRole(
+          currentStep,
+          detectedRole,
+          steps
+        );
         const welcomeMessage = {
-          role: 'assistant',
-          content: [{ type: 'output_text', text: roleBasedWelcome }],
+          role: "assistant",
+          content: [{ type: "output_text", text: roleBasedWelcome }],
         };
         userSpecificConversation.push(welcomeMessage);
       } else {
         // Add the user's existing conversation history for current step
         conversationHistory.forEach((msg) => {
-          if (msg.role === 'user') {
+          if (msg.role === "user") {
             userSpecificConversation.push({
-              role: 'user',
-              content: [{ type: 'input_text', text: msg.text || msg.content || '' }],
+              role: "user",
+              content: [
+                { type: "input_text", text: msg.text || msg.content || "" },
+              ],
             });
-          } else if (msg.role === 'assistant') {
+          } else if (msg.role === "assistant") {
             userSpecificConversation.push({
-              role: 'assistant',
-              content: [{ type: 'output_text', text: msg.text || msg.content || '' }],
+              role: "assistant",
+              content: [
+                { type: "output_text", text: msg.text || msg.content || "" },
+              ],
             });
           }
         });
@@ -385,8 +474,8 @@ export function createChatHandler(config) {
 
       // Add the current user message
       const userMessage = {
-        role: 'user',
-        content: [{ type: 'input_text', text: message }],
+        role: "user",
+        content: [{ type: "input_text", text: message }],
       };
       userSpecificConversation.push(userMessage);
 
@@ -394,31 +483,61 @@ export function createChatHandler(config) {
         `Built conversation for user ${userId} with ${userSpecificConversation.length} messages (including cross-chat context)`
       );
 
-      // Call OpenAI with the user-specific conversation
-      const response = await openai.chat.completions.create({
+      // Prepare tools array with file search
+      const tools = [];
+      if (vectorStoreId) {
+        tools.push({
+          type: "file_search",
+          vector_store_ids: [vectorStoreId],
+        });
+        console.log(`Using vector store: ${vectorStoreId}`);
+      }
+
+      // Call OpenAI with the user-specific conversation and file search
+      const response = await openai.responses.create({
         model: model,
-        messages: userSpecificConversation.map((msg) => ({
+        input: userSpecificConversation.map((msg) => ({
           role: msg.role,
           content: Array.isArray(msg.content)
-            ? msg.content.map((c) => c.text || c.output_text || c.input_text).join('\n')
+            ? msg.content
+                .map((c) => c.text || c.output_text || c.input_text)
+                .join("\n")
             : msg.content,
         })),
+        text: {
+          format: { type: "text" },
+        },
+        reasoning: {},
+        tools: tools, // Add file search tools here
         temperature: temperature,
-        max_tokens: maxTokens,
+        max_output_tokens: maxTokens,
         top_p: 1,
+        store: true,
       });
 
-      const responseText = response.choices[0].message.content;
+      // Debug: Log the entire response to see its structure
+      console.log("Full OpenAI Response:", JSON.stringify(response, null, 2));
+
+      // Filter out the response text
+      let responseText = response.output_text;
+
+      console.log("Extracted response text:", responseText);
 
       // Role detection from AI response
       let roleFromAI = null;
-      if (currentStep === 'step-1' && (detectedRole === 'unknown' || detectRole)) {
+      if (
+        currentStep === "step-1" &&
+        (detectedRole === "unknown" || detectRole)
+      ) {
         roleFromAI = extractRoleFromAIResponse(responseText);
       }
 
-      const finalDetectedRole = roleFromAI || (detectedRole !== 'unknown' ? detectedRole : null);
+      const finalDetectedRole =
+        roleFromAI || (detectedRole !== "unknown" ? detectedRole : null);
 
-      console.log(`Response generated for user ${userId}, detected role: ${finalDetectedRole}`);
+      console.log(
+        `Response generated for user ${userId}, detected role: ${finalDetectedRole}`
+      );
 
       res.json({
         message: responseText,
@@ -426,7 +545,7 @@ export function createChatHandler(config) {
       });
     } catch (error) {
       console.error(`${botType} chat error:`, error);
-      res.status(500).json({ error: 'Failed to process your request' });
+      res.status(500).json({ error: "Failed to process your request" });
     }
   };
 }
@@ -440,11 +559,11 @@ export function createWelcomeHandler(config) {
       const { step } = req.params;
       const { role } = req.query;
 
-      const roleToUse = role && role !== 'unknown' ? role : null;
+      const roleToUse = role && role !== "unknown" ? role : null;
       const steps = await fetchSteps();
 
       if (!steps[step]) {
-        return res.status(404).json({ error: 'Step not found' });
+        return res.status(404).json({ error: "Step not found" });
       }
 
       const welcomeMessage = getWelcomeMessageForRole(step, roleToUse, steps);
@@ -452,7 +571,7 @@ export function createWelcomeHandler(config) {
       res.json({ message: welcomeMessage });
     } catch (error) {
       console.error(`Error fetching ${botType} welcome message:`, error);
-      res.status(500).json({ error: 'Failed to fetch welcome message' });
+      res.status(500).json({ error: "Failed to fetch welcome message" });
     }
   };
 }
