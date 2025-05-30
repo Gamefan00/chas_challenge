@@ -33,7 +33,7 @@ const FAQ = () => {
       id: 4,
       question: "Sparas mina uppgifter på Ansökshjälpen?",
       answer:
-        "Ja, dina uppgifter sparas säkert och i enlighet med GDPR. De används endast för att hantera din ansökan och kommer inte att delas med tredje part utan ditt samtycke.",
+        "Dina uppgifter sparas i upp till 100 dagar om du samtycker till kakor (cookies). Om du inte godkänner kakor försvinner all data när du stänger ner webbläsarfönstret. All hantering sker i enlighet med GDPR och informationen delas aldrig med tredje part utan ditt samtycke.",
     },
   ];
 
