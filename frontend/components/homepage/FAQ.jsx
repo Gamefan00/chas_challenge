@@ -15,7 +15,7 @@ const FAQ = () => {
       id: 1,
       question: "Vad är arbetshjälpmedel?",
       answer:
-        "Arbetshjälpmedel är produkter, verktyg eller anpassningar som gör det möjligt för personer med funktionsnedsättning att utföra sitt arbete. Det kan vara allt från ergonomiska möbler till specialiserad programvara eller tekniska hjälpmedel.",
+        "Arbetshjälpmedel är produkter eller anpassningar som kompenserar för en funktionsnedsättning och gör det möjligt för en person att få eller behålla ett arbete. Det kan till exempel vara specialprogramvara, tekniska hjälpmedel eller annan utrustning som är särskilt utformad utifrån individens behov. Försäkringskassan kan ge ekonomiskt stöd för sådana hjälpmedel, men inte för utrustning som räknas som vanlig arbetsmiljöutrustning – till exempel höj- och sänkbara skrivbord eller ergonomiska stolar.",
     },
     {
       id: 2,
