@@ -21,13 +21,14 @@ const FAQ = () => {
       id: 2,
       question: "Vem kan ansöka om arbetshjälpmedel?",
       answer:
-        "Personer med funktionsnedsättning som är anställda, egenföretagare, eller som ska börja ett arbete eller arbetsmarknadsutbildning kan ansöka om arbetshjälpmedel.",
+        "Du kan ansöka om arbetshjälpmedel om du har en funktionsnedsättning som påverkar din arbetsförmåga, är anställd eller egenföretagare, och har arbetat i minst 12 månader.  Du ska också vara mellan 18 och 69 år och försäkrad i Sverige. Om du är arbetssökande eller om du är precis i början av din ansälllning, ska du istället vända dig till Arbetsförmedlingen.",
     },
+   
     {
       id: 3,
       question: "Hur fungerar ett utredningssamtal?",
       answer:
-        "Ett utredningssamtal är ett möte där dina behov kartläggs. En handläggare träffar dig och eventuellt din arbetsgivare för att diskutera vilka hjälpmedel som kan underlätta ditt arbete. Samtalet kan ske på arbetsplatsen eller digitalt.",
+        "Ett utredningssamtal är ett möte där dina behov kartläggs. En handläggare kontaktar dig och eventuellt din arbetsgivare för att diskutera vilka hjälpmedel som kan underlätta ditt arbete.",
     },
     {
       id: 4,

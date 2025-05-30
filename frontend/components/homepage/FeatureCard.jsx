@@ -39,10 +39,10 @@ const FeatureCard = () => {
     },
     {
       icon: "PenLine",
-      title: "Lär dig mer",
+      title: "Om Ansökshjälpen",
       description:
-        "Förstår dina rättigheter och skyldigheter kring arbetshjälpmedel genom att läsa guider, artiklar och expertråd.",
-      buttonText: "Utforska resurser",
+        "Att söka arbetshjälpmedel kan kännas krångligt. Den här guiden visar tydligt hur processen går till. Vi hjälper dig att göra det enkelt och rätt från början.",
+      buttonText: "Lär dig mer",
       link: "/information",
     },
   ];
