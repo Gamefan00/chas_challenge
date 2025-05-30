@@ -18,17 +18,15 @@ const steps = [
   },
   {
     id: 3,
-    title: "Skapa din ansökan",
+    title: "Formulera ditt underlag",
     description: "Få förslag på formuleringar som matchar Försäkringskassans krav och riktlinjer.",
   },
   {
     id: 4,
-    title: "Ladda ner & använd",
-    description:
-      "Spara dina dokument och förbered dig för nästa steg i processen med våra stöddokument.",
+    title: "Granska & använd",
+    description: "Se över din färdiga ansökan och använd den i din kontakt med Försäkringskassan.",
   },
 ];
-
 const HowItWorks = () => {
   const containerVariants = {
     hidden: { opacity: 0 },
