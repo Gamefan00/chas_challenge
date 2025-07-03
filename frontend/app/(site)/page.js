@@ -10,9 +10,9 @@ const page = () => {
       <div className="bg-background flex w-full flex-col py-12">
         <div className="mx-auto flex max-w-7xl flex-col items-center gap-12 px-4 md:mb-20 md:gap-20">
           <Hero
-            title="Förenkla din väg till arbetshjälpmedel"
+            title="Förenkla din väg till arbetshjälpmedel TEST123"
             description="Låt vår AI-assistent guida dig genom ansökningsprocessen och maximera dina chanser att få rätt stöd för dina behov."
-            buttonText="Starta formulärguide"
+            buttonText="Starta formulärguide TEST"
             buttonLink="/applicationChat"
           />
           <FeatureCard />
