@@ -31,10 +31,10 @@ const FeatureCard = () => {
     },
     {
       icon: "MessageSquareText",
-      title: "Förbered utredningssamtal",
+      title: "Förbered utredningssamtalTEST",
       description:
         "Simulera ett utredningssamtal med vår AI och lär dig svara på handläggarens frågor på ett tydligt och effektivt sätt.",
-      buttonText: "Förbered samtal",
+      buttonText: "Förbered samtalhaha",
       link: "/interviewChat",
     },
     {
