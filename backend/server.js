@@ -57,9 +57,10 @@ app.use("/settingsRoutes/aiModelConfig", aiModelConfigRoutes);
 app.use("/settingsRoutes/aiBehaviorConfigRoutes", aiBehaviorConfigRoutes);
 
 // Start server
-const server = app.listen(PORT, () => {
-  console.log(`Server started on port ${PORT}`);
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server started on http://0.0.0.0:${PORT}`);
 });
+
 
 // Function to keep the database connection alive
 const keepDatabaseAlive = async () => {
